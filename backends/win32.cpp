@@ -1,10 +1,10 @@
-// dear imgui: Platform Backend for Windows (standard windows API for 32-bits
+// gui: Platform Backend for Windows (standard windows API for 32-bits
 // AND 64-bits applications) This needs to be used along with a Renderer (e.g.
 // DirectX11, OpenGL3, Vulkan..)
 
 // Implemented features:
 //  [X] Platform: Clipboard support (for Win32 this is actually part of core
-//  dear imgui) [X] Platform: Mouse support. Can discriminate
+//  gui) [X] Platform: Mouse support. Can discriminate
 //  Mouse/TouchScreen/Pen. [X] Platform: Keyboard support. Since 1.87 we are
 //  using the io.AddKeyEvent() function. Pass Key values to all key
 //  functions e.g. Gui::IsKeyPressed(Key_Space). [Legacy VK_* values will
@@ -15,16 +15,6 @@
 //  ConfigFlags_NoMouseCursorChange'. [X] Platform: Multi-viewport support
 //  (multiple windows). Enable with 'io.ConfigFlags |=
 //  ConfigFlags_ViewportsEnable'.
-
-// You can use unmodified * files in your project. See examples/
-// folder for examples of using this. Prefer including the entire imgui/
-// repository into your project (either as a copy or as a submodule), and only
-// build the backends you need. Learn about Dear Gui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/
-// folder).
-// - Introduction, links and more at the top of gui.cpp
 
 #include "../gui.hpp"
 #ifndef DISABLE
@@ -49,100 +39,6 @@ typedef DWORD(WINAPI *PFN_XInputGetCapabilities)(DWORD, DWORD,
                                                  XINPUT_CAPABILITIES *);
 typedef DWORD(WINAPI *PFN_XInputGetState)(DWORD, XINPUT_STATE *);
 #endif
-
-// CHANGELOG
-// (minor and older changes stripped away, please see git history for details)
-//  2023-XX-XX: Platform: Added support for multiple windows via the
-//  PlatformIO interface. 2023-10-05: Inputs: Added support for extra
-//  Key values: F13 to F24 function keys, app back/forward keys.
-//  2023-09-25: Inputs: Synthesize key-down event on key-up for VK_SNAPSHOT /
-//  Key_PrintScreen as Windows doesn't emit it (same behavior as GLFW/SDL).
-//  2023-09-07: Inputs: Added support for keyboard codepage conversion for when
-//  application is compiled in MBCS mode and using a non-Unicode window.
-//  2023-04-19: Added Win32_InitForOpenGL() to facilitate combining
-//  raw Win32/Winapi with OpenGL. (#3218) 2023-04-04: Inputs: Added support for
-//  io.AddMouseSourceEvent() to discriminate
-//  MouseSource_Mouse/MouseSource_TouchScreen/MouseSource_Pen.
-//  (#2702) 2023-02-15: Inputs: Use WM_NCMOUSEMOVE / WM_NCMOUSELEAVE to track
-//  mouse position over non-client area (e.g. OS decorations) when app is not
-//  focused. (#6045, #6162) 2023-02-02: Inputs: Flipping WM_MOUSEHWHEEL
-//  (horizontal mouse-wheel) value to match other backends and offer consistent
-//  horizontal scrolling direction. (#4019, #6096, #1463) 2022-10-11: Using
-//  'nullptr' instead of 'NULL' as per our switch to C++11. 2022-09-28: Inputs:
-//  Convert WM_CHAR values with MultiByteToWideChar() when window class was
-//  registered as MBCS (not Unicode). 2022-09-26: Inputs: Renamed
-//  Key_ModXXX introduced in 1.87 to Mod_XXX (old names still
-//  supported). 2022-01-26: Inputs: replaced short-lived io.AddKeyModsEvent()
-//  (added two weeks ago) with io.AddKeyEvent() using Key_ModXXX flags.
-//  Sorry for the confusion. 2021-01-20: Inputs: calling new
-//  io.AddKeyAnalogEvent() for gamepad support, instead of writing directly to
-//  io.NavInputs[]. 2022-01-17: Inputs: calling new io.AddMousePosEvent(),
-//  io.AddMouseButtonEvent(), io.AddMouseWheelEvent() API (1.87+). 2022-01-17:
-//  Inputs: always update key mods next and before a key event (not in NewFrame)
-//  to fix input queue with very low framerates. 2022-01-12: Inputs: Update
-//  mouse inputs using WM_MOUSEMOVE/WM_MOUSELEAVE + fallback to provide it when
-//  focused but not hovered/captured. More standard and will allow us to pass it
-//  to future input queue API. 2022-01-12: Inputs: Maintain our own copy of
-//  MouseButtonsDown mask instead of using Gui::IsAnyMouseDown() which will be
-//  obsoleted. 2022-01-10: Inputs: calling new io.AddKeyEvent(),
-//  io.AddKeyModsEvent() + io.SetKeyEventNativeData() API (1.87+). Support for
-//  full Key range. 2021-12-16: Inputs: Fill
-//  VK_LCONTROL/VK_RCONTROL/VK_LSHIFT/VK_RSHIFT/VK_LMENU/VK_RMENU for
-//  completeness. 2021-08-17: Calling io.AddFocusEvent() on
-//  WM_SETFOCUS/WM_KILLFOCUS messages. 2021-08-02: Inputs: Fixed keyboard
-//  modifiers being reported when host window doesn't have focus. 2021-07-29:
-//  Inputs: MousePos is correctly reported when the host platform window is
-//  hovered but not focused (using TrackMouseEvent() to receive WM_MOUSELEAVE
-//  events). 2021-06-29: Reorganized backend to pull data from a single
-//  structure to facilitate usage with multiple-contexts (all g_XXXX access
-//  changed to bd->XXXX). 2021-06-08: Fixed Win32_EnableDpiAwareness()
-//  and Win32_GetDpiScaleForMonitor() to handle Windows 8.1/10
-//  features without a manifest (per-monitor DPI, and properly calls
-//  SetProcessDpiAwareness() on 8.1). 2021-03-23: Inputs: Clearing keyboard down
-//  array when losing focus (WM_KILLFOCUS). 2021-02-18: Added
-//  Win32_EnableAlphaCompositing(). Non Visual Studio users will need
-//  to link with dwmapi.lib (MinGW/gcc: use -ldwmapi). 2021-02-17: Fixed
-//  Win32_EnableDpiAwareness() attempting to get
-//  SetProcessDpiAwareness from shcore.dll on Windows 8 whereas it is only
-//  supported on Windows 8.1. 2021-01-25: Inputs: Dynamically loading XInput
-//  DLL. 2020-12-04: Misc: Fixed setting of io.DisplaySize to
-//  invalid/uninitialized data when after hwnd has been closed. 2020-03-03:
-//  Inputs: Calling AddInputCharacterUTF16() to support surrogate pairs leading
-//  to codepoint >= 0x10000 (for more complete CJK inputs) 2020-02-17: Added
-//  Win32_EnableDpiAwareness(), Win32_GetDpiScaleForHwnd(),
-//  Win32_GetDpiScaleForMonitor() helper functions. 2020-01-14:
-//  Inputs: Added support for #define
-//  WIN32_DISABLE_GAMEPAD/WIN32_DISABLE_LINKING_XINPUT. 2019-12-05:
-//  Inputs: Added support for MouseCursor_NotAllowed mouse cursor.
-//  2019-05-11: Inputs: Don't filter value from WM_CHAR before calling
-//  AddInputCharacter(). 2019-01-17: Misc: Using GetForegroundWindow()+IsChild()
-//  instead of GetActiveWindow() to be compatible with windows created in a
-//  different thread or parent. 2019-01-17: Inputs: Added support for mouse
-//  buttons 4 and 5 via WM_XBUTTON* messages. 2019-01-15: Inputs: Added support
-//  for XInput gamepads (if ConfigFlags_NavEnableGamepad is set by user
-//  application). 2018-11-30: Misc: Setting up io.BackendPlatformName so it can
-//  be displayed in the About Window. 2018-06-29: Inputs: Added support for the
-//  MouseCursor_Hand cursor. 2018-06-10: Inputs: Fixed handling of mouse
-//  wheel messages to support fine position messages (typically sent by
-//  track-pads). 2018-06-08: Misc: Extracted win32.cpp/.h away from
-//  the old combined DX9/DX10/DX11/DX12 examples. 2018-03-20: Misc: Setup
-//  io.BackendFlags BackendFlags_HasMouseCursors and
-//  BackendFlags_HasSetMousePos flags + honor
-//  ConfigFlags_NoMouseCursorChange flag. 2018-02-20: Inputs: Added support
-//  for mouse cursors (Gui::GetMouseCursor() value and WM_SETCURSOR message
-//  handling). 2018-02-06: Inputs: Added mapping for Key_Space. 2018-02-06:
-//  Inputs: Honoring the io.WantSetMousePos by repositioning the mouse (when
-//  using navigation and ConfigFlags_NavMoveMouse is set). 2018-02-06:
-//  Misc: Removed call to Gui::Shutdown() which is not available from 1.60
-//  WIP, user needs to call CreateContext/DestroyContext themselves. 2018-01-20:
-//  Inputs: Added Horizontal Mouse Wheel support. 2018-01-08: Inputs: Added
-//  mapping for Key_Insert. 2018-01-05: Inputs: Added WM_LBUTTONDBLCLK
-//  double-click handlers for window classes with the CS_DBLCLKS flag.
-//  2017-10-23: Inputs: Added WM_SYSKEYDOWN / WM_SYSKEYUP handlers so e.g. the
-//  VK_MENU key can be read. 2017-10-23: Inputs: Using Win32
-//  ::SetCapture/::GetCapture() to retrieve mouse positions outside the client
-//  area when dragging. 2016-11-12: Inputs: Only call Win32 ::SetCursor(nullptr)
-//  when io.MouseDrawCursor is set.
 
 // Forward Declarations
 static void Win32_InitPlatformInterface(bool platformHasOwnDC);
@@ -172,9 +68,9 @@ struct Win32_Data {
 };
 
 // Backend data stored in io.BackendPlatformUserData to allow support for
-// multiple Dear Gui contexts It is STRONGLY preferred that you use docking
-// branch with multi-viewports (== single Dear Gui context + multiple windows)
-// instead of multiple Dear Gui contexts.
+// multiple Gui contexts It is STRONGLY preferred that you use docking
+// branch with multi-viewports (== single Gui context + multiple windows)
+// instead of multiple Gui contexts.
 // FIXME: multi-context support is not well tested and probably dysfunctional in
 // this backend.
 // FIXME: some shared resources (mouse cursor shape, gamepad) are mishandled
@@ -379,7 +275,7 @@ static void Win32_UpdateKeyModifiers() {
 }
 
 // This code supports multi-viewports (multiple OS Windows mapped into different
-// Dear Gui viewports) Because of that, it is a little more complicated than
+// Gui viewports) Because of that, it is a little more complicated than
 // your typical single-viewport binding code!
 static void Win32_UpdateMouseData() {
   Win32_Data *bd = Win32_GetBackendData();
@@ -395,9 +291,9 @@ static void Win32_UpdateMouseData() {
        (focused_window == bd->hWnd || ::IsChild(focused_window, bd->hWnd) ||
         Gui::FindViewportByPlatformHandle((void *)focused_window)));
   if (is_app_focused) {
-    // (Optional) Set OS mouse position from Dear Gui if requested (rarely
+    // (Optional) Set OS mouse position from Gui if requested (rarely
     // used, only when ConfigFlags_NavEnableSetMousePos is enabled by user)
-    // When multi-viewports are enabled, all Dear Gui positions are same as OS
+    // When multi-viewports are enabled, all Gui positions are same as OS
     // positions.
     if (io.WantSetMousePos) {
       POINT pos = {(int)io.MousePos.x, (int)io.MousePos.y};
@@ -430,7 +326,7 @@ static void Win32_UpdateMouseData() {
 
   // (Optional) When using multiple viewports: call io.AddMouseViewportEvent()
   // with the viewport the OS mouse cursor is hovering. If
-  // BackendFlags_HasMouseHoveredViewport is not set by the backend, Dear
+  // BackendFlags_HasMouseHoveredViewport is not set by the backend,
   // imGui will ignore this field and infer the information using its flawed
   // heuristic.
   // - [X] Win32 backend correctly ignore viewports with the _NoInputs flag
@@ -439,7 +335,7 @@ static void Win32_UpdateMouseData() {
   //       Some backend are not able to handle that correctly. If a backend
   //       report an hovered viewport that has the _NoInputs flag (e.g. when
   //       dragging a window for docking, the viewport has the _NoInputs flag in
-  //       order to allow us to find the viewport under), then Dear Gui is
+  //       order to allow us to find the viewport under), then Gui is
   //       forced to ignore the value reported by the backend, and use its
   //       flawed heuristic to guess the viewport behind.
   // - [X] Win32 backend correctly reports this regardless of another viewport
@@ -860,12 +756,12 @@ static Key Win32_VirtualKeyToKey(WPARAM wParam) {
 // Call from your application's message handler. Keep calling your message
 // handler unless this function returns TRUE. When implementing your own
 // backend, you can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags
-// to tell if Dear Gui wants to use your inputs.
+// to tell if Gui wants to use your inputs.
 // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your
 // main application, or clear/overwrite your copy of the mouse data.
 // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to
 // your main application, or clear/overwrite your copy of the keyboard data.
-// Generally you may always pass all inputs to Dear Gui, and hide them from
+// Generally you may always pass all inputs to Gui, and hide them from
 // your application based on those two flags. PS: In this Win32 handler, we use
 // the capture API (GetCapture/SetCapture/ReleaseCapture) to be able to read
 // mouse coordinates when dragging mouse outside of our window bounds. PS: We
@@ -1120,7 +1016,7 @@ API LRESULT Win32_WndProcHandler(HWND hwnd, UINT msg, WPARAM wParam,
 
 // Perform our own check with RtlVerifyVersionInfo() instead of using functions
 // from <VersionHelpers.h> as they require a manifest to be functional for
-// checks above 8.1. See https://github.com/ocornut/imgui/issues/4200
+// checks above 8.1.
 static BOOL _IsWindowsVersionOrGreater(WORD major, WORD minor, WORD) {
   typedef LONG(WINAPI * PFN_RtlVerifyVersionInfo)(OSVERSIONINFOEXW *, ULONG,
                                                   ULONGLONG);
@@ -1298,8 +1194,8 @@ void Win32_EnableAlphaCompositing(void *hwnd) {
 //---------------------------------------------------------------------------------------------------------
 // MULTI-VIEWPORT / PLATFORM INTERFACE SUPPORT
 // This is an _advanced_ and _optional_ feature, allowing the backend to create
-// and handle multiple viewports simultaneously. If you are new to dear imgui or
-// creating a new binding for dear imgui, it is recommended that you completely
+// and handle multiple viewports simultaneously. If you are new to gui or
+// creating a new binding for gui, it is recommended that you completely
 // ignore this section first..
 //--------------------------------------------------------------------------------------------------------
 
@@ -1408,7 +1304,7 @@ static void Win32_UpdateWindow(Viewport *viewport) {
   HWND new_parent = Win32_GetHwndFromViewportID(viewport->ParentViewportId);
   if (new_parent != vd->HwndParent) {
     // Win32 windows can either have a "Parent" (for WS_CHILD window) or an
-    // "Owner" (which among other thing keeps window above its owner). Our Dear
+    // "Owner" (which among other thing keeps window above its owner). Our
     // Imgui-side concept of parenting only mostly care about what Win32 call
     // "Owner". The parent parameter of CreateWindowEx() sets up Parent OR Owner
     // depending on WS_CHILD flag. In our case an Owner as we never use
@@ -1416,7 +1312,6 @@ static void Win32_UpdateWindow(Viewport *viewport) {
     // full child relation, alter coordinate system and clipping. Calling
     // ::SetWindowLongPtr() with GWLP_HWNDPARENT seems correct although poorly
     // documented.
-    // https://devblogs.microsoft.com/oldnewthing/20100315-00/?p=14613
     vd->HwndParent = new_parent;
     ::SetWindowLongPtr(vd->Hwnd, GWLP_HWNDPARENT, (LONG_PTR)vd->HwndParent);
   }

@@ -1,11 +1,5 @@
-// [DEAR IMGUI]
+// [GUI]
 // This is a slightly modified version of textedit.h 1.14.
-// Those changes would need to be pushed into nothings/stb:
-// - Fix in textedit_discard_redo (see
-// https://github.com/nothings/stb/issues/321)
-// - Fix in textedit_find_charpos to handle last line (see
-// https://github.com/ocornut/imgui/issues/6000 + #6783) Grep for [DEAR IMGUI]
-// to find the changes.
 // - Also renamed macros used or defined outside of
 // TEXTEDIT_IMPLEMENTATION block from TEXTEDIT_* to TEXTEDIT_*
 
@@ -282,8 +276,8 @@
 //
 // Notes:
 //
-// This is designed to be usable in IMGUI, so it allows for the possibility of
-// running in an IMGUI that has NOT cached the multi-line layout. For this
+// This is designed to be usable in GUI, so it allows for the possibility of
+// running in an GUI that has NOT cached the multi-line layout. For this
 // reason, it provides an interface that is compatible with computing the
 // layout incrementally--we try to make sure we make as few passes through
 // as possible. (For example, to locate the mouse pointer in the text, we
@@ -572,15 +566,15 @@ static void textedit_find_charpos(StbFindState *find, TEXTEDIT_STRING *str,
       break;
     if (i + r.num_chars == z && z > 0 &&
         TEXTEDIT_GETCHAR(str, z - 1) !=
-            TEXTEDIT_NEWLINE) // [DEAR IMGUI] special handling for last line
-      break;                  // [DEAR IMGUI]
+            TEXTEDIT_NEWLINE) // [GUI] special handling for last line
+      break;                  // [GUI]
     prev_start = i;
     i += r.num_chars;
     find->y += r.baseline_y_delta;
-    if (i == z) // [DEAR IMGUI]
+    if (i == z) // [GUI]
     {
-      r.num_chars = 0; // [DEAR IMGUI]
-      break;           // [DEAR IMGUI]
+      r.num_chars = 0; // [GUI]
+      break;           // [GUI]
     }
   }
 
@@ -909,7 +903,7 @@ retry:
       if (find.length == 0)
         break;
 
-      // [DEAR IMGUI]
+      // [GUI]
       // going down while being on the last line shouldn't bring us to that line
       // end
       if (TEXTEDIT_GETCHAR(str, find.first_char + find.length - 1) !=
@@ -1201,7 +1195,7 @@ static void textedit_discard_redo(StbUndoState *state) {
           state->undo_rec[i].char_storage += n;
     }
     // now move all the redo records towards the end of the buffer; the first
-    // one is at 'redo_point' [DEAR IMGUI]
+    // one is at 'redo_point' [GUI]
     size_t move_size =
         (size_t)((TEXTEDIT_UNDOSTATECOUNT - state->redo_point - 1) *
                  sizeof(state->undo_rec[0]));

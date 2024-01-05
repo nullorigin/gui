@@ -1,4 +1,4 @@
-// dear imgui: Platform Backend for SDL3 (*EXPERIMENTAL*)
+// gui: Platform Backend for SDL3 (*EXPERIMENTAL*)
 // This needs to be used along with a Renderer (e.g. DirectX11, OpenGL3,
 // Vulkan..) (Info: SDL3 is a cross-platform general purpose library for
 // handling windows, inputs, graphics context creation, etc.) (IMPORTANT:
@@ -23,16 +23,6 @@
 //  events (at least under Windows). [x] Platform: Basic IME support. Position
 //  somehow broken in SDL3 + app needs to call
 //  'SDL_SetHint(SDL_HINT_IME_SHOW_UI, "1");' before SDL_CreateWindow()!.
-
-// You can use unmodified * files in your project. See examples/
-// folder for examples of using this. Prefer including the entire imgui/
-// repository into your project (either as a copy or as a submodule), and only
-// build the backends you need. Learn about Dear Gui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/
-// folder).
-// - Introduction, links and more at the top of gui.cpp
 
 #pragma once
 #include "../gui.hpp" // API

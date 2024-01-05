@@ -1,24 +1,13 @@
-// dear imgui, v1.90.1 WIP
-// (widgets code)
-
-/*
-
-Index of this file:
-
 // [SECTION] Forward Declarations
 // [SECTION] Widgets: Text, etc.
 // [SECTION] Widgets: Main (Button, Image, Checkbox, RadioButton, ProgressBar,
-Bullet, etc.)
-// [SECTION] Widgets: Low-level Layout helpers (Spacing, Dummy, NewLine,
-Separator, etc.)
-// [SECTION] Widgets: ComboBox
-// [SECTION] Data Type and Data Formatting Helpers
-// [SECTION] Widgets: DragScalar, DragFloat, DragInt, etc.
-// [SECTION] Widgets: SliderScalar, SliderFloat, SliderInt, etc.
-// [SECTION] Widgets: InputScalar, InputFloat, InputInt, etc.
-// [SECTION] Widgets: InputText, InputTextMultiline
-// [SECTION] Widgets: ColorEdit, ColorPicker, ColorButton, etc.
-// [SECTION] Widgets: TreeNode, CollapsingHeader, etc.
+// Bullet, etc.) [SECTION] Widgets: Low-level Layout helpers (Spacing, Dummy,
+// NewLine, Separator, etc.) [SECTION] Widgets: ComboBox [SECTION] Data Type and
+// Data Formatting Helpers [SECTION] Widgets: DragScalar, DragFloat, DragInt,
+// etc. [SECTION] Widgets: SliderScalar, SliderFloat, SliderInt, etc. [SECTION]
+// Widgets: InputScalar, InputFloat, InputInt, etc. [SECTION] Widgets:
+// InputText, InputTextMultiline [SECTION] Widgets: ColorEdit, ColorPicker,
+// ColorButton, etc. [SECTION] Widgets: TreeNode, CollapsingHeader, etc.
 // [SECTION] Widgets: Selectable
 // [SECTION] Widgets: Typing-Select support
 // [SECTION] Widgets: Multi-Select support
@@ -30,7 +19,7 @@ Separator, etc.)
 // [SECTION] Widgets: BeginTabItem, EndTabItem, etc.
 // [SECTION] Widgets: Columns, BeginColumns, EndColumns, etc.
 
-*/
+* /
 
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
 #define _CRT_SECURE_NO_WARNINGS
@@ -136,12 +125,12 @@ Separator, etc.)
                                         // is deprecated
 #endif
 
-//-------------------------------------------------------------------------
-// Data
-//-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    // Data
+    //-------------------------------------------------------------------------
 
-// Widgets
-static const float DRAGDROP_HOLD_TO_OPEN_TIMER =
+    // Widgets
+    static const float DRAGDROP_HOLD_TO_OPEN_TIMER =
     0.70f; // Time for drag-hold to activate items accepting the
            // ButtonFlags_PressedOnDragDropHold button behavior.
 static const float DRAG_MOUSE_THRESHOLD_FACTOR =
@@ -505,7 +494,7 @@ void Gui::BulletTextV(const char *fmt, va_list args) {
 // ButtonFlags_), this code is a little complex. By far the most common
 // path is interacting with the Mouse using the default
 // ButtonFlags_PressedOnClickRelease button behavior. See the series of
-// events below and the corresponding state reported by dear imgui:
+// events below and the corresponding state reported by gui:
 //------------------------------------------------------------------------------------------------------------------------------------------------
 // with PressedOnClickRelease:             return-value  IsItemHovered()
 // IsItemActive()  IsItemActivated()  IsItemDeactivated()  IsItemClicked()
@@ -5769,8 +5758,7 @@ bool Gui::InputTextEx(const char *label, const char *hint, char *buf,
           callback_data.BufDirty = false;
 
           // We have to convert from wchar-positions to UTF-8-positions, which
-          // can be pretty slow (an incentive to ditch the Wchar buffer, see
-          // https://github.com/nothings/stb/issues/188)
+          // can be pretty slow (an incentive to ditch the Wchar buffer).
           Wchar *text = state->TextW.Data;
           const int utf8_cursor_pos = callback_data.CursorPos =
               TextCountUtf8BytesFromStr(text, text + state->Stb.cursor);
@@ -8518,7 +8506,6 @@ bool Gui::ListBox(const char *label, int *current_item,
 // Plot/Graph widgets are not very good.
 // Consider writing your own, or using a third-party one, see:
 // - Plot https://github.com/epezent/implot
-// - others https://github.com/ocornut/imgui/wiki/Useful-Extensions
 //-------------------------------------------------------------------------
 
 int Gui::PlotEx(PlotType plot_type, const char *label,

@@ -1,11 +1,4 @@
-// Dear Gui: standalone example application for Glfw + Vulkan
-
-// Learn about Dear Gui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/
-// folder).
-// - Introduction, links and more at the top of gui.cpp
+// Gui: standalone example application for Glfw + Vulkan
 
 // Important note to the reader who wish to integrate vulkan.cpp/.h
 // in their own engine/app.
@@ -378,7 +371,7 @@ static void FrameRender(VulkanH_Window *wd, DrawData *draw_data) {
     vkCmdBeginRenderPass(fd->CommandBuffer, &info, VK_SUBPASS_CONTENTS_INLINE);
   }
 
-  // Record dear imgui primitives into command buffer
+  // Record gui primitives into command buffer
   Vulkan_RenderDrawData(draw_data, fd->CommandBuffer);
 
   // Submit command buffer
@@ -434,8 +427,8 @@ int main(int, char **) {
 
   // Create window with Vulkan context
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-  GLFWwindow *window = glfwCreateWindow(
-      1280, 720, "Dear Gui GLFW+Vulkan example", nullptr, nullptr);
+  GLFWwindow *window =
+      glfwCreateWindow(1280, 720, "Gui GLFW+Vulkan example", nullptr, nullptr);
   if (!glfwVulkanSupported()) {
     printf("GLFW: Vulkan Not Supported\n");
     return 1;
@@ -461,7 +454,7 @@ int main(int, char **) {
   VulkanH_Window *wd = &g_MainWindowData;
   SetupVulkanWindow(wd, surface, w, h);
 
-  // Setup Dear Gui context
+  // Setup Gui context
   CHECKVERSION();
   Gui::CreateContext();
   IO &io = Gui::GetIO();
@@ -474,7 +467,7 @@ int main(int, char **) {
   // io.ConfigViewportsNoAutoMerge = true;
   // io.ConfigViewportsNoTaskBarIcon = true;
 
-  // Setup Dear Gui style
+  // Setup Gui style
   Gui::StyleColorsDark();
   // Gui::StyleColorsLight();
 
@@ -505,7 +498,7 @@ int main(int, char **) {
   Vulkan_Init(&init_info, wd->RenderPass);
 
   // Load Fonts
-  // - If no fonts are loaded, dear imgui will use the default font. You can
+  // - If no fonts are loaded, gui will use the default font. You can
   // also load multiple fonts and use Gui::PushFont()/PopFont() to select
   // them.
   // - AddFontFromFileTTF() will return the Font* so you can store it if you
@@ -539,12 +532,12 @@ int main(int, char **) {
   while (!glfwWindowShouldClose(window)) {
     // Poll and handle events (inputs, window resize, etc.)
     // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to
-    // tell if dear imgui wants to use your inputs.
+    // tell if gui wants to use your inputs.
     // - When io.WantCaptureMouse is true, do not dispatch mouse input data to
     // your main application, or clear/overwrite your copy of the mouse data.
     // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input
     // data to your main application, or clear/overwrite your copy of the
-    // keyboard data. Generally you may always pass all inputs to dear imgui,
+    // keyboard data. Generally you may always pass all inputs to gui,
     // and hide them from your application based on those two flags.
     glfwPollEvents();
 
@@ -562,13 +555,13 @@ int main(int, char **) {
       }
     }
 
-    // Start the Dear Gui frame
+    // Start the Gui frame
     Vulkan_NewFrame();
     Glfw_NewFrame();
     Gui::NewFrame();
 
     // 1. Show the big demo window (Most of the sample code is in
-    // Gui::ShowDemoWindow()! You can browse its code to learn more about Dear
+    // Gui::ShowDemoWindow()! You can browse its code to learn more about
     // Gui!).
     if (show_demo_window)
       Gui::ShowDemoWindow(&show_demo_window);

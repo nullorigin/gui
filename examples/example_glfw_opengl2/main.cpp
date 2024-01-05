@@ -1,13 +1,6 @@
-// Dear Gui: standalone example application for GLFW + OpenGL2, using legacy
+// Gui: standalone example application for GLFW + OpenGL2, using legacy
 // fixed pipeline (GLFW is a cross-platform general purpose library for handling
 // windows, inputs, OpenGL/Vulkan/Metal graphics context creation, etc.)
-
-// Learn about Dear Gui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/
-// folder).
-// - Introduction, links and more at the top of gui.cpp
 
 // **DO NOT USE THIS CODE IF YOUR CODE/ENGINE IS USING MODERN OPENGL (SHADERS,
 // VBO, VAO, etc.)**
@@ -44,14 +37,14 @@ int main(int, char **) {
     return 1;
 
   // Create window with graphics context
-  GLFWwindow *window = glfwCreateWindow(
-      1280, 720, "Dear Gui GLFW+OpenGL2 example", nullptr, nullptr);
+  GLFWwindow *window =
+      glfwCreateWindow(1280, 720, "Gui GLFW+OpenGL2 example", nullptr, nullptr);
   if (window == nullptr)
     return 1;
   glfwMakeContextCurrent(window);
   glfwSwapInterval(1); // Enable vsync
 
-  // Setup Dear Gui context
+  // Setup Gui context
   CHECKVERSION();
   Gui::CreateContext();
   IO &io = Gui::GetIO();
@@ -64,7 +57,7 @@ int main(int, char **) {
   // io.ConfigViewportsNoAutoMerge = true;
   // io.ConfigViewportsNoTaskBarIcon = true;
 
-  // Setup Dear Gui style
+  // Setup Gui style
   Gui::StyleColorsDark();
   // Gui::StyleColorsLight();
 
@@ -81,7 +74,7 @@ int main(int, char **) {
   OpenGL2_Init();
 
   // Load Fonts
-  // - If no fonts are loaded, dear imgui will use the default font. You can
+  // - If no fonts are loaded, gui will use the default font. You can
   // also load multiple fonts and use Gui::PushFont()/PopFont() to select
   // them.
   // - AddFontFromFileTTF() will return the Font* so you can store it if you
@@ -115,22 +108,22 @@ int main(int, char **) {
   while (!glfwWindowShouldClose(window)) {
     // Poll and handle events (inputs, window resize, etc.)
     // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to
-    // tell if dear imgui wants to use your inputs.
+    // tell if gui wants to use your inputs.
     // - When io.WantCaptureMouse is true, do not dispatch mouse input data to
     // your main application, or clear/overwrite your copy of the mouse data.
     // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input
     // data to your main application, or clear/overwrite your copy of the
-    // keyboard data. Generally you may always pass all inputs to dear imgui,
+    // keyboard data. Generally you may always pass all inputs to gui,
     // and hide them from your application based on those two flags.
     glfwPollEvents();
 
-    // Start the Dear Gui frame
+    // Start the Gui frame
     OpenGL2_NewFrame();
     Glfw_NewFrame();
     Gui::NewFrame();
 
     // 1. Show the big demo window (Most of the sample code is in
-    // Gui::ShowDemoWindow()! You can browse its code to learn more about Dear
+    // Gui::ShowDemoWindow()! You can browse its code to learn more about
     // Gui!).
     if (show_demo_window)
       Gui::ShowDemoWindow(&show_demo_window);

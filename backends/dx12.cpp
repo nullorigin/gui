@@ -1,4 +1,4 @@
-// dear imgui: Renderer Backend for DirectX12
+// gui: Renderer Backend for DirectX12
 // This needs to be used along with a Platform Backend (e.g. Win32)
 
 // Implemented features:
@@ -25,47 +25,6 @@
 // - [Solution 4] command-line: add '/D TextureID=U64' to your cl.exe
 // command-line (this is what we do in the
 // example_win32_direct12/build_win32.bat file)
-
-// You can use unmodified * files in your project. See examples/
-// folder for examples of using this. Prefer including the entire imgui/
-// repository into your project (either as a copy or as a submodule), and only
-// build the backends you need. Learn about Dear Gui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/
-// folder).
-// - Introduction, links and more at the top of gui.cpp
-
-// CHANGELOG
-// (minor and older changes stripped away, please see git history for details)
-//  2023-XX-XX: Platform: Added support for multiple windows via the
-//  PlatformIO interface. 2022-10-11: Using 'nullptr' instead of 'NULL' as
-//  per our switch to C++11. 2021-06-29: Reorganized backend to pull data from a
-//  single structure to facilitate usage with multiple-contexts (all g_XXXX
-//  access changed to bd->XXXX). 2021-05-19: DirectX12: Replaced direct access
-//  to DrawCmd::TextureId with a call to DrawCmd::GetTexID(). (will become a
-//  requirement) 2021-02-18: DirectX12: Change blending equation to preserve
-//  alpha in output buffer. 2021-01-11: DirectX12: Improve Windows 7
-//  compatibility (for D3D12On7) by loading d3d12.dll dynamically. 2020-09-16:
-//  DirectX12: Avoid rendering calls with zero-sized scissor rectangle since it
-//  generates a validation layer warning. 2020-09-08: DirectX12: Clarified
-//  support for building on 32-bit systems by redefining TextureID.
-//  2019-10-18: DirectX12: *BREAKING CHANGE* Added extra ID3D12DescriptorHeap
-//  parameter to DX12_Init() function. 2019-05-29: DirectX12: Added
-//  support for large mesh (64K+ vertices), enable
-//  BackendFlags_RendererHasVtxOffset flag. 2019-04-30: DirectX12: Added
-//  support for special DrawCallback_ResetRenderState callback to reset render
-//  state. 2019-03-29: Misc: Various minor tidying up. 2018-12-03: Misc: Added
-//  #pragma comment statement to automatically link with d3dcompiler.lib when
-//  using D3DCompile(). 2018-11-30: Misc: Setting up io.BackendRendererName so
-//  it can be displayed in the About Window. 2018-06-12: DirectX12: Moved the
-//  ID3D12GraphicsCommandList* parameter from NewFrame() to RenderDrawData().
-//  2018-06-08: Misc: Extracted dx12.cpp/.h away from the old
-//  combined DX12+Win32 example. 2018-06-08: DirectX12: Use
-//  draw_data->DisplayPos and draw_data->DisplaySize to setup projection matrix
-//  and clipping rectangle (to ease support for future multi-viewport).
-//  2018-02-22: Merged into master with all Win32 code synchronized to other
-//  examples.
 
 #include "../gui.hpp"
 #ifndef DISABLE
@@ -96,9 +55,9 @@ struct DX12_Data {
 };
 
 // Backend data stored in io.BackendRendererUserData to allow support for
-// multiple Dear Gui contexts It is STRONGLY preferred that you use docking
-// branch with multi-viewports (== single Dear Gui context + multiple windows)
-// instead of multiple Dear Gui contexts.
+// multiple Gui contexts It is STRONGLY preferred that you use docking
+// branch with multi-viewports (== single Gui context + multiple windows)
+// instead of multiple Gui contexts.
 static DX12_Data *DX12_GetBackendData() {
   return Gui::GetCurrentContext()
              ? (DX12_Data *)Gui::GetIO().BackendRendererUserData
@@ -637,8 +596,7 @@ bool DX12_CreateDeviceObjects() {
       // Attempt to load d3d12.dll from local directories. This will only
       // succeed if (1) the current OS is Windows 7, and (2) there exists a
       // version of d3d12.dll for Windows 7 (D3D12On7) in one of the following
-      // directories. See https://github.com/ocornut/imgui/pull/3696 for
-      // details.
+      // directories.
       const char *localD3d12Paths[] = {
           ".\\d3d12.dll", ".\\d3d12on7\\d3d12.dll",
           ".\\12on7\\d3d12.dll"}; // A. current directory, B. used by some
@@ -680,7 +638,6 @@ bool DX12_CreateDeviceObjects() {
   //  and assign them to psoDesc.VS/PS [preferred solution] 2) use code to
   //  detect any version of the DLL and grab a pointer to D3DCompile from the
   //  DLL.
-  // See https://github.com/ocornut/imgui/pull/638 for sources and details.
 
   D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc;
   memset(&psoDesc, 0, sizeof(D3D12_GRAPHICS_PIPELINE_STATE_DESC));
@@ -935,8 +892,8 @@ void DX12_NewFrame() {
 //--------------------------------------------------------------------------------------------------------
 // MULTI-VIEWPORT / PLATFORM INTERFACE SUPPORT
 // This is an _advanced_ and _optional_ feature, allowing the backend to create
-// and handle multiple viewports simultaneously. If you are new to dear imgui or
-// creating a new binding for dear imgui, it is recommended that you completely
+// and handle multiple viewports simultaneously. If you are new to gui or
+// creating a new binding for gui, it is recommended that you completely
 // ignore this section first..
 //--------------------------------------------------------------------------------------------------------
 

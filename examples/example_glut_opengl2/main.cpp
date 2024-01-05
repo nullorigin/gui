@@ -1,12 +1,5 @@
-// Dear Gui: standalone example application for GLUT/FreeGLUT + OpenGL2, using
+// Gui: standalone example application for GLUT/FreeGLUT + OpenGL2, using
 // legacy fixed pipeline
-
-// Learn about Dear Gui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/
-// folder).
-// - Introduction, links and more at the top of gui.cpp
 
 // !!! GLUT/FreeGLUT IS OBSOLETE PREHISTORIC SOFTWARE. Using GLUT is not
 // recommended unless you really miss the 90's. !!!
@@ -53,7 +46,7 @@ int main(int argc, char **argv) {
 #endif
   glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_MULTISAMPLE);
   glutInitWindowSize(1280, 720);
-  glutCreateWindow("Dear Gui GLUT+OpenGL2 Example");
+  glutCreateWindow("Gui GLUT+OpenGL2 Example");
 
   // Setup GLUT display function
   // We will also call GLUT_InstallFuncs() to get all the other
@@ -61,7 +54,7 @@ int main(int argc, char **argv) {
   // functions and call the glut.hpp functions ourselves.
   glutDisplayFunc(MainLoopStep);
 
-  // Setup Dear Gui context
+  // Setup Gui context
   CHECKVERSION();
   Gui::CreateContext();
   IO &io = Gui::GetIO();
@@ -69,7 +62,7 @@ int main(int argc, char **argv) {
   io.ConfigFlags |= ConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
   io.ConfigFlags |= ConfigFlags_DockingEnable;     // Enable Docking
 
-  // Setup Dear Gui style
+  // Setup Gui style
   Gui::StyleColorsDark();
   // Gui::StyleColorsLight();
 
@@ -88,12 +81,12 @@ int main(int argc, char **argv) {
   // your main application, or clear/overwrite your copy of the mouse data.
   // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data
   // to your main application, or clear/overwrite your copy of the keyboard
-  // data. Generally you may always pass all inputs to dear imgui, and hide them
+  // data. Generally you may always pass all inputs to gui, and hide them
   // from your application based on those two flags.
   GLUT_InstallFuncs();
 
   // Load Fonts
-  // - If no fonts are loaded, dear imgui will use the default font. You can
+  // - If no fonts are loaded, gui will use the default font. You can
   // also load multiple fonts and use Gui::PushFont()/PopFont() to select
   // them.
   // - AddFontFromFileTTF() will return the Font* so you can store it if you
@@ -130,14 +123,14 @@ int main(int argc, char **argv) {
 }
 
 void MainLoopStep() {
-  // Start the Dear Gui frame
+  // Start the Gui frame
   OpenGL2_NewFrame();
   GLUT_NewFrame();
   Gui::NewFrame();
   IO &io = Gui::GetIO();
 
   // 1. Show the big demo window (Most of the sample code is in
-  // Gui::ShowDemoWindow()! You can browse its code to learn more about Dear
+  // Gui::ShowDemoWindow()! You can browse its code to learn more about
   // Gui!).
   if (show_demo_window)
     Gui::ShowDemoWindow(&show_demo_window);

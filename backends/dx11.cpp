@@ -1,4 +1,4 @@
-// dear imgui: Renderer Backend for DirectX11
+// gui: Renderer Backend for DirectX11
 // This needs to be used along with a Platform Backend (e.g. Win32)
 
 // Implemented features:
@@ -7,48 +7,6 @@
 //  support (64k+ vertices) with 16-bit indices. [X] Renderer: Multi-viewport
 //  support (multiple windows). Enable with 'io.ConfigFlags |=
 //  ConfigFlags_ViewportsEnable'.
-
-// You can use unmodified * files in your project. See examples/
-// folder for examples of using this. Prefer including the entire imgui/
-// repository into your project (either as a copy or as a submodule), and only
-// build the backends you need. Learn about Dear Gui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/
-// folder).
-// - Introduction, links and more at the top of gui.cpp
-
-// CHANGELOG
-// (minor and older changes stripped away, please see git history for details)
-//  2023-XX-XX: Platform: Added support for multiple windows via the
-//  PlatformIO interface. 2022-10-11: Using 'nullptr' instead of 'NULL' as
-//  per our switch to C++11. 2021-06-29: Reorganized backend to pull data from a
-//  single structure to facilitate usage with multiple-contexts (all g_XXXX
-//  access changed to bd->XXXX). 2021-05-19: DirectX11: Replaced direct access
-//  to DrawCmd::TextureId with a call to DrawCmd::GetTexID(). (will become a
-//  requirement) 2021-02-18: DirectX11: Change blending equation to preserve
-//  alpha in output buffer. 2019-08-01: DirectX11: Fixed code querying the
-//  Geometry Shader state (would generally error with Debug layer enabled).
-//  2019-07-21: DirectX11: Backup, clear and restore Geometry Shader is any is
-//  bound when calling DX10_RenderDrawData. Clearing
-//  Hull/Domain/Compute shaders without backup/restore. 2019-05-29: DirectX11:
-//  Added support for large mesh (64K+ vertices), enable
-//  BackendFlags_RendererHasVtxOffset flag. 2019-04-30: DirectX11: Added
-//  support for special DrawCallback_ResetRenderState callback to reset render
-//  state. 2018-12-03: Misc: Added #pragma comment statement to automatically
-//  link with d3dcompiler.lib when using D3DCompile(). 2018-11-30: Misc: Setting
-//  up io.BackendRendererName so it can be displayed in the About Window.
-//  2018-08-01: DirectX11: Querying for IDXGIFactory instead of IDXGIFactory1 to
-//  increase compatibility. 2018-07-13: DirectX11: Fixed unreleased resources in
-//  Init and Shutdown functions. 2018-06-08: Misc: Extracted
-//  dx11.cpp/.h away from the old combined DX11+Win32 example.
-//  2018-06-08: DirectX11: Use draw_data->DisplayPos and draw_data->DisplaySize
-//  to setup projection matrix and clipping rectangle. 2018-02-16: Misc:
-//  Obsoleted the io.RenderDrawListsFn callback and exposed
-//  DX11_RenderDrawData() in the .h file so you can call it yourself.
-//  2018-02-06: Misc: Removed call to Gui::Shutdown() which is not available
-//  from 1.60 WIP, user needs to call CreateContext/DestroyContext themselves.
-//  2016-05-07: DirectX11: Disabling depth-write.
 
 #include "../gui.hpp"
 #ifndef DISABLE
@@ -94,9 +52,9 @@ struct VERTEX_CONSTANT_BUFFER_DX11 {
 };
 
 // Backend data stored in io.BackendRendererUserData to allow support for
-// multiple Dear Gui contexts It is STRONGLY preferred that you use docking
-// branch with multi-viewports (== single Dear Gui context + multiple windows)
-// instead of multiple Dear Gui contexts.
+// multiple Gui contexts It is STRONGLY preferred that you use docking
+// branch with multi-viewports (== single Gui context + multiple windows)
+// instead of multiple Gui contexts.
 static DX11_Data *DX11_GetBackendData() {
   return Gui::GetCurrentContext()
              ? (DX11_Data *)Gui::GetIO().BackendRendererUserData
@@ -467,7 +425,6 @@ bool DX11_CreateDeviceObjects() {
   //  and pass them to CreateVertexShader()/CreatePixelShader() [preferred
   //  solution] 2) use code to detect any version of the DLL and grab a pointer
   //  to D3DCompile from the DLL.
-  // See https://github.com/ocornut/imgui/pull/638 for sources and details.
 
   // Create the vertex shader
   {
@@ -754,8 +711,8 @@ void DX11_NewFrame() {
 //--------------------------------------------------------------------------------------------------------
 // MULTI-VIEWPORT / PLATFORM INTERFACE SUPPORT
 // This is an _advanced_ and _optional_ feature, allowing the backend to create
-// and handle multiple viewports simultaneously. If you are new to dear imgui or
-// creating a new binding for dear imgui, it is recommended that you completely
+// and handle multiple viewports simultaneously. If you are new to gui or
+// creating a new binding for gui, it is recommended that you completely
 // ignore this section first..
 //--------------------------------------------------------------------------------------------------------
 

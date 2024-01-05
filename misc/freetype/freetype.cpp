@@ -1,43 +1,5 @@
-// dear imgui: FreeType font builder (used as a replacement for the truetype
+// gui: FreeType font builder (used as a replacement for the truetype
 // builder) (code)
-
-// Get the latest version at
-// https://github.com/ocornut/imgui/tree/master/misc/freetype Original code by
-// @vuhdo (Aleksei Skriabin). Improvements by @mikesart. Maintained since 2019
-// by @ocornut.
-
-// CHANGELOG
-// (minor and older changes stripped away, please see git history for details)
-//  2023/11/13: added support for FontConfig::RasterizationDensity field for
-//  scaling render density without scaling metrics. 2023/08/01: added support
-//  for SVG fonts, enable by using '#define ENABLE_FREETYPE_LUNASVG' (#6591)
-//  2023/01/04: fixed a packing issue which in some occurrences would prevent
-//  large amount of glyphs from being packed correctly. 2021/08/23: fixed crash
-//  when FT_Render_Glyph() fails to render a glyph and returns NULL. 2021/03/05:
-//  added FreeTypeBuilderFlags_Bitmap to load bitmap glyphs. 2021/03/02:
-//  set 'atlas->TexPixelsUseColors = true' to help some backends with deciding
-//  of a prefered texture format. 2021/01/28: added support for color-layered
-//  glyphs via FreeTypeBuilderFlags_LoadColor (require Freetype 2.10+).
-//  2021/01/26: simplified integration by using '#define ENABLE_FREETYPE'.
-//  renamed FreeType::XXX flags to FreeTypeBuilderFlags_XXX for
-//  consistency with other API. removed FreeType::BuildFontAtlas().
-//  2020/06/04: fix for rare case where FT_Get_Char_Index() succeed but
-//  FT_Load_Glyph() fails. 2019/02/09: added RasterizerFlags::Monochrome flag to
-//  disable font anti-aliasing (combine with ::MonoHinting for best results!)
-//  2019/01/15: added support for imgui allocators + added FreeType only
-//  override function SetAllocatorFunctions(). 2019/01/10: re-factored to match
-//  big update in STB builder. fixed texture height waste. fixed redundant
-//  glyphs when merging. support for glyph padding. 2018/06/08: added support
-//  for FontConfig::GlyphMinAdvanceX, GlyphMaxAdvanceX. 2018/02/04: moved to
-//  main imgui repository (away from http://www.github.com/ocornut/club)
-//  2018/01/22: fix for addition of FontAtlas::TexUvscale member.
-//  2017/10/22: minor inconsequential change to match change in master (removed
-//  an unnecessary statement). 2017/09/26: fixes for imgui internal changes.
-//  2017/08/26: cleanup, optimizations, support for
-//  FontConfig::RasterizerFlags, FontConfig::RasterizerMultiply. 2017/08/16:
-//  imported from https://github.com/Vuhdo/freetype into
-//  http://www.github.com/ocornut/club, updated for latest changes in
-//  FontAtlas, minor tweaks.
 
 // About Gamma Correct Blending:
 // - FreeType assumes blending in linear space rather than gamma space.
@@ -45,7 +7,7 @@
 // https://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#FT_Render_Glyph
 // - For correct results you need to be using sRGB and convert to linear space
 // in the pixel shader output.
-// - The default dear imgui styles will be impacted by this change (alpha values
+// - The default gui styles will be impacted by this change (alpha values
 // will need tweaking).
 
 // FIXME: cfg.OversampleH, OversampleV are not supported (but perhaps not so
@@ -314,9 +276,6 @@ const FT_Glyph_Metrics *FreeTypeFont::LoadGlyph(uint32_t codepoint) {
 
   // If this crash for you: FreeType 2.11.0 has a crash bug on some
   // bitmap/colored fonts.
-  // - https://gitlab.freedesktop.org/freetype/freetype/-/issues/1076
-  // - https://github.com/ocornut/imgui/issues/4567
-  // - https://github.com/ocornut/imgui/issues/4566
   // You can use FreeType 2.10, or the patched version of 2.11.0 in VcPkg, or
   // probably any upcoming FreeType version.
   FT_Error error = FT_Load_Glyph(Face, glyph_index, LoadFlags);

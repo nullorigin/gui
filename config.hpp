@@ -1,18 +1,18 @@
 //-----------------------------------------------------------------------------
-// DEAR IMGUI COMPILE-TIME OPTIONS
+// GUI COMPILE-TIME OPTIONS
 // Runtime options (clipboard callbacks, enabling various features, etc.) can
 // generally be set via the IO structure. You can use
 // Gui::SetAllocatorFunctions() before calling Gui::CreateContext() to
 // rewire memory allocation functions.
 //-----------------------------------------------------------------------------
-// A) You may edit config.hpp (and not overwrite it when updating Dear Gui, or
+// A) You may edit config.hpp (and not overwrite it when updating Gui, or
 // maintain a patch/rebased branch with your modifications to it) B) or '#define
 // USER_CONFIG "my_config.h"' in your project and then add directives in
 // your own file without touching this template.
 //-----------------------------------------------------------------------------
 // You need to make sure that configuration settings are defined consistently
-// _everywhere_ Dear Gui is used, which include the imgui*.cpp files but also
-// _any_ of your code that uses Dear Gui. This is because some compile-time
+// _everywhere_ Gui is used, which include the imgui*.cpp files but also
+// _any_ of your code that uses Gui. This is because some compile-time
 // options have an affect on data structures. Defining those options in
 // config.hpp will ensure every compilation unit gets to see the same data
 // structure layouts. Call CHECKVERSION() from your .cpp file to verify that the
@@ -30,7 +30,7 @@
 
 //---- Define attributes of all API symbols declarations, e.g. for DLL under
 // Windows
-// Using Dear Gui via a shared library is not recommended, because of function
+// Using Gui via a shared library is not recommended, because of function
 // call overhead and because we don't guarantee backward nor forward ABI
 // compatibility. DLL users: heaps and globals are not shared across DLL
 // boundaries! You will need to call SetCurrentContext() +
@@ -46,7 +46,7 @@
 // io.KeyMap[]+io.KeysDown[] in favor io.AddKeyEvent(). This is automatically
 // done by DISABLE_OBSOLETE_FUNCTIONS.
 
-//---- Disable all of Dear Gui or don't implement standard windows/tools.
+//---- Disable all of Gui or don't implement standard windows/tools.
 // It is very strongly recommended to NOT disable the demo windows and debug
 // tool during development. They are extremely useful in day to day work. Please
 // read comments in demo.cpp.
@@ -103,7 +103,7 @@
 //---- Avoid multiple STB libraries implementations, or redefine path/filenames
 // to prioritize another version
 // By default the embedded implementations are declared static and not available
-// outside of Dear Gui sources files.
+// outside of Gui sources files.
 // #define TRUETYPE_FILENAME   "my_folder/truetype.h"
 // #define RECT_PACK_FILENAME  "my_folder/rect_pack.h"
 // #define SPRINTF_FILENAME    "my_folder/sprintf.h"    // only used if
@@ -119,7 +119,7 @@
 // #define USE_SPRINTF
 
 //---- Use FreeType to build and rasterize the font atlas (instead of
-// truetype which is embedded by default in Dear Gui)
+// truetype which is embedded by default in Gui)
 // Requires FreeType headers to be available in the include path. Requires
 // program to be compiled with 'misc/freetype/freetype.cpp' (in this
 // repository) + the FreeType library (not provided). On Windows you may use
@@ -151,7 +151,7 @@ MyVec2() const { return MyVec2(x,y); }
         constexpr Vec4(const MyVec4& f) : x(f.x), y(f.y), z(f.z), w(f.w) {} \
         operator MyVec4() const { return MyVec4(x,y,z,w); }
 */
-//---- ...Or use Dear Gui's own very basic math operators.
+//---- ...Or use Gui's own very basic math operators.
 // #define DEFINE_MATH_OPERATORS
 
 //---- Use 32-bit vertex indices (default is 16-bit) is one way to allow large

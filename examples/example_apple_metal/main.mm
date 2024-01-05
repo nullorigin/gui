@@ -1,11 +1,4 @@
-// Dear Gui: standalone example application for OSX + Metal.
-
-// Learn about Dear Gui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/
-// folder).
-// - Introduction, links and more at the top of gui.cpp
+// Gui: standalone example application for OSX + Metal.
 
 #import <Foundation/Foundation.h>
 
@@ -53,7 +46,7 @@
     abort();
   }
 
-  // Setup Dear Gui context
+  // Setup Gui context
   // FIXME: This example doesn't have proper cleanup...
   CHECKVERSION();
   Gui::CreateContext();
@@ -65,7 +58,7 @@
   io.ConfigFlags |= ConfigFlags_ViewportsEnable;   // Enable Multi-Viewport /
                                                    // Platform Windows
 
-  // Setup Dear Gui style
+  // Setup Gui style
   Gui::StyleColorsDark();
   // Gui::StyleColorsLight();
 
@@ -81,7 +74,7 @@
   Metal_Init(_device);
 
   // Load Fonts
-  // - If no fonts are loaded, dear imgui will use the default font. You can
+  // - If no fonts are loaded, gui will use the default font. You can
   // also load multiple fonts and use Gui::PushFont()/PopFont() to select
   // them.
   // - AddFontFromFileTTF() will return the Font* so you can store it if you
@@ -152,7 +145,7 @@
     return;
   }
 
-  // Start the Dear Gui frame
+  // Start the Gui frame
   Metal_NewFrame(renderPassDescriptor);
 #if TARGET_OS_OSX
   OSX_NewFrame(view);
@@ -166,7 +159,7 @@
   static Vec4 clear_color = Vec4(0.45f, 0.55f, 0.60f, 1.00f);
 
   // 1. Show the big demo window (Most of the sample code is in
-  // Gui::ShowDemoWindow()! You can browse its code to learn more about Dear
+  // Gui::ShowDemoWindow()! You can browse its code to learn more about
   // Gui!).
   if (show_demo_window)
     Gui::ShowDemoWindow(&show_demo_window);
@@ -225,7 +218,7 @@
       clear_color.z * clear_color.w, clear_color.w);
   id<MTLRenderCommandEncoder> renderEncoder =
       [commandBuffer renderCommandEncoderWithDescriptor:renderPassDescriptor];
-  [renderEncoder pushDebugGroup:@"Dear Gui rendering"];
+  [renderEncoder pushDebugGroup:@"Gui rendering"];
   Metal_RenderDrawData(draw_data, commandBuffer, renderEncoder);
   [renderEncoder popDebugGroup];
   [renderEncoder endEncoding];

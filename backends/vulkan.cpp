@@ -1,14 +1,12 @@
-// dear imgui: Renderer Backend for Vulkan
+// gui: Renderer Backend for Vulkan
 // This needs to be used along with a Platform Backend (e.g. GLFW, SDL, Win32,
 // custom..)
 
 // Implemented features:
 //  [x] Renderer: User texture binding. Use 'VkDescriptorSet' as TextureID.
-//  Read the FAQ about TextureID! See
-//  https://github.com/ocornut/imgui/pull/914 for discussions. [X] Renderer:
-//  Large meshes support (64k+ vertices) with 16-bit indices. [x] Renderer:
-//  Multi-viewport / platform windows. With issues (flickering when creating a
-//  new viewport).
+//  [X] Renderer: Large meshes support (64k+ vertices) with 16-bit indices.
+//  [x] Renderer: Multi-viewport / platform windows. With issues (flickering
+//  when creating a new viewport).
 
 // Important: on 32-bit systems, user texture binding is only supported if your
 // imconfig file has '#define TextureID U64'. This is because we need
@@ -24,20 +22,6 @@
 // - [Solution 4] command-line: add '/D TextureID=U64' to your cl.exe
 // command-line (this is what we do in our batch files)
 
-// The aim of vulkan.hpp/.cpp is to be usable in your engine without
-// any modification. IF YOU FEEL YOU NEED TO MAKE ANY CHANGE TO THIS CODE,
-// please share them and your feedback at https://github.com/ocornut/imgui/
-
-// You can use unmodified * files in your project. See examples/
-// folder for examples of using this. Prefer including the entire imgui/
-// repository into your project (either as a copy or as a submodule), and only
-// build the backends you need. Learn about Dear Gui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/
-// folder).
-// - Introduction, links and more at the top of gui.cpp
-
 // Important note to the reader who wish to integrate vulkan.cpp/.h
 // in their own engine/app.
 // - Common Vulkan_XXX functions and structures are used to interface
@@ -49,91 +33,6 @@
 //   the backend itself (vulkan.cpp), but should PROBABLY NOT be used
 //   by your own engine/app code.
 // Read comments in vulkan.hpp.
-
-// CHANGELOG
-// (minor and older changes stripped away, please see git history for details)
-//  2023-XX-XX: Platform: Added support for multiple windows via the
-//  PlatformIO interface. 2024-01-03: Vulkan: Added MinAllocationSize field
-//  in Vulkan_InitInfo to workaround zealous "best practice"
-//  validation layer. (#7189, #4238) 2024-01-03: Vulkan: Stoped creating command
-//  pools with VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT as we don't reset
-//  them. 2023-11-29: Vulkan: Fixed mismatching allocator passed to
-//  vkCreateCommandPool() vs vkDestroyCommandPool(). (#7075) 2023-11-10:
-//  *BREAKING CHANGE*: Removed parameter from
-//  Vulkan_CreateFontsTexture(): backend now creates its own
-//  command-buffer to upload fonts.
-//              *BREAKING CHANGE*: Removed
-//              Vulkan_DestroyFontUploadObjects() which is now
-//              unecessary as we create and destroy those objects in the
-//              backend. Vulkan_CreateFontsTexture() is automatically
-//              called by NewFrame() the first time. You can call
-//              Vulkan_CreateFontsTexture() again to recreate the font
-//              atlas texture. Added Vulkan_DestroyFontsTexture() but
-//              you probably never need to call this.
-//  2023-07-04: Vulkan: Added optional support for VK_KHR_dynamic_rendering.
-//  User needs to set init_info->UseDynamicRendering = true and
-//  init_info->ColorAttachmentFormat. 2023-01-02: Vulkan: Fixed sampler passed
-//  to Vulkan_AddTexture() not being honored + removed a bunch of
-//  duplicate code. 2022-10-11: Using 'nullptr' instead of 'NULL' as per our
-//  switch to C++11. 2022-10-04: Vulkan: Added experimental
-//  Vulkan_RemoveTexture() for api symetry. (#914, #5738). 2022-01-20:
-//  Vulkan: Added support for TextureID as VkDescriptorSet. User need to call
-//  Vulkan_AddTexture(). Building for 32-bit targets requires '#define
-//  TextureID U64'. (#914). 2021-10-15: Vulkan: Call vkCmdSetScissor() at
-//  the end of render a full-viewport to reduce likehood of issues with people
-//  using VK_DYNAMIC_STATE_SCISSOR in their app without calling
-//  vkCmdSetScissor() explicitly every frame. 2021-06-29: Reorganized backend to
-//  pull data from a single structure to facilitate usage with multiple-contexts
-//  (all g_XXXX access changed to bd->XXXX). 2021-03-22: Vulkan: Fix mapped
-//  memory validation error when buffer sizes are not multiple of
-//  VkPhysicalDeviceLimits::nonCoherentAtomSize. 2021-02-18: Vulkan: Change
-//  blending equation to preserve alpha in output buffer. 2021-01-27: Vulkan:
-//  Added support for custom function load and VULKAN_NO_PROTOTYPES by
-//  using Vulkan_LoadFunctions(). 2020-11-11: Vulkan: Added support
-//  for specifying which subpass to reference during VkPipeline creation.
-//  2020-09-07: Vulkan: Added VkPipeline parameter to
-//  Vulkan_RenderDrawData (default to one passed to
-//  Vulkan_Init). 2020-05-04: Vulkan: Fixed crash if initial frame has
-//  no vertices. 2020-04-26: Vulkan: Fixed edge case where render callbacks
-//  wouldn't be called if the DrawData didn't have vertices. 2019-08-01:
-//  Vulkan: Added support for specifying multisample count. Set
-//  Vulkan_InitInfo::MSAASamples to one of the VkSampleCountFlagBits
-//  values to use, default is non-multisampled as before. 2019-05-29: Vulkan:
-//  Added support for large mesh (64K+ vertices), enable
-//  BackendFlags_RendererHasVtxOffset flag. 2019-04-30: Vulkan: Added
-//  support for special DrawCallback_ResetRenderState callback to reset render
-//  state. 2019-04-04: *BREAKING CHANGE*: Vulkan: Added ImageCount/MinImageCount
-//  fields in Vulkan_InitInfo, required for initialization (was
-//  previously a hard #define VK_QUEUED_FRAMES 2). Added
-//  Vulkan_SetMinImageCount(). 2019-04-04: Vulkan: Added VkInstance
-//  argument to VulkanH_CreateWindow() optional helper. 2019-04-04:
-//  Vulkan: Avoid passing negative coordinates to vkCmdSetScissor, which debug
-//  validation layers do not like. 2019-04-01: Vulkan: Support for 32-bit index
-//  buffer (#define DrawIdx unsigned int). 2019-02-16: Vulkan: Viewport and
-//  clipping rectangles correctly using draw_data->FramebufferScale to allow
-//  retina display. 2018-11-30: Misc: Setting up io.BackendRendererName so it
-//  can be displayed in the About Window. 2018-08-25: Vulkan: Fixed mishandled
-//  VkSurfaceCapabilitiesKHR::maxImageCount=0 case. 2018-06-22: Inverted the
-//  parameters to Vulkan_RenderDrawData() to be consistent with other
-//  backends. 2018-06-08: Misc: Extracted vulkan.cpp/.h away from the
-//  old combined GLFW+Vulkan example. 2018-06-08: Vulkan: Use
-//  draw_data->DisplayPos and draw_data->DisplaySize to setup projection matrix
-//  and clipping rectangle. 2018-03-03: Vulkan: Various refactor, created a
-//  couple of VulkanH_XXX helper that the example can use and that
-//  viewport support will use. 2018-03-01: Vulkan: Renamed
-//  Vulkan_Init_Info to Vulkan_InitInfo and fields to match
-//  more closely Vulkan terminology. 2018-02-16: Misc: Obsoleted the
-//  io.RenderDrawListsFn callback, Vulkan_Render() calls
-//  Vulkan_RenderDrawData() itself. 2018-02-06: Misc: Removed call to
-//  Gui::Shutdown() which is not available from 1.60 WIP, user needs to call
-//  CreateContext/DestroyContext themselves. 2017-05-15: Vulkan: Fix scissor
-//  offset being negative. Fix new Vulkan validation warnings. Set required
-//  depth member for buffer image copy. 2016-11-13: Vulkan: Fix validation layer
-//  warnings and errors and redeclare gl_PerVertex. 2016-10-18: Vulkan: Add
-//  location decorators & change to use structs as in/out in glsl, update
-//  embedded spv (produced with glslangValidator -x). Null the released
-//  resources. 2016-08-27: Vulkan: Fix Vulkan example for use when a depth
-//  buffer is active.
 
 #include "../gui.hpp"
 #ifndef DISABLE
@@ -469,9 +368,9 @@ static uint32_t __glsl_shader_frag_spv[] = {
 //-----------------------------------------------------------------------------
 
 // Backend data stored in io.BackendRendererUserData to allow support for
-// multiple Dear Gui contexts It is STRONGLY preferred that you use docking
-// branch with multi-viewports (== single Dear Gui context + multiple windows)
-// instead of multiple Dear Gui contexts.
+// multiple Gui contexts It is STRONGLY preferred that you use docking
+// branch with multi-viewports (== single Gui context + multiple windows)
+// instead of multiple Gui contexts.
 // FIXME: multi-context support is not tested and probably dysfunctional in this
 // backend.
 static Vulkan_Data *Vulkan_GetBackendData() {
@@ -1415,9 +1314,6 @@ void Vulkan_SetMinImageCount(uint32_t min_image_count) {
 }
 
 // Register a texture
-// FIXME: This is experimental in the sense that we are unsure how to best
-// design/tackle this problem, please post to
-// https://github.com/ocornut/imgui/pull/914 if you have suggestions.
 VkDescriptorSet Vulkan_AddTexture(VkSampler sampler, VkImageView image_view,
                                   VkImageLayout image_layout) {
   Vulkan_Data *bd = Vulkan_GetBackendData();
@@ -1911,8 +1807,8 @@ void VulkanH_DestroyAllViewportsRenderBuffers(
 //--------------------------------------------------------------------------------------------------------
 // MULTI-VIEWPORT / PLATFORM INTERFACE SUPPORT
 // This is an _advanced_ and _optional_ feature, allowing the backend to create
-// and handle multiple viewports simultaneously. If you are new to dear imgui or
-// creating a new binding for dear imgui, it is recommended that you completely
+// and handle multiple viewports simultaneously. If you are new to gui or
+// creating a new binding for gui, it is recommended that you completely
 // ignore this section first..
 //--------------------------------------------------------------------------------------------------------
 

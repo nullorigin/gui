@@ -1,4 +1,4 @@
-// dear imgui: Platform Binding for Android native app
+// gui: Platform Binding for Android native app
 // This needs to be used along with the OpenGL 3 Renderer (opengl3)
 
 // Implemented features:
@@ -20,30 +20,8 @@
 //  full-featured than this.
 //  - FIXME: On-screen keyboard currently needs to be enabled by the application
 //  (see examples/ and issue #3446)
-//  - FIXME: Unicode character inputs needs to be passed by Dear Gui by the
+//  - FIXME: Unicode character inputs needs to be passed by Gui by the
 //  application (see examples/ and issue #3446)
-
-// You can use unmodified * files in your project. See examples/
-// folder for examples of using this. Prefer including the entire imgui/
-// repository into your project (either as a copy or as a submodule), and only
-// build the backends you need. Learn about Dear Gui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/
-// folder).
-// - Introduction, links and more at the top of gui.cpp
-
-// CHANGELOG
-// (minor and older changes stripped away, please see git history for details)
-//  2022-09-26: Inputs: Renamed Key_ModXXX introduced in 1.87 to
-//  Mod_XXX (old names still supported). 2022-01-26: Inputs: replaced
-//  short-lived io.AddKeyModsEvent() (added two weeks ago) with io.AddKeyEvent()
-//  using Key_ModXXX flags. Sorry for the confusion. 2022-01-17: Inputs:
-//  calling new io.AddMousePosEvent(), io.AddMouseButtonEvent(),
-//  io.AddMouseWheelEvent() API (1.87+). 2022-01-10: Inputs: calling new
-//  io.AddKeyEvent(), io.AddKeyModsEvent() + io.SetKeyEventNativeData() API
-//  (1.87+). Support for full Key range. 2021-03-04: Initial version.
-
 #include "../gui.hpp"
 #ifndef DISABLE
 #include "android.hpp"
@@ -294,8 +272,7 @@ int32_t Android_HandleInputEvent(const AInputEvent *input_event) {
     // FIXME: AKEY_EVENT_ACTION_DOWN and AKEY_EVENT_ACTION_UP occur at once as
     // soon as a touch pointer goes up from a key. We use a simple key event
     // queue/ and process one event per key per frame in
-    // Android_NewFrame()...or consider using IO queue, if suitable:
-    // https://github.com/ocornut/imgui/issues/2787
+    // Android_NewFrame().
     case AKEY_EVENT_ACTION_DOWN:
     case AKEY_EVENT_ACTION_UP: {
       Key key = Android_KeyCodeToKey(event_key_code);

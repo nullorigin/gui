@@ -1,4 +1,4 @@
-// dear imgui: Renderer Backend for SDL_Renderer for SDL2
+// gui: Renderer Backend for SDL_Renderer for SDL2
 // (Requires: SDL 2.0.17+)
 
 // Note how SDL_Renderer is an _optional_ component of SDL2.
@@ -14,25 +14,6 @@
 //  vertices) with 16-bit indices.
 // Missing features:
 //  [ ] Renderer: Multi-viewport support (multiple windows).
-
-// You can copy and use unmodified * files in your project. See
-// examples/ folder for examples of using this. Prefer including the entire
-// imgui/ repository into your project (either as a copy or as a submodule), and
-// only build the backends you need. Learn about Dear Gui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/
-// folder).
-// - Introduction, links and more at the top of gui.cpp
-
-// CHANGELOG
-//  2023-05-30: Renamed sdlrenderer.hpp/.cpp to
-//  sdlrenderer2.hpp/.cpp to accommodate for upcoming SDL3. 2022-10-11:
-//  Using 'nullptr' instead of 'NULL' as per our switch to C++11. 2021-12-21:
-//  Update SDL_RenderGeometryRaw() format to work with SDL 2.0.19. 2021-12-03:
-//  Added support for large mesh (64K+ vertices), enable
-//  BackendFlags_RendererHasVtxOffset flag. 2021-10-06: Backup and restore
-//  modified ClipRect/Viewport. 2021-09-21: Initial version.
 
 #include "../gui.hpp"
 #ifndef DISABLE
@@ -60,9 +41,9 @@ struct SDLRenderer2_Data {
 };
 
 // Backend data stored in io.BackendRendererUserData to allow support for
-// multiple Dear Gui contexts It is STRONGLY preferred that you use docking
-// branch with multi-viewports (== single Dear Gui context + multiple windows)
-// instead of multiple Dear Gui contexts.
+// multiple Gui contexts It is STRONGLY preferred that you use docking
+// branch with multi-viewports (== single Gui context + multiple windows)
+// instead of multiple Gui contexts.
 static SDLRenderer2_Data *SDLRenderer2_GetBackendData() {
   return Gui::GetCurrentContext()
              ? (SDLRenderer2_Data *)Gui::GetIO().BackendRendererUserData

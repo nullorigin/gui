@@ -7,18 +7,18 @@ Build font atlases using FreeType instead of truetype (which is the default font
 
 1. Get latest FreeType binaries or build yourself (under Windows you may use vcpkg with `vcpkg install freetype --triplet=x64-windows`, `vcpkg integrate install`).
 2. Add freetype.hpp/cpp alongside your project files.
-3. Add `#define ENABLE_FREETYPE` in your [config.hpp](https://github.com/ocornut/imgui/blob/master/config.hpp) file
+3. Add `#define ENABLE_FREETYPE` in your [config.hpp](https://github.com/nullorigin/gui/blob/master/config.hpp) file
 
 ### About Gamma Correct Blending
 
 FreeType assumes blending in linear space rather than gamma space.
 See FreeType note for [FT_Render_Glyph](https://freetype.org/freetype2/docs/reference/ft2-glyph_retrieval.html#ft_render_glyph).
 For correct results you need to be using sRGB and convert to linear space in the pixel shader output.
-The default Dear Gui styles will be impacted by this change (alpha values will need tweaking).
+The default Gui styles will be impacted by this change (alpha values will need tweaking).
 
 ### Testbed for toying with settings (for developers)
 
-See https://gist.github.com/ocornut/b3a9ecf13502fd818799a452969649ad
+See https://gist.github.com/nullorigin/b3a9ecf13502fd818799a452969649ad
 
 ### Known issues
 
@@ -32,7 +32,7 @@ Small, thin anti-aliased fonts typically benefit a lot from FreeType's hinting:
 ### Colorful glyphs/emojis
 
 You can use the `FreeTypeBuilderFlags_LoadColor` flag to load certain colorful glyphs. See the
-["Using Colorful Glyphs/Emojis"](https://github.com/ocornut/imgui/blob/master/docs/FONTS.md#using-colorful-glyphsemojis) section of FONTS.md.
+["Using Colorful Glyphs/Emojis"](https://github.com/nullorigin/gui/blob/master/docs/FONTS.md#using-colorful-glyphsemojis) section of FONTS.md.
 
 ![colored glyphs](https://user-images.githubusercontent.com/8225057/106171241-9dc4ba80-6191-11eb-8a69-ca1467b206d1.png)
 

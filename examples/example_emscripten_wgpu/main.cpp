@@ -1,14 +1,6 @@
-// Dear Gui: standalone example application for Emscripten, using GLFW +
+// Gui: standalone example application for Emscripten, using GLFW +
 // WebGPU (Emscripten is a C++-to-javascript compiler, used to publish
 // executables for the web. See https://emscripten.org/)
-
-// Learn about Dear Gui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/
-// folder).
-// - Introduction, links and more at the top of gui.cpp
-
 #include "glfw.hpp"
 #include "gui.hpp"
 #include "wgpu.hpp"
@@ -44,8 +36,8 @@ int main(int, char **) {
   // Make sure GLFW does not initialize any graphics context.
   // This needs to be done explicitly later.
   glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-  GLFWwindow *window = glfwCreateWindow(
-      1280, 720, "Dear Gui GLFW+WebGPU example", nullptr, nullptr);
+  GLFWwindow *window =
+      glfwCreateWindow(1280, 720, "Gui GLFW+WebGPU example", nullptr, nullptr);
   if (!window) {
     glfwTerminate();
     return 1;
@@ -60,7 +52,7 @@ int main(int, char **) {
   }
   glfwShowWindow(window);
 
-  // Setup Dear Gui context
+  // Setup Gui context
   CHECKVERSION();
   Gui::CreateContext();
   IO &io = Gui::GetIO();
@@ -73,7 +65,7 @@ int main(int, char **) {
   // LoadIniSettingsFromMemory() to load settings from your own storage.
   io.IniFilename = nullptr;
 
-  // Setup Dear Gui style
+  // Setup Gui style
   Gui::StyleColorsDark();
   // Gui::StyleColorsLight();
 
@@ -83,7 +75,7 @@ int main(int, char **) {
   WGPU_Init(wgpu_device, 3, wgpu_preferred_fmt, WGPUTextureFormat_Undefined);
 
   // Load Fonts
-  // - If no fonts are loaded, dear imgui will use the default font. You can
+  // - If no fonts are loaded, gui will use the default font. You can
   // also load multiple fonts and use Gui::PushFont()/PopFont() to select
   // them.
   // - AddFontFromFileTTF() will return the Font* so you can store it if you
@@ -172,7 +164,7 @@ static void MainLoopStep(void *window) {
     WGPU_CreateDeviceObjects();
   }
 
-  // Start the Dear Gui frame
+  // Start the Gui frame
   WGPU_NewFrame();
   Glfw_NewFrame();
   Gui::NewFrame();
@@ -185,7 +177,7 @@ static void MainLoopStep(void *window) {
   static Vec4 clear_color = Vec4(0.45f, 0.55f, 0.60f, 1.00f);
 
   // 1. Show the big demo window (Most of the sample code is in
-  // Gui::ShowDemoWindow()! You can browse its code to learn more about Dear
+  // Gui::ShowDemoWindow()! You can browse its code to learn more about
   // Gui!).
   if (show_demo_window)
     Gui::ShowDemoWindow(&show_demo_window);

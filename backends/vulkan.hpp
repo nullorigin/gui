@@ -1,11 +1,10 @@
-// dear imgui: Renderer Backend for Vulkan
+// gui: Renderer Backend for Vulkan
 // This needs to be used along with a Platform Backend (e.g. GLFW, SDL, Win32,
 // custom..)
 
 // Implemented features:
 //  [x] Renderer: User texture binding. Use 'VkDescriptorSet' as TextureID.
-//  Read the FAQ about TextureID! See
-//  https://github.com/ocornut/imgui/pull/914 for discussions. [X] Renderer:
+//  [X] Renderer:
 //  Large meshes support (64k+ vertices) with 16-bit indices. [x] Renderer:
 //  Multi-viewport / platform windows. With issues (flickering when creating a
 //  new viewport).
@@ -13,21 +12,7 @@
 // Important: on 32-bit systems, user texture binding is only supported if your
 // imconfig file has '#define TextureID U64'. See vulkan.cpp file
 // for details.
-
-// The aim of vulkan.hpp/.cpp is to be usable in your engine without
-// any modification. IF YOU FEEL YOU NEED TO MAKE ANY CHANGE TO THIS CODE,
-// please share them and your feedback at https://github.com/ocornut/imgui/
-
-// You can use unmodified * files in your project. See examples/
-// folder for examples of using this. Prefer including the entire imgui/
-// repository into your project (either as a copy or as a submodule), and only
-// build the backends you need. Learn about Dear Gui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/
-// folder).
-// - Introduction, links and more at the top of gui.cpp
-
+//
 // Important note to the reader who wish to integrate vulkan.cpp/.h
 // in their own engine/app.
 // - Common Vulkan_XXX functions and structures are used to interface
@@ -108,9 +93,6 @@ API void Vulkan_SetMinImageCount(
                                // (e.g. if swap chain is recreated)
 
 // Register a texture (VkDescriptorSet == TextureID)
-// FIXME: This is experimental in the sense that we are unsure how to best
-// design/tackle this problem Please post to
-// https://github.com/ocornut/imgui/pull/914 if you have suggestions.
 API VkDescriptorSet Vulkan_AddTexture(VkSampler sampler, VkImageView image_view,
                                       VkImageLayout image_layout);
 API void Vulkan_RemoveTexture(VkDescriptorSet descriptor_set);

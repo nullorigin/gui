@@ -1,4 +1,4 @@
-// dear imgui: "null" example application
+// gui: "null" example application
 // (compile and link imgui, create context, run headless with NO INPUTS, NO
 // GRAPHICS OUTPUT) This is useful to test building, but you cannot interact
 // with anything here!

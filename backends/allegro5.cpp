@@ -1,4 +1,4 @@
-// dear imgui: Renderer + Platform Backend for Allegro 5
+// gui: Renderer + Platform Backend for Allegro 5
 // (Info: Allegro 5 is a cross-platform general purpose library for handling
 // windows, inputs, graphics, etc.)
 
@@ -15,64 +15,6 @@
 //  [ ] Renderer: Multi-viewport support (multiple windows)..
 //  [ ] Renderer: The renderer is suboptimal as we need to convert vertices
 //  manually. [ ] Platform: Missing gamepad support.
-
-// You can use unmodified * files in your project. See examples/
-// folder for examples of using this. Prefer including the entire imgui/
-// repository into your project (either as a copy or as a submodule), and only
-// build the backends you need. Learn about Dear Gui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/
-// folder).
-// - Introduction, links and more at the top of gui.cpp
-
-// CHANGELOG
-// (minor and older changes stripped away, please see git history for details)
-//  2022-11-30: Renderer: Restoring using al_draw_indexed_prim() when Allegro
-//  version is >= 5.2.5. 2022-10-11: Using 'nullptr' instead of 'NULL' as per
-//  our switch to C++11. 2022-09-26: Inputs: Renamed Key_ModXXX introduced
-//  in 1.87 to Mod_XXX (old names still supported). 2022-01-26: Inputs:
-//  replaced short-lived io.AddKeyModsEvent() (added two weeks ago) with
-//  io.AddKeyEvent() using Key_ModXXX flags. Sorry for the confusion.
-//  2022-01-17: Inputs: calling new io.AddMousePosEvent(),
-//  io.AddMouseButtonEvent(), io.AddMouseWheelEvent() API (1.87+). 2022-01-17:
-//  Inputs: always calling io.AddKeyModsEvent() next and before key event (not
-//  in NewFrame) to fix input queue with very low framerates. 2022-01-10:
-//  Inputs: calling new io.AddKeyEvent(), io.AddKeyModsEvent() +
-//  io.SetKeyEventNativeData() API (1.87+). Support for full Key range.
-//  2021-12-08: Renderer: Fixed mishandling of the the DrawCmd::IdxOffset
-//  field! This is an old bug but it never had an effect until some internal
-//  rendering changes in 1.86. 2021-08-17: Calling io.AddFocusEvent() on
-//  ALLEGRO_EVENT_DISPLAY_SWITCH_OUT/ALLEGRO_EVENT_DISPLAY_SWITCH_IN events.
-//  2021-06-29: Reorganized backend to pull data from a single structure to
-//  facilitate usage with multiple-contexts (all g_XXXX access changed to
-//  bd->XXXX). 2021-05-19: Renderer: Replaced direct access to
-//  DrawCmd::TextureId with a call to DrawCmd::GetTexID(). (will become a
-//  requirement) 2021-02-18: Change blending equation to preserve alpha in
-//  output buffer. 2020-08-10: Inputs: Fixed horizontal mouse wheel direction.
-//  2019-12-05: Inputs: Added support for MouseCursor_NotAllowed mouse
-//  cursor. 2019-07-21: Inputs: Added mapping for Key_KeyPadEnter.
-//  2019-05-11: Inputs: Don't filter character value from ALLEGRO_EVENT_KEY_CHAR
-//  before calling AddInputCharacter(). 2019-04-30: Renderer: Added support for
-//  special DrawCallback_ResetRenderState callback to reset render state.
-//  2018-11-30: Platform: Added touchscreen support.
-//  2018-11-30: Misc: Setting up io.BackendPlatformName/io.BackendRendererName
-//  so they can be displayed in the About Window. 2018-06-13: Platform: Added
-//  clipboard support (from Allegro 5.1.12). 2018-06-13: Renderer: Use
-//  draw_data->DisplayPos and draw_data->DisplaySize to setup projection matrix
-//  and clipping rectangle. 2018-06-13: Renderer: Stopped using
-//  al_draw_indexed_prim() as it is buggy in Allegro's DX9 backend. 2018-06-13:
-//  Renderer: Backup/restore transform and clipping rectangle. 2018-06-11: Misc:
-//  Setup io.BackendFlags BackendFlags_HasMouseCursors flag + honor
-//  ConfigFlags_NoMouseCursorChange flag. 2018-04-18: Misc: Renamed file
-//  from a5.cpp to allegro5.cpp. 2018-04-18: Misc: Added
-//  support for 32-bit vertex indices to avoid conversion at runtime. Added
-//  imconfig_allegro5.h to enforce 32-bit indices when included from gui.hpp.
-//  2018-02-16: Misc: Obsoleted the io.RenderDrawListsFn callback and exposed
-//  Allegro5_RenderDrawData() in the .h file so you can call it
-//  yourself. 2018-02-06: Misc: Removed call to Gui::Shutdown() which is not
-//  available from 1.60 WIP, user needs to call CreateContext/DestroyContext
-//  themselves. 2018-02-06: Inputs: Added mapping for Key_Space.
 
 #include "../gui.hpp"
 #ifndef DISABLE
@@ -137,9 +79,9 @@ struct Allegro5_Data {
 };
 
 // Backend data stored in io.BackendPlatformUserData to allow support for
-// multiple Dear Gui contexts It is STRONGLY preferred that you use docking
-// branch with multi-viewports (== single Dear Gui context + multiple windows)
-// instead of multiple Dear Gui contexts.
+// multiple Gui contexts It is STRONGLY preferred that you use docking
+// branch with multi-viewports (== single Gui context + multiple windows)
+// instead of multiple Gui contexts.
 // FIXME: multi-context support is not well tested and probably dysfunctional in
 // this backend.
 static Allegro5_Data *Allegro5_GetBackendData() {
@@ -204,7 +146,7 @@ void Allegro5_RenderDrawData(DrawData *draw_data) {
     const int *indices = nullptr;
     if (sizeof(DrawIdx) == 2) {
       // FIXME-OPT: Allegro doesn't support 16-bit indices.
-      // You can '#define DrawIdx int' in config.hpp to request Dear Gui to
+      // You can '#define DrawIdx int' in config.hpp to request Gui to
       // output 32-bit indices. Otherwise, we convert them from 16-bit to 32-bit
       // at runtime here, which works perfectly but is a little wasteful.
       bd->BufIndices.resize(cmd_list->IdxBuffer.Size);
@@ -638,12 +580,12 @@ static void Allegro5_UpdateKeyModifiers() {
 }
 
 // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if
-// dear imgui wants to use your inputs.
+// gui wants to use your inputs.
 // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your
 // main application, or clear/overwrite your copy of the mouse data.
 // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to
 // your main application, or clear/overwrite your copy of the keyboard data.
-// Generally you may always pass all inputs to dear imgui, and hide them from
+// Generally you may always pass all inputs to gui, and hide them from
 // your application based on those two flags.
 bool Allegro5_ProcessEvent(ALLEGRO_EVENT *ev) {
   IO &io = Gui::GetIO();

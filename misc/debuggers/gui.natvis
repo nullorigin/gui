@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
 .natvis file for Visual Studio debugger.
-Purpose: provide nicer views on data types used by Dear Gui.
+Purpose: provide nicer views on data types used by Gui.
 
 To enable:
 * include file in your VS project (most recommended: not intrusive and always kept up to date!)

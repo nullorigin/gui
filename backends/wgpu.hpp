@@ -1,4 +1,4 @@
-// dear imgui: Renderer for WebGPU
+// gui: Renderer for WebGPU
 // This needs to be used along with a Platform Binding (e.g. GLFW)
 // (Please note that WebGPU is currently experimental, will not run on non-beta
 // browsers, and may break.)
@@ -10,16 +10,6 @@
 // Missing features:
 //  [ ] Renderer: Multi-viewport support (multiple windows). Not meaningful on
 //  the web.
-
-// You can use unmodified * files in your project. See examples/
-// folder for examples of using this. Prefer including the entire imgui/
-// repository into your project (either as a copy or as a submodule), and only
-// build the backends you need. Learn about Dear Gui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/
-// folder).
-// - Introduction, links and more at the top of gui.cpp
 
 #pragma once
 #include "../gui.hpp" // API
@@ -36,7 +26,7 @@ API void WGPU_NewFrame();
 API void WGPU_RenderDrawData(DrawData *draw_data,
                              WGPURenderPassEncoder pass_encoder);
 
-// Use if you want to reset your rendering device without losing Dear Gui
+// Use if you want to reset your rendering device without losing Gui
 // state.
 API void WGPU_InvalidateDeviceObjects();
 API bool WGPU_CreateDeviceObjects();

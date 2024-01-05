@@ -1,30 +1,3 @@
-// dear imgui, v1.90.1 WIP
-// (headers)
-
-// Help:
-// - See links below.
-// - Call and read Gui::ShowDemoWindow() in demo.cpp. All applications
-// in examples/ are doing that.
-// - Read top of gui.cpp for more details, links and comments.
-
-// Resources:
-// - FAQ                   https://dearimgui.com/faq
-// - Getting Started       https://dearimgui.com/getting-started
-// - Homepage              https://github.com/ocornut/imgui
-// - Releases & changelog  https://github.com/ocornut/imgui/releases
-// - Gallery               https://github.com/ocornut/imgui/issues/6897 (please
-// post your screenshots/video there!)
-// - Wiki                  https://github.com/ocornut/imgui/wiki (lots of good
-// stuff there)
-// - Glossary              https://github.com/ocornut/imgui/wiki/Glossary
-// - Issues & support      https://github.com/ocornut/imgui/issues
-// - Tests & Automation    https://github.com/ocornut/test_engine
-
-// For first-time users having issues compiling/linking/running/loading fonts:
-// please post in https://github.com/ocornut/imgui/discussions if you cannot
-// find a solution in resources above. Everything else should be asked in
-// 'Issues'! We are building a database of cross-linked knowledge there.
-
 // Library Version
 // (Integer encoded as XYYZZ for use in #if preprocessor conditionals, e.g. '#if
 // VERSION_NUM >= 12345')
@@ -34,34 +7,22 @@
 #define HAS_VIEWPORT // Viewport WIP branch
 #define HAS_DOCK     // Docking WIP branch
 
-/*
-
-Index of this file:
 // [SECTION] Header mess
 // [SECTION] Forward declarations and basic types
-// [SECTION] Dear Gui end-user API functions
+// [SECTION] Gui end-user API functions
 // [SECTION] Flags & Enumerations
-// [SECTION] Tables API flags and structures (TableFlags,
-TableColumnFlags, TableRowFlags, TableBgTarget,
-TableSortSpecs, TableColumnSortSpecs)
-// [SECTION] Helpers: Memory allocations macros, Vector<>
-// [SECTION] Style
-// [SECTION] IO
-// [SECTION] Misc data structures (InputTextCallbackData,
-SizeCallbackData, WindowClass, Payload)
-// [SECTION] Helpers (OnceUponAFrame, TextFilter, TextBuffer,
-Storage, ListClipper, Math Operators, Color)
-// [SECTION] Drawing API (DrawCallback, DrawCmd, DrawIdx, DrawVert,
-DrawChannel, DrawListSplitter, DrawFlags, DrawListFlags, DrawList,
-DrawData)
-// [SECTION] Font API (FontConfig, FontGlyph, FontGlyphRangesBuilder,
-FontAtlasFlags, FontAtlas, Font)
-// [SECTION] Viewports (ViewportFlags, Viewport)
-// [SECTION] Platform Dependent Interfaces (PlatformIO,
-PlatformMonitor, PlatformImeData)
-// [SECTION] Obsolete functions and types
-
-*/
+// [SECTION] Tables API flags and structures (TableFlags, TableColumnFlags,
+// TableRowFlags, TableBgTarget, TableSortSpecs, TableColumnSortSpecs) [SECTION]
+// Helpers: Memory allocations macros, Vector<> [SECTION] Style [SECTION] IO
+// [SECTION] Misc data structures (InputTextCallbackData, SizeCallbackData,
+// WindowClass, Payload) [SECTION] Helpers (OnceUponAFrame, TextFilter,
+// TextBuffer, Storage, ListClipper, Math Operators, Color) [SECTION] Drawing
+// API (DrawCallback, DrawCmd, DrawIdx, DrawVert, DrawChannel, DrawListSplitter,
+// DrawFlags, DrawListFlags, DrawList, DrawData) [SECTION] Font API (FontConfig,
+// FontGlyph, FontGlyphRangesBuilder, FontAtlasFlags, FontAtlas, Font) [SECTION]
+// Viewports (ViewportFlags, Viewport) [SECTION] Platform Dependent Interfaces
+// (PlatformIO, PlatformMonitor, PlatformImeData) [SECTION] Obsolete functions
+// and types
 
 #pragma once
 
@@ -87,7 +48,7 @@ PlatformMonitor, PlatformImeData)
 
 // Define attributes of all API symbols declarations (e.g. for DLL under
 // Windows) API is used for core imgui functions, API is used for the
-// default backends files (xxx.h) Using dear imgui via a shared
+// default backends files (xxx.h) Using gui via a shared
 // library is not recommended: we don't guarantee backward nor forward ABI
 // compatibility + this is a call-heavy library and function call overhead adds
 // up.
@@ -212,7 +173,7 @@ struct FontGlyphRangesBuilder; // Helper to build glyph ranges from
                                // text/string data
 struct Color;   // Helper functions to create a color that can be converted to
                 // either u32 or float4 (*OBSOLETE* please avoid using)
-struct Context; // Dear Gui context (opaque structure, unless including
+struct Context; // Gui context (opaque structure, unless including
                 // internal.hpp)
 struct IO;      // Main configuration and I/O between your application and Gui
 struct InputTextCallbackData; // Shared state of InputText() when using
@@ -448,7 +409,7 @@ struct Vec4 {
 MSVC_RUNTIME_CHECKS_RESTORE
 
 //-----------------------------------------------------------------------------
-// [SECTION] Dear Gui end-user API functions
+// [SECTION] Gui end-user API functions
 // (Note that Gui:: being a namespace, you can add extra Gui:: functions in
 // your own separate file. Please don't modify imgui source files!)
 //-----------------------------------------------------------------------------
@@ -473,15 +434,15 @@ API IO &GetIO(); // access the IO structure (mouse/keyboard/gamepad inputs,
 API Style &
 GetStyle(); // access the Style structure (colors, sizes). Always use
             // PushStyleColor(), PushStyleVar() to modify style mid-frame!
-API void NewFrame(); // start a new Dear Gui frame, you can submit any command
+API void NewFrame(); // start a new Gui frame, you can submit any command
                      // from this point until Render()/EndFrame().
 API void
-EndFrame(); // ends the Dear Gui frame. automatically called by Render(). If
+EndFrame(); // ends the Gui frame. automatically called by Render(). If
             // you don't need to render data (skipping rendering) you may call
             // EndFrame() without Render()... but you'll have wasted CPU
             // already! If you don't need to render, better to not create any
             // windows and not call NewFrame() at all!
-API void Render(); // ends the Dear Gui frame, finalize the draw data. You can
+API void Render(); // ends the Gui frame, finalize the draw data. You can
                    // then get call GetDrawData().
 API DrawData *GetDrawData(); // valid after Render() and until the next call to
                              // NewFrame(). this is what you have to render.
@@ -493,17 +454,17 @@ API void ShowDemoWindow(
                           // to make it always available in your application!
 API void ShowMetricsWindow(
     bool *p_open =
-        NULL); // create Metrics/Debugger window. display Dear Gui internals:
+        NULL); // create Metrics/Debugger window. display Gui internals:
                // windows, draw commands, various internal state, etc.
 API void ShowDebugLogWindow(
     bool *p_open = NULL); // create Debug Log window. display a simplified log
-                          // of important dear imgui events.
+                          // of important gui events.
 API void ShowIDStackToolWindow(
     bool *p_open =
         NULL); // create Stack Tool window. hover items with mouse to query
                // information about the source of their unique ID.
 API void ShowAboutWindow(
-    bool *p_open = NULL); // create About window. display Dear Gui version,
+    bool *p_open = NULL); // create About window. display Gui version,
                           // credits and build/system information.
 API void ShowStyleEditor(
     Style *ref = NULL); // add style editor block (not a window). you can pass
@@ -603,10 +564,10 @@ API bool IsWindowHovered(
         0); // is current window hovered and hoverable (e.g. not blocked by a
             // popup/modal)? See HoveredFlags_ for options. IMPORTANT: If
             // you are trying to check whether your mouse should be dispatched
-            // to Dear Gui or to your underlying app, you should not use this
+            // to Gui or to your underlying app, you should not use this
             // function! Use the 'io.WantCaptureMouse' boolean for that! Refer
             // to FAQ entry "How can I tell whether to dispatch mouse/keyboard
-            // to Dear Gui or my application?" for details.
+            // to Gui or my application?" for details.
 API DrawList *
 GetWindowDrawList(); // get draw list associated to the current window, to
                      // append your own drawing primitives
@@ -905,9 +866,7 @@ GetFrameHeightWithSpacing(); // ~ FontSize + style.FramePadding.y * 2 +
                              // 2 consecutive lines of framed widgets)
 
 // ID stack/scopes
-// Read the FAQ (docs/FAQ.md or http://dearimgui.com/faq) for more details about
-// how ID are handled in dear imgui.
-// - Those questions are answered and impacted by understanding of the ID stack
+// - These questions are answered and impacted by understanding of the ID stack
 // system:
 //   - "Q: Why is my widget not reacting when I click on it?"
 //   - "Q: How can I have widgets with an empty label?"
@@ -1008,8 +967,6 @@ API void Bullet(); // draw a small circle + keep the cursor on the same line.
                    // same distance that TreeNode() uses
 
 // Widgets: Images
-// - Read about TextureID here:
-// https://github.com/ocornut/imgui/wiki/Image-Loading-and-Displaying-Examples
 // - Note that Image() may add +2.0f to provided size if a border is visible,
 // ImageButton() adds style.FramePadding*2.0f to provided size.
 API void Image(TextureID user_texture_id, const Vec2 &image_size,
@@ -1069,8 +1026,6 @@ API bool Combo(const char *label, int *current_item,
 // - Legacy: Pre-1.78 there are DragXXX() function signatures that take a final
 // `float power=1.0f' argument instead of the `SliderFlags flags=0'
 // argument.
-//   If you get a warning converting a float to SliderFlags, read
-//   https://github.com/ocornut/imgui/issues/3361
 API bool DragFloat(const char *label, float *v, float v_speed = 1.0f,
                    float v_min = 0.0f, float v_max = 0.0f,
                    const char *format = "%.3f",
@@ -1126,8 +1081,6 @@ API bool DragScalarN(const char *label, DataType data_type, void *p_data,
 // - Legacy: Pre-1.78 there are SliderXXX() function signatures that take a
 // final `float power=1.0f' argument instead of the `SliderFlags flags=0'
 // argument.
-//   If you get a warning converting a float to SliderFlags, read
-//   https://github.com/ocornut/imgui/issues/3361
 API bool SliderFloat(
     const char *label, float *v, float v_min, float v_max,
     const char *format = "%.3f",
@@ -1368,7 +1321,7 @@ API void Value(const char *prefix, float v, const char *float_format = NULL);
 // - Use BeginMenu() to create a menu. You can call BeginMenu() multiple time
 // with the same identifier to append more items to it.
 // - Not that MenuItem() keyboardshortcuts are displayed as a convenience but
-// _not processed_ by Dear Gui at the moment.
+// _not processed_ by Gui at the moment.
 API bool BeginMenuBar(); // append to menu-bar of current window (requires
                          // WindowFlags_MenuBar flag set on parent window).
 API void EndMenuBar(); // only call EndMenuBar() if BeginMenuBar() returns true!
@@ -1746,7 +1699,7 @@ API bool BeginDragDropSource(
 API bool SetDragDropPayload(
     const char *type, const void *data, size_t sz,
     Cond cond = 0); // type is a user defined string of maximum 32 characters.
-                    // Strings starting with '_' are reserved for dear imgui
+                    // Strings starting with '_' are reserved for gui
                     // internal types. Data is copied and held by imgui. Return
                     // true when payload has been accepted.
 API void EndDragDropSource(); // only call EndDragDropSource() if
@@ -1862,7 +1815,7 @@ API Vec2 GetItemRectSize();  // get size of last item
 
 // Viewports
 // - Currently represents the Platform Window created by the application which
-// is hosting our Dear Gui windows.
+// is hosting our Gui windows.
 // - In 'docking' branch with multi-viewport enabled, we extend this concept to
 // have multiple active viewports.
 // - In the future we will extend this concept further to also represent
@@ -1875,22 +1828,21 @@ API DrawList *
 GetBackgroundDrawList(); // get background draw list for the viewport associated
                          // to the current window. this draw list will be the
                          // first rendering one. Useful to quickly draw
-                         // shapes/text behind dear imgui contents.
+                         // shapes/text behind gui contents.
 API DrawList *
 GetForegroundDrawList(); // get foreground draw list for the viewport associated
                          // to the current window. this draw list will be the
                          // last rendered one. Useful to quickly draw
-                         // shapes/text over dear imgui contents.
+                         // shapes/text over gui contents.
 API DrawList *GetBackgroundDrawList(
     Viewport
         *viewport); // get background draw list for the given viewport. this
                     // draw list will be the first rendering one. Useful to
-                    // quickly draw shapes/text behind dear imgui contents.
+                    // quickly draw shapes/text behind gui contents.
 API DrawList *GetForegroundDrawList(
-    Viewport
-        *viewport); // get foreground draw list for the given viewport. this
-                    // draw list will be the last rendered one. Useful to
-                    // quickly draw shapes/text over dear imgui contents.
+    Viewport *viewport); // get foreground draw list for the given viewport.
+                         // this draw list will be the last rendered one. Useful
+                         // to quickly draw shapes/text over gui contents.
 
 // Miscellaneous Utilities
 API bool IsRectVisible(
@@ -2561,7 +2513,7 @@ enum FocusedFlags_ {
 
 // Flags for Gui::IsItemHovered(), Gui::IsWindowHovered()
 // Note: if you are trying to check whether your mouse should be dispatched to
-// Dear Gui or to your app, you should use 'io.WantCaptureMouse' instead!
+// Gui or to your app, you should use 'io.WantCaptureMouse' instead!
 // Please read the FAQ! Note: windows with the WindowFlags_NoInputs flag
 // are ignored by IsWindowHovered() calls.
 enum HoveredFlags_ {
@@ -2714,10 +2666,10 @@ enum DragDropFlags_ {
       1 << 3, // Allow items such as Text(), Image() that have no unique
               // identifier to be used as drag source, by manufacturing a
               // temporary identifier based on their window-relative position.
-              // This is extremely unusual within the dear imgui ecosystem and
+              // This is extremely unusual within the gui ecosystem and
               // so we made it explicit.
   DragDropFlags_SourceExtern =
-      1 << 4, // External source (from outside of dear imgui), won't attempt to
+      1 << 4, // External source (from outside of gui), won't attempt to
               // read current item/window info. Will always return true. Only
               // one Extern source can be active simultaneously.
   DragDropFlags_SourceAutoExpirePayload =
@@ -2743,7 +2695,7 @@ enum DragDropFlags_ {
 };
 
 // Standard Drag and Drop payload types. You can define you own payload types
-// using short strings. Types starting with '_' are defined by Dear Gui.
+// using short strings. Types starting with '_' are defined by Gui.
 #define PAYLOAD_TYPE_COLOR_3F                                                  \
   "_COL3F" // float[3]: Standard type for colors, without alpha. User code may
            // use this type.
@@ -2792,9 +2744,8 @@ enum SortDirection_ {
 // Keyboard, Mouse and Gamepad values. All our named keys are >= 512. Keys value
 // 0 to 511 are left unused as legacy native/opaque key values (< 1.87). Since
 // >= 1.89 we increased typing (went from int to enum), some legacy code may
-// need a cast to Key. Read details about the 1.87 and 1.89 transition :
-// https://github.com/ocornut/imgui/issues/4921 Note that "Keys" related to
-// physical keys and are not the same concept as input "Characters", the later
+// need a cast to Key.
+// Physical keys and are not the same concept as input "Characters", the later
 // are submitted via io.AddInputCharacter().
 enum Key : int {
   // Keyboard
@@ -2921,9 +2872,7 @@ enum Key : int {
                // "Browser Back"
   Key_AppForward,
 
-  // Gamepad (some of those are analog values, 0.0f to 1.0f) // NAVIGATION
-  // ACTION (download controller mapping PNG/PSD at
-  // http://dearimgui.com/controls_sheets)
+  // Gamepad (some of those are analog values, 0.0f to 1.0f)
   Key_GamepadStart,       // Menu (Xbox)      + (Switch)   Start/Options (PS)
   Key_GamepadBack,        // View (Xbox)      - (Switch)   Share (PS)
   Key_GamepadFaceLeft,    // X (Xbox)         Y (Switch)   Square (PS) // Tap:
@@ -3113,7 +3062,7 @@ enum ConfigFlags_ {
                // this is all early work in progress.
 
   // User storage (to allow your backend/engine to communicate to code that may
-  // be shared between multiple projects. Those flags are NOT used by core Dear
+  // be shared between multiple projects. Those flags are NOT used by core
   // Gui)
   ConfigFlags_IsSRGB = 1 << 20, // Application is SRGB-aware.
   ConfigFlags_IsTouchScreen =
@@ -3146,7 +3095,7 @@ enum BackendFlags_ {
                // with the viewport under the mouse. IF POSSIBLE, ignore
                // viewports with the ViewportFlags_NoInputs flag (Win32
                // backend, GLFW 3.30+ backend can do this, SDL backend cannot).
-               // If this cannot be done, Dear Gui needs to use a flawed
+               // If this cannot be done, Gui needs to use a flawed
                // heuristic to find the viewport under.
   BackendFlags_RendererHasViewports =
       1 << 12, // Backend Renderer supports multiple viewports.
@@ -3437,14 +3386,14 @@ enum MouseCursor_ {
   MouseCursor_None = -1,
   MouseCursor_Arrow = 0,
   MouseCursor_TextInput,  // When hovering over InputText, etc.
-  MouseCursor_ResizeAll,  // (Unused by Dear Gui functions)
+  MouseCursor_ResizeAll,  // (Unused by Gui functions)
   MouseCursor_ResizeNS,   // When hovering over a horizontal border
   MouseCursor_ResizeEW,   // When hovering over a vertical border or a column
   MouseCursor_ResizeNESW, // When hovering over the bottom-left corner of a
                           // window
   MouseCursor_ResizeNWSE, // When hovering over the bottom-right corner of
                           // a window
-  MouseCursor_Hand,       // (Unused by Dear Gui functions. Use for e.g.
+  MouseCursor_Hand,       // (Unused by Gui functions. Use for e.g.
                           // hyperlinks)
   MouseCursor_NotAllowed, // When hovering something with disallowed
                           // interaction. Usually a crossed circle.
@@ -3831,7 +3780,7 @@ template <typename T> void DELETE(T *p) {
 // we treat everything as raw data! This is intentional but be extra mindful of
 // that,
 //   Do NOT use this class as a std::vector replacement in your own code! Many
-//   of the structures used by dear imgui can be safely initialized by a
+//   of the structures used by gui can be safely initialized by a
 //   zero-memset.
 //-----------------------------------------------------------------------------
 
@@ -4100,7 +4049,7 @@ MSVC_RUNTIME_CHECKS_RESTORE
 //-----------------------------------------------------------------------------
 
 struct Style {
-  float Alpha;         // Global alpha applies to everything in Dear Gui.
+  float Alpha;         // Global alpha applies to everything in Gui.
   float DisabledAlpha; // Additional alpha multiplier applied by
                        // BeginDisabled(). Multiply over current value of Alpha.
   Vec2 WindowPadding;  // Padding within a window.
@@ -4253,7 +4202,7 @@ struct Style {
 //-----------------------------------------------------------------------------
 // [SECTION] IO
 //-----------------------------------------------------------------------------
-// Communicate most settings and inputs/outputs to Dear Gui using this
+// Communicate most settings and inputs/outputs to Gui using this
 // structure. Access via Gui::GetIO(). Read 'Programmer guide' section in .cpp
 // file for general usage.
 //-----------------------------------------------------------------------------
@@ -4581,20 +4530,20 @@ struct IO {
   //  NewFrame(). See FAQ for details!)
   //------------------------------------------------------------------
 
-  bool WantCaptureMouse; // Set when Dear Gui will use mouse inputs, in this
+  bool WantCaptureMouse; // Set when Gui will use mouse inputs, in this
                          // case do not dispatch them to your main
                          // game/application (either way, always pass on mouse
                          // inputs to imgui). (e.g. unclicked mouse is hovering
                          // over an imgui window, widget is active, mouse was
                          // clicked over an imgui window, etc.).
-  bool WantCaptureKeyboard; // Set when Dear Gui will use keyboard inputs, in
+  bool WantCaptureKeyboard; // Set when Gui will use keyboard inputs, in
                             // this case do not dispatch them to your main
                             // game/application (either way, always pass
                             // keyboard inputs to imgui). (e.g. InputText
                             // active, or an imgui window is focused and
                             // navigation is enabled, etc.).
   bool WantTextInput; // Mobile/console: when set, you may display an on-screen
-                      // keyboard. This is set by Dear Gui when it wants
+                      // keyboard. This is set by Gui when it wants
                       // textual keyboard input to happen (e.g. when a InputText
                       // widget is active).
   bool WantSetMousePos; // MousePos has been altered, backend should reposition
@@ -4661,7 +4610,7 @@ struct IO {
 #endif
 
   //------------------------------------------------------------------
-  // [Internal] Dear Gui will maintain those fields. Forward compatibility not
+  // [Internal] Gui will maintain those fields. Forward compatibility not
   // guaranteed!
   //------------------------------------------------------------------
 
@@ -4675,7 +4624,7 @@ struct IO {
   Vec2 MousePos; // Mouse position, in pixels. Set to Vec2(-FLT_MAX, -FLT_MAX)
                  // if mouse is unavailable (on another screen, etc.)
   bool MouseDown[5]; // Mouse buttons: 0=left, 1=right, 2=middle + extras
-                     // (MouseButton_COUNT == 5). Dear Gui mostly uses
+                     // (MouseButton_COUNT == 5). Gui mostly uses
                      // left and right buttons. Other buttons allow us to track
                      // if the mouse is being used by your application +
                      // available to user as a convenience via IsMouse** API.
@@ -4735,12 +4684,12 @@ struct IO {
                                 // valid after mouse release. Reset after
                                 // another click is done.
   bool MouseReleased[5];        // Mouse button went from Down to !Down
-  bool MouseDownOwned[5]; // Track if button was clicked inside a dear imgui
+  bool MouseDownOwned[5];       // Track if button was clicked inside a gui
                           // window or over void blocked by a popup. We don't
                           // request mouse capture from the application if click
                           // started outside Gui bounds.
   bool MouseDownOwnedUnlessPopupClose[5]; // Track if button was clicked inside
-                                          // a dear imgui window.
+                                          // a gui window.
   bool MouseWheelRequestAxisSwap; // On a non-Mac system, holding SHIFT requests
                                   // WheelY to perform the equivalent of a
                                   // WheelX event. On a Mac system this is
@@ -4757,7 +4706,7 @@ struct IO {
                                     // point (used for moving thresholds)
   float PenPressure; // Touch/Pen pressure (0.0f to 1.0f, should be >0.0f only
                      // when MouseDown[0] == true). Helper storage currently
-                     // unused by Dear Gui.
+                     // unused by Gui.
   bool AppFocusLost; // Only modify via AddFocusEvent()
   bool AppAcceptingEvents;        // Only modify via SetAppAcceptingEvents()
   S8 BackendUsingLegacyKeyArrays; // -1: unknown, 0: using AddKeyEvent(), 1:
@@ -4922,7 +4871,7 @@ struct WindowClass {
 // GetDragDropPayload()
 struct Payload {
   // Members
-  void *Data;   // Data (copied and owned by dear imgui)
+  void *Data;   // Data (copied and owned by gui)
   int DataSize; // Data size
 
   // [Internal]
@@ -5121,7 +5070,7 @@ struct Storage {
 // If you have lots evenly spaced items and you have random access to the list,
 // you can perform coarse clipping based on visibility to only submit items that
 // are in view. The clipper calculates the range of visible items and advance
-// the cursor to compensate for the non-visible items we have skipped. (Dear
+// the cursor to compensate for the non-visible items we have skipped. (
 // Gui already clip items based on their bounds but: it needs to first layout
 // the item to do so, and generally
 //  fetching/submitting your own data incurs additional cost. Coarse clipping
@@ -5431,7 +5380,7 @@ struct DrawVert {
 // or add other fields as needed to simplify integration in your engine. The
 // type has to be described within the macro (you can either declare the struct
 // or use a typedef). This is because Vec2/U32 are likely not declared at
-// the time you'd want to set your type up. NOTE: IMGUI DOESN'T CLEAR THE
+// the time you'd want to set your type up. NOTE: GUI DOESN'T CLEAR THE
 // STRUCTURE AND DOESN'T CALL A CONSTRUCTOR SO ANY CUSTOM FIELD WILL BE
 // UNINITIALIZED. IF YOU ADD EXTRA FIELDS (SUCH AS A 'Z' COORDINATES) YOU WILL
 // NEED TO CLEAR THEM DURING RENDER OR TO IGNORE THEM.
@@ -5543,7 +5492,7 @@ enum DrawListFlags_ {
 // Draw command list
 // This is the low-level list of polygons that Gui:: functions are filling. At
 // the end of the frame, all command lists are passed to your
-// IO::RenderDrawListFn function for rendering. Each dear imgui window
+// IO::RenderDrawListFn function for rendering. Each gui window
 // contains its own DrawList. You can use Gui::GetWindowDrawList() to access
 // the current window draw list and draw custom primitives. You can interleave
 // normal Gui:: calls and adding primitives to the current draw list. In
@@ -5627,7 +5576,7 @@ struct DrawList {
   // and lower-right corners.
   // - For circle primitives, use "num_segments == 0" to automatically calculate
   // tessellation (preferred).
-  //   In older versions (until Dear Gui 1.77) the AddCircle functions
+  //   In older versions (until Gui 1.77) the AddCircle functions
   //   defaulted to num_segments == 12. In future versions we will use textures
   //   to provide cheaper and higher-quality circles. Use AddNgon() and
   //   AddNgonFilled() functions if you need to guarantee a specific number of
@@ -5824,7 +5773,7 @@ struct DrawList {
                        float a_max, int num_segments);
 };
 
-// All draw data to render a Dear Gui frame
+// All draw data to render a Gui frame
 // (NB: the style and the naming convention here is a little inconsistent, we
 // currently preserve them for backward compatibility purpose, as this is one of
 // the oldest structure exposed by the library! Basically, DrawList ==
@@ -5864,7 +5813,7 @@ struct DrawData {
   API void ScaleClipRects(
       const Vec2 &fb_scale); // Helper to scale the ClipRect field of each
                              // DrawCmd. Use if your final output buffer is
-                             // at a different scale than Dear Gui expects,
+                             // at a different scale than Gui expects,
                              // or if there is a difference between your
                              // window resolution and framebuffer resolution.
 };
@@ -5886,15 +5835,13 @@ struct FontConfig {
   int OversampleH;  // 2        // Rasterize at higher quality for sub-pixel
                     // positioning. Note the difference between 2 and 3 is
                     // minimal. You can reduce this to 1 for large glyphs save
-                    // memory. Read
-  // https://github.com/nothings/stb/blob/master/tests/oversample/README.md
-  // for details.
-  int OversampleV; // 1        // Rasterize at higher quality for sub-pixel
-                   // positioning. This is not really useful as we don't use
-                   // sub-pixel positions on the Y axis.
-  bool PixelSnapH; // false    // Align every glyph to pixel boundary. Useful
-                   // e.g. if you are merging a non-pixel aligned font with the
-                   // default font. If enabled, you can set OversampleH/V to 1.
+                    // memory.
+  int OversampleV;  // 1        // Rasterize at higher quality for sub-pixel
+                    // positioning. This is not really useful as we don't use
+                    // sub-pixel positions on the Y axis.
+  bool PixelSnapH;  // false    // Align every glyph to pixel boundary. Useful
+                    // e.g. if you are merging a non-pixel aligned font with the
+                    // default font. If enabled, you can set OversampleH/V to 1.
   Vec2 GlyphExtraSpacing; // 0, 0     // Extra spacing (in pixels) between
                           // glyphs. Only X axis is supported for now.
   Vec2 GlyphOffset;       // 0, 0     // Offset all glyphs from this font input.
@@ -6028,7 +5975,7 @@ enum FontAtlasFlags_ {
 // Load and rasterize multiple TTF/OTF fonts into a same texture. The font atlas
 // will build a single texture holding:
 //  - One or more fonts.
-//  - Custom graphics data needed to render the shapes needed by Dear Gui.
+//  - Custom graphics data needed to render the shapes needed by Gui.
 //  - Mouse cursor shapes for software cursor rendering (unless setting 'Flags
 //  |= FontAtlasFlags_NoMouseCursors' in the font atlas).
 // It is the user-code responsibility to setup/build the atlas, then upload the
@@ -6128,9 +6075,8 @@ struct FontAtlas {
 
   // Helpers to retrieve list of common Unicode ranges (2 value per range,
   // values are inclusive, zero-terminated list) NB: Make sure that your string
-  // are UTF-8 and NOT in your local code page. Read
-  // https://github.com/ocornut/imgui/blob/master/docs/FONTS.md/#about-utf-8-encoding
-  // for details. NB: Consider using FontGlyphRangesBuilder to build glyph
+  // are UTF-8 and NOT in your local code page.
+  // NB: Consider using FontGlyphRangesBuilder to build glyph
   // ranges from textual data.
   API const Wchar *GetGlyphRangesDefault(); // Basic Latin, Extended Latin
   API const Wchar *GetGlyphRangesGreek();   // Default + Greek and Coptic
@@ -6412,7 +6358,7 @@ enum ViewportFlags_ {
 };
 
 // - Currently represents the Platform Window created by the application which
-// is hosting our Dear Gui windows.
+// is hosting our Gui windows.
 // - With multi-viewport enabled, we extend this concept to have multiple active
 // viewports.
 // - In the future we will extend this concept further to also represent
@@ -6426,14 +6372,14 @@ enum ViewportFlags_ {
 struct Viewport {
   ID ID;               // Unique identifier for the viewport
   ViewportFlags Flags; // See ViewportFlags_
-  Vec2 Pos;     // Main Area: Position of the viewport (Dear Gui coordinates are
-                // the same as OS desktop/native coordinates)
-  Vec2 Size;    // Main Area: Size of the viewport.
-  Vec2 WorkPos; // Work Area: Position of the viewport minus task bars, menus
-                // bars, status bars (>= Pos)
-  Vec2 WorkSize;       // Work Area: Size of the viewport minus task bars, menu
-                       // bars, status bars (<= Size)
-  float DpiScale;      // 1.0f = 96 DPI = No extra scale.
+  Vec2 Pos;       // Main Area: Position of the viewport (Gui coordinates are
+                  // the same as OS desktop/native coordinates)
+  Vec2 Size;      // Main Area: Size of the viewport.
+  Vec2 WorkPos;   // Work Area: Position of the viewport minus task bars, menus
+                  // bars, status bars (>= Pos)
+  Vec2 WorkSize;  // Work Area: Size of the viewport minus task bars, menu
+                  // bars, status bars (<= Size)
+  float DpiScale; // 1.0f = 96 DPI = No extra scale.
   ID ParentViewportId; // (Advanced) 0: no parent. Instruct the platform
                        // backend to setup a parent/child relationship
                        // between platform windows.
@@ -6494,22 +6440,17 @@ struct Viewport {
 // [SECTION] Platform Dependent Interfaces (for e.g. multi-viewport support)
 //-----------------------------------------------------------------------------
 // [BETA] (Optional) This is completely optional, for advanced users!
-// If you are new to Dear Gui and trying to integrate it into your engine, you
+// If you are new to Gui and trying to integrate it into your engine, you
 // can probably ignore this for now.
 //
-// This feature allows you to seamlessly drag Dear Gui windows outside of your
+// This feature allows you to seamlessly drag Gui windows outside of your
 // application viewport. This is achieved by creating new Platform/OS windows on
-// the fly, and rendering into them. Dear Gui manages the viewport structures,
+// the fly, and rendering into them. Gui manages the viewport structures,
 // and the backend create and maintain one Platform/OS window for each of those
 // viewports.
 //
-// See Glossary https://github.com/ocornut/imgui/wiki/Glossary for details about
-// some of the terminology. See Thread
-// https://github.com/ocornut/imgui/issues/1542 for gifs, news and questions
-// about this evolving feature.
-//
 // About the coordinates system:
-// - When multi-viewports are enabled, all Dear Gui coordinates become
+// - When multi-viewports are enabled, all Gui coordinates become
 // absolute coordinates (same as OS coordinates!)
 // - So e.g. Gui::SetNextWindowPos(Vec2(0,0)) will position a window
 // relative to your primary monitor!
@@ -6582,8 +6523,8 @@ struct PlatformIO {
   // the Platform Functions:
   //   N = Gui::NewFrame()                        ~ beginning of the dear
   //   imgui frame: read info from platform/OS windows (latest size/position) F
-  //   = Gui::Begin(), Gui::EndFrame()        ~ during the dear imgui frame
-  //   U = Gui::UpdatePlatformWindows()           ~ after the dear imgui
+  //   = Gui::Begin(), Gui::EndFrame()        ~ during the gui frame
+  //   U = Gui::UpdatePlatformWindows()           ~ after the gui
   //   frame: create and update all platform/OS windows R =
   //   Gui::RenderPlatformWindowsDefault()    ~ render D =
   //   Gui::DestroyPlatformWindows()          ~ shutdown
@@ -6690,7 +6631,7 @@ struct PlatformIO {
   // (Optional) Monitor list
   // - Updated by: app/backend. Update every frame to dynamically support
   // changing monitor or DPI configuration.
-  // - Used by: dear imgui to query DPI info, clamp popups/tooltips within same
+  // - Used by: gui to query DPI info, clamp popups/tooltips within same
   // monitor and not have them straddle monitors.
   Vector<PlatformMonitor> Monitors;
 
@@ -6740,7 +6681,7 @@ struct PlatformImeData {
 //-----------------------------------------------------------------------------
 // [SECTION] Obsolete functions and types
 // (Will be removed! Read 'API BREAKING CHANGES' section in gui.cpp for
-// details) Please keep your copy of dear imgui up to date! Occasionally set
+// details) Please keep your copy of gui up to date! Occasionally set
 // '#define DISABLE_OBSOLETE_FUNCTIONS' in config.hpp to stay ahead.
 //-----------------------------------------------------------------------------
 
@@ -6834,8 +6775,8 @@ static inline void CaptureMouseFromApp(bool want_capture_mouse = true) {
 // return value removed. Use IsWindowAppearing() in BeginPopup() instead.
 // Renamed in 1.77, renamed back in 1.79. Sorry!
 //-- OBSOLETED in 1.78 (from June 2020): Old drag/sliders functions that took a
-//'float power > 1.0f' argument instead of SliderFlags_Logarithmic. See
-// github.com/ocornut/imgui/issues/3361 for details. API bool DragScalar(const
+//'float power > 1.0f' argument instead of SliderFlags_Logarithmic. API bool
+// DragScalar(const
 // char* label, DataType data_type, void* p_data, float v_speed, const
 // void* p_min, const void* p_max, const char* format, float power = 1.0f) //
 // OBSOLETED in 1.78 (from June 2020) API bool      DragScalarN(const char*

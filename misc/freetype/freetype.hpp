@@ -1,4 +1,4 @@
-// dear imgui: FreeType font builder (used as a replacement for the truetype
+// gui: FreeType font builder (used as a replacement for the truetype
 // builder) (headers)
 
 #pragma once

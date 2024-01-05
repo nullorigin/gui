@@ -1,4 +1,4 @@
-// dear imgui: Platform Backend for SDL3 (*EXPERIMENTAL*)
+// gui: Platform Backend for SDL3 (*EXPERIMENTAL*)
 // This needs to be used along with a Renderer (e.g. DirectX11, OpenGL3,
 // Vulkan..) (Info: SDL3 is a cross-platform general purpose library for
 // handling windows, inputs, graphics context creation, etc.) (IMPORTANT:
@@ -23,32 +23,6 @@
 //  events (at least under Windows). [x] Platform: Basic IME support. Position
 //  somehow broken in SDL3 + app needs to call
 //  'SDL_SetHint(SDL_HINT_IME_SHOW_UI, "1");' before SDL_CreateWindow()!.
-
-// You can use unmodified * files in your project. See examples/
-// folder for examples of using this. Prefer including the entire imgui/
-// repository into your project (either as a copy or as a submodule), and only
-// build the backends you need. Learn about Dear Gui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/
-// folder).
-// - Introduction, links and more at the top of gui.cpp
-
-// CHANGELOG
-// (minor and older changes stripped away, please see git history for details)
-//  2023-XX-XX: Platform: Added support for multiple windows via the
-//  PlatformIO interface. 2023-11-13: Updated for recent SDL3 API changes.
-//  2023-10-05: Inputs: Added support for extra Key values: F13 to F24
-//  function keys, app back/forward keys. 2023-05-04: Fixed build on
-//  Emscripten/iOS/Android. (#6391) 2023-04-06: Inputs: Avoid calling
-//  SDL_StartTextInput()/SDL_StopTextInput() as they don't only pertain to IME.
-//  It's unclear exactly what their relation is to IME. (#6306) 2023-04-04:
-//  Inputs: Added support for io.AddMouseSourceEvent() to discriminate
-//  MouseSource_Mouse/MouseSource_TouchScreen. (#2702) 2023-02-23:
-//  Accept SDL_GetPerformanceCounter() not returning a monotonically increasing
-//  value. (#6189, #6114, #3644) 2023-02-07: Forked "sdl2" into
-//  "sdl3". Removed version checks for old feature. Refer to
-//  sdl2.cpp for older changelog.
 
 #include "../gui.hpp"
 #ifndef DISABLE
@@ -104,9 +78,9 @@ struct SDL3_Data {
 };
 
 // Backend data stored in io.BackendPlatformUserData to allow support for
-// multiple Dear Gui contexts It is STRONGLY preferred that you use docking
-// branch with multi-viewports (== single Dear Gui context + multiple windows)
-// instead of multiple Dear Gui contexts.
+// multiple Gui contexts It is STRONGLY preferred that you use docking
+// branch with multi-viewports (== single Gui context + multiple windows)
+// instead of multiple Gui contexts.
 // FIXME: multi-context support is not well tested and probably dysfunctional in
 // this backend.
 // FIXME: some shared resources (mouse cursor shape, gamepad) are mishandled
@@ -400,14 +374,14 @@ static void SDL3_UpdateKeyModifiers(SDL_Keymod sdl_key_mods) {
 }
 
 // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if
-// dear imgui wants to use your inputs.
+// gui wants to use your inputs.
 // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your
 // main application, or clear/overwrite your copy of the mouse data.
 // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to
 // your main application, or clear/overwrite your copy of the keyboard data.
-// Generally you may always pass all inputs to dear imgui, and hide them from
+// Generally you may always pass all inputs to gui, and hide them from
 // your application based on those two flags. If you have multiple SDL events
-// and some of them are not meant to be used by dear imgui, you may need to
+// and some of them are not meant to be used by gui, you may need to
 // filter events based on their windowID field.
 bool SDL3_ProcessEvent(const SDL_Event *event) {
   IO &io = Gui::GetIO();
@@ -589,9 +563,8 @@ static bool SDL3_Init(SDL_Window *window, SDL_Renderer *renderer,
   bd->Window = window;
   bd->Renderer = renderer;
 
-  // SDL on Linux/OSX doesn't report events for unfocused windows (see
-  // https://github.com/ocornut/imgui/issues/4960) We will use
-  // 'MouseCanReportHoveredViewport' to set
+  // SDL on Linux/OSX doesn't report events for unfocused windows.
+  // We will use 'MouseCanReportHoveredViewport' to set
   // 'BackendFlags_HasMouseHoveredViewport' dynamically each frame.
   bd->MouseCanUseGlobalState = mouse_can_use_global_state;
 #ifndef __APPLE__
@@ -738,7 +711,7 @@ static void SDL3_UpdateMouseData() {
       0; // SDL 2.0.3 and non-windowed systems: single-viewport only
 #endif
   if (is_app_focused) {
-    // (Optional) Set OS mouse position from Dear Gui if requested (rarely
+    // (Optional) Set OS mouse position from Gui if requested (rarely
     // used, only when ConfigFlags_NavEnableSetMousePos is enabled by user)
     if (io.WantSetMousePos) {
 #if SDL_HAS_CAPTURE_AND_GLOBAL_MOUSE
@@ -771,7 +744,7 @@ static void SDL3_UpdateMouseData() {
 
   // (Optional) When using multiple viewports: call io.AddMouseViewportEvent()
   // with the viewport the OS mouse cursor is hovering. If
-  // BackendFlags_HasMouseHoveredViewport is not set by the backend, Dear
+  // BackendFlags_HasMouseHoveredViewport is not set by the backend,
   // imGui will ignore this field and infer the information using its flawed
   // heuristic.
   // - [!] SDL backend does NOT correctly ignore viewports with the _NoInputs
@@ -779,7 +752,7 @@ static void SDL3_UpdateMouseData() {
   //       Some backend are not able to handle that correctly. If a backend
   //       report an hovered viewport that has the _NoInputs flag (e.g. when
   //       dragging a window for docking, the viewport has the _NoInputs flag in
-  //       order to allow us to find the viewport under), then Dear Gui is
+  //       order to allow us to find the viewport under), then Gui is
   //       forced to ignore the value reported by the backend, and use its
   //       flawed heuristic to guess the viewport behind.
   // - [X] SDL backend correctly reports this regardless of another viewport
@@ -976,8 +949,8 @@ void SDL3_NewFrame() {
 //--------------------------------------------------------------------------------------------------------
 // MULTI-VIEWPORT / PLATFORM INTERFACE SUPPORT
 // This is an _advanced_ and _optional_ feature, allowing the backend to create
-// and handle multiple viewports simultaneously. If you are new to dear imgui or
-// creating a new binding for dear imgui, it is recommended that you completely
+// and handle multiple viewports simultaneously. If you are new to gui or
+// creating a new binding for gui, it is recommended that you completely
 // ignore this section first..
 //--------------------------------------------------------------------------------------------------------
 

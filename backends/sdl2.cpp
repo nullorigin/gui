@@ -1,4 +1,4 @@
-// dear imgui: Platform Backend for SDL2
+// gui: Platform Backend for SDL2
 // This needs to be used along with a Renderer (e.g. DirectX11, OpenGL3,
 // Vulkan..) (Info: SDL2 is a cross-platform general purpose library for
 // handling windows, inputs, graphics context creation, etc.) (Prefer SDL 2.0.5+
@@ -21,114 +21,6 @@
 //  events (at least under Windows). [x] Platform: Basic IME support. App needs
 //  to call 'SDL_SetHint(SDL_HINT_IME_SHOW_UI, "1");' before
 //  SDL_CreateWindow()!.
-
-// You can use unmodified * files in your project. See examples/
-// folder for examples of using this. Prefer including the entire imgui/
-// repository into your project (either as a copy or as a submodule), and only
-// build the backends you need. Learn about Dear Gui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/
-// folder).
-// - Introduction, links and more at the top of gui.cpp
-
-// CHANGELOG
-// (minor and older changes stripped away, please see git history for details)
-//  2023-XX-XX: Platform: Added support for multiple windows via the
-//  PlatformIO interface. 2023-10-05: Inputs: Added support for extra
-//  Key values: F13 to F24 function keys, app back/forward keys.
-//  2023-04-06: Inputs: Avoid calling SDL_StartTextInput()/SDL_StopTextInput()
-//  as they don't only pertain to IME. It's unclear exactly what their relation
-//  is to IME. (#6306) 2023-04-04: Inputs: Added support for
-//  io.AddMouseSourceEvent() to discriminate
-//  MouseSource_Mouse/MouseSource_TouchScreen. (#2702) 2023-02-23:
-//  Accept SDL_GetPerformanceCounter() not returning a monotonically increasing
-//  value. (#6189, #6114, #3644) 2023-02-07: Implement IME handler
-//  (io.SetPlatformImeDataFn will call
-//  SDL_SetTextInputRect()/SDL_StartTextInput()). 2023-02-07: *BREAKING CHANGE*
-//  Renamed this backend file from sdl.cpp/.h to
-//  sdl2.cpp/.h in prevision for the future release of SDL3.
-//  2023-02-02: Avoid calling SDL_SetCursor() when cursor has not changed, as
-//  the function is surprisingly costly on Mac with latest SDL (may be fixed in
-//  next SDL version). 2023-02-02: Added support for SDL 2.0.18+
-//  preciseX/preciseY mouse wheel data for smooth scrolling + Scaling X value on
-//  Emscripten (bug?). (#4019, #6096) 2023-02-02: Removed SDL_MOUSEWHEEL value
-//  clamping, as values seem correct in latest Emscripten. (#4019) 2023-02-01:
-//  Flipping SDL_MOUSEWHEEL 'wheel.x' value to match other backends and offer
-//  consistent horizontal scrolling direction. (#4019, #6096, #1463) 2022-10-11:
-//  Using 'nullptr' instead of 'NULL' as per our switch to C++11. 2022-09-26:
-//  Inputs: Disable SDL 2.0.22 new "auto capture" (SDL_HINT_MOUSE_AUTO_CAPTURE)
-//  which prevents drag and drop across windows for multi-viewport support +
-//  don't capture when drag and dropping. (#5710) 2022-09-26: Inputs: Renamed
-//  Key_ModXXX introduced in 1.87 to Mod_XXX (old names still
-//  supported). 2022-03-22: Inputs: Fix mouse position issues when dragging
-//  outside of boundaries. SDL_CaptureMouse() erroneously still gives out LEAVE
-//  events when hovering OS decorations. 2022-03-22: Inputs: Added support for
-//  extra mouse buttons (SDL_BUTTON_X1/SDL_BUTTON_X2). 2022-02-04: Added
-//  SDL_Renderer* parameter to SDL2_InitForSDLRenderer(), so we can
-//  use SDL_GetRendererOutputSize() instead of SDL_GL_GetDrawableSize() when
-//  bound to a SDL_Renderer. 2022-01-26: Inputs: replaced short-lived
-//  io.AddKeyModsEvent() (added two weeks ago) with io.AddKeyEvent() using
-//  Key_ModXXX flags. Sorry for the confusion. 2021-01-20: Inputs: calling
-//  new io.AddKeyAnalogEvent() for gamepad support, instead of writing directly
-//  to io.NavInputs[]. 2022-01-17: Inputs: calling new io.AddMousePosEvent(),
-//  io.AddMouseButtonEvent(), io.AddMouseWheelEvent() API (1.87+). 2022-01-17:
-//  Inputs: always update key mods next and before key event (not in NewFrame)
-//  to fix input queue with very low framerates. 2022-01-12: Update mouse inputs
-//  using SDL_MOUSEMOTION/SDL_WINDOWEVENT_LEAVE + fallback to provide it when
-//  focused but not hovered/captured. More standard and will allow us to pass it
-//  to future input queue API. 2022-01-12: Maintain our own copy of
-//  MouseButtonsDown mask instead of using Gui::IsAnyMouseDown() which will be
-//  obsoleted. 2022-01-10: Inputs: calling new io.AddKeyEvent(),
-//  io.AddKeyModsEvent() + io.SetKeyEventNativeData() API (1.87+). Support for
-//  full Key range. 2021-08-17: Calling io.AddFocusEvent() on
-//  SDL_WINDOWEVENT_FOCUS_GAINED/SDL_WINDOWEVENT_FOCUS_LOST. 2021-07-29: Inputs:
-//  MousePos is correctly reported when the host platform window is hovered but
-//  not focused (using SDL_GetMouseFocus() + SDL_HINT_MOUSE_FOCUS_CLICKTHROUGH,
-//  requires SDL 2.0.5+) 2021-06:29: *BREAKING CHANGE* Removed 'SDL_Window*
-//  window' parameter to SDL2_NewFrame() which was unnecessary.
-//  2021-06-29: Reorganized backend to pull data from a single structure to
-//  facilitate usage with multiple-contexts (all g_XXXX access changed to
-//  bd->XXXX). 2021-03-22: Rework global mouse pos availability check listing
-//  supported platforms explicitly, effectively fixing mouse access on Raspberry
-//  Pi. (#2837, #3950) 2020-05-25: Misc: Report a zero display-size when window
-//  is minimized, to be consistent with other backends. 2020-02-20: Inputs:
-//  Fixed mapping for Key_KeyPadEnter (using SDL_SCANCODE_KP_ENTER instead
-//  of SDL_SCANCODE_RETURN2). 2019-12-17: Inputs: On Wayland, use
-//  SDL_GetMouseState (because there is no global mouse state). 2019-12-05:
-//  Inputs: Added support for MouseCursor_NotAllowed mouse cursor.
-//  2019-07-21: Inputs: Added mapping for Key_KeyPadEnter.
-//  2019-04-23: Inputs: Added support for SDL_GameController (if
-//  ConfigFlags_NavEnableGamepad is set by user application). 2019-03-12:
-//  Misc: Preserve DisplayFramebufferScale when main window is minimized.
-//  2018-12-21: Inputs: Workaround for Android/iOS which don't seem to handle
-//  focus related calls. 2018-11-30: Misc: Setting up io.BackendPlatformName so
-//  it can be displayed in the About Window. 2018-11-14: Changed the signature
-//  of SDL2_ProcessEvent() to take a 'const SDL_Event*'. 2018-08-01:
-//  Inputs: Workaround for Emscripten which doesn't seem to handle focus related
-//  calls. 2018-06-29: Inputs: Added support for the MouseCursor_Hand
-//  cursor. 2018-06-08: Misc: Extracted sdl.cpp/.h away from the old
-//  combined SDL2+OpenGL/Vulkan examples. 2018-06-08: Misc:
-//  SDL2_InitForOpenGL() now takes a SDL_GLContext parameter.
-//  2018-05-09: Misc: Fixed clipboard paste memory leak (we didn't call
-//  SDL_FreeMemory on the data returned by SDL_GetClipboardText). 2018-03-20:
-//  Misc: Setup io.BackendFlags BackendFlags_HasMouseCursors flag + honor
-//  ConfigFlags_NoMouseCursorChange flag. 2018-02-16: Inputs: Added support
-//  for mouse cursors, honoring Gui::GetMouseCursor() value. 2018-02-06: Misc:
-//  Removed call to Gui::Shutdown() which is not available from 1.60 WIP, user
-//  needs to call CreateContext/DestroyContext themselves. 2018-02-06: Inputs:
-//  Added mapping for Key_Space. 2018-02-05: Misc: Using
-//  SDL_GetPerformanceCounter() instead of SDL_GetTicks() to be able to handle
-//  very high framerate (1000+ FPS). 2018-02-05: Inputs: Keyboard mapping is
-//  using scancodes everywhere instead of a confusing mixture of keycodes and
-//  scancodes. 2018-01-20: Inputs: Added Horizontal Mouse Wheel support.
-//  2018-01-19: Inputs: When available (SDL 2.0.4+) using SDL_CaptureMouse() to
-//  retrieve coordinates outside of client area when dragging. Otherwise
-//  (SDL 2.0.3 and before) testing for SDL_WINDOW_INPUT_FOCUS instead of
-//  SDL_WINDOW_MOUSE_FOCUS. 2018-01-18: Inputs: Added mapping for
-//  Key_Insert. 2017-08-25: Inputs: MousePos set to -FLT_MAX,-FLT_MAX when
-//  mouse is unavailable/missing (instead of -1,-1). 2016-10-15: Misc: Added a
-//  void* user_data parameter to Clipboard function handlers.
 
 #include "../gui.hpp"
 #ifndef DISABLE
@@ -191,9 +83,9 @@ struct SDL2_Data {
 };
 
 // Backend data stored in io.BackendPlatformUserData to allow support for
-// multiple Dear Gui contexts It is STRONGLY preferred that you use docking
-// branch with multi-viewports (== single Dear Gui context + multiple windows)
-// instead of multiple Dear Gui contexts.
+// multiple Gui contexts It is STRONGLY preferred that you use docking
+// branch with multi-viewports (== single Gui context + multiple windows)
+// instead of multiple Gui contexts.
 // FIXME: multi-context support is not well tested and probably dysfunctional in
 // this backend.
 // FIXME: some shared resources (mouse cursor shape, gamepad) are mishandled
@@ -489,14 +381,14 @@ static void SDL2_UpdateKeyModifiers(SDL_Keymod sdl_key_mods) {
 }
 
 // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if
-// dear imgui wants to use your inputs.
+// gui wants to use your inputs.
 // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your
 // main application, or clear/overwrite your copy of the mouse data.
 // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to
 // your main application, or clear/overwrite your copy of the keyboard data.
-// Generally you may always pass all inputs to dear imgui, and hide them from
+// Generally you may always pass all inputs to gui, and hide them from
 // your application based on those two flags. If you have multiple SDL events
-// and some of them are not meant to be used by dear imgui, you may need to
+// and some of them are not meant to be used by gui, you may need to
 // filter events based on their windowID field.
 bool SDL2_ProcessEvent(const SDL_Event *event) {
   IO &io = Gui::GetIO();
@@ -671,9 +563,8 @@ static bool SDL2_Init(SDL_Window *window, SDL_Renderer *renderer,
   bd->Window = window;
   bd->Renderer = renderer;
 
-  // SDL on Linux/OSX doesn't report events for unfocused windows (see
-  // https://github.com/ocornut/imgui/issues/4960) We will use
-  // 'MouseCanReportHoveredViewport' to set
+  // SDL on Linux/OSX doesn't report events for unfocused windows.
+  // We will use 'MouseCanReportHoveredViewport' to set
   // 'BackendFlags_HasMouseHoveredViewport' dynamically each frame.
   bd->MouseCanUseGlobalState = mouse_can_use_global_state;
 #ifndef __APPLE__
@@ -843,7 +734,7 @@ static void SDL2_UpdateMouseData() {
 #endif
 
   if (is_app_focused) {
-    // (Optional) Set OS mouse position from Dear Gui if requested (rarely
+    // (Optional) Set OS mouse position from Gui if requested (rarely
     // used, only when ConfigFlags_NavEnableSetMousePos is enabled by user)
     if (io.WantSetMousePos) {
 #if SDL_HAS_CAPTURE_AND_GLOBAL_MOUSE
@@ -876,7 +767,7 @@ static void SDL2_UpdateMouseData() {
 
   // (Optional) When using multiple viewports: call io.AddMouseViewportEvent()
   // with the viewport the OS mouse cursor is hovering. If
-  // BackendFlags_HasMouseHoveredViewport is not set by the backend, Dear
+  // BackendFlags_HasMouseHoveredViewport is not set by the backend,
   // imGui will ignore this field and infer the information using its flawed
   // heuristic.
   // - [!] SDL backend does NOT correctly ignore viewports with the _NoInputs
@@ -884,7 +775,7 @@ static void SDL2_UpdateMouseData() {
   //       Some backend are not able to handle that correctly. If a backend
   //       report an hovered viewport that has the _NoInputs flag (e.g. when
   //       dragging a window for docking, the viewport has the _NoInputs flag in
-  //       order to allow us to find the viewport under), then Dear Gui is
+  //       order to allow us to find the viewport under), then Gui is
   //       forced to ignore the value reported by the backend, and use its
   //       flawed heuristic to guess the viewport behind.
   // - [X] SDL backend correctly reports this regardless of another viewport
@@ -1093,8 +984,8 @@ void SDL2_NewFrame() {
 //--------------------------------------------------------------------------------------------------------
 // MULTI-VIEWPORT / PLATFORM INTERFACE SUPPORT
 // This is an _advanced_ and _optional_ feature, allowing the backend to create
-// and handle multiple viewports simultaneously. If you are new to dear imgui or
-// creating a new binding for dear imgui, it is recommended that you completely
+// and handle multiple viewports simultaneously. If you are new to gui or
+// creating a new binding for gui, it is recommended that you completely
 // ignore this section first..
 //--------------------------------------------------------------------------------------------------------
 

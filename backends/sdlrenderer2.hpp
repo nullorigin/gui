@@ -1,4 +1,4 @@
-// dear imgui: Renderer Backend for SDL_Renderer for SDL2
+// gui: Renderer Backend for SDL_Renderer for SDL2
 // (Requires: SDL 2.0.17+)
 
 // Note how SDL_Renderer is an _optional_ component of SDL2.
@@ -14,16 +14,6 @@
 //  vertices) with 16-bit indices.
 // Missing features:
 //  [ ] Renderer: Multi-viewport support (multiple windows).
-
-// You can use unmodified * files in your project. See examples/
-// folder for examples of using this. Prefer including the entire imgui/
-// repository into your project (either as a copy or as a submodule), and only
-// build the backends you need. Learn about Dear Gui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/
-// folder).
-// - Introduction, links and more at the top of gui.cpp
 
 #pragma once
 #ifndef DISABLE

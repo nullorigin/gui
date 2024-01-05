@@ -1,4 +1,4 @@
-// dear imgui: Platform Backend for GLUT/FreeGLUT
+// gui: Platform Backend for GLUT/FreeGLUT
 // This needs to be used along with a Renderer (e.g. OpenGL2)
 
 // !!! GLUT/FreeGLUT IS OBSOLETE PREHISTORIC SOFTWARE. Using GLUT is not
@@ -18,16 +18,6 @@
 //  Platform: Missing mouse cursor shape/visibility support. [ ] Platform:
 //  Missing clipboard support (not supported by Glut). [ ] Platform: Missing
 //  gamepad support.
-
-// You can use unmodified * files in your project. See examples/
-// folder for examples of using this. Prefer including the entire imgui/
-// repository into your project (either as a copy or as a submodule), and only
-// build the backends you need. Learn about Dear Gui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/
-// folder).
-// - Introduction, links and more at the top of gui.cpp
 
 #pragma once
 #ifndef DISABLE

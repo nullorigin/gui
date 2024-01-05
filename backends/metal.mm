@@ -1,4 +1,4 @@
-// dear imgui: Renderer Backend for Metal
+// gui: Renderer Backend for Metal
 // This needs to be used along with a Platform Backend (e.g. OSX)
 
 // Implemented features:
@@ -7,42 +7,6 @@
 //  vertices) with 16-bit indices. [X] Renderer: Multi-viewport support
 //  (multiple windows). Enable with 'io.ConfigFlags |=
 //  ConfigFlags_ViewportsEnable'.
-
-// You can use unmodified * files in your project. See examples/
-// folder for examples of using this. Prefer including the entire imgui/
-// repository into your project (either as a copy or as a submodule), and only
-// build the backends you need. Learn about Dear Gui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/
-// folder).
-// - Introduction, links and more at the top of gui.cpp
-
-// CHANGELOG
-// (minor and older changes stripped away, please see git history for details)
-//  2023-XX-XX: Metal: Added support for multiple windows via the
-//  PlatformIO interface. 2022-08-23: Metal: Update deprecated property
-//  'sampleCount'->'rasterSampleCount'. 2022-07-05: Metal: Add dispatch
-//  synchronization. 2022-06-30: Metal: Use __bridge for ARC based systems.
-//  2022-06-01: Metal: Fixed null dereference on exit inside command buffer
-//  completion handler. 2022-04-27: Misc: Store backend data in a per-context
-//  struct, allowing to use this backend with multiple contexts. 2022-01-03:
-//  Metal: Ignore DrawCmd where ElemCount == 0 (very rare but can technically
-//  be manufactured by user code). 2021-12-30: Metal: Added Metal C++ support.
-//  Enable with '#define METAL_CPP' in your config.hpp file. 2021-08-24:
-//  Metal: Fixed a crash when clipping rect larger than framebuffer is
-//  submitted. (#4464) 2021-05-19: Metal: Replaced direct access to
-//  DrawCmd::TextureId with a call to DrawCmd::GetTexID(). (will become a
-//  requirement) 2021-02-18: Metal: Change blending equation to preserve alpha
-//  in output buffer. 2021-01-25: Metal: Fixed texture storage mode when
-//  building on Mac Catalyst. 2019-05-29: Metal: Added support for large mesh
-//  (64K+ vertices), enable BackendFlags_RendererHasVtxOffset flag.
-//  2019-04-30: Metal: Added support for special DrawCallback_ResetRenderState
-//  callback to reset render state. 2019-02-11: Metal: Projecting clipping
-//  rectangles correctly using draw_data->FramebufferScale to allow
-//  multi-viewports for retina display. 2018-11-30: Misc: Setting up
-//  io.BackendRendererName so it can be displayed in the About Window.
-//  2018-07-05: Metal: Added new Metal backend implementation.
 
 #include "../gui.hpp"
 #ifndef DISABLE
@@ -120,7 +84,7 @@ static inline CFTimeInterval GetMachAbsoluteTimeInSeconds() {
 
 #ifdef METAL_CPP
 
-#pragma mark - Dear Gui Metal C++ Backend API
+#pragma mark - Gui Metal C++ Backend API
 
 bool Metal_Init(MTL::Device *device) {
   return Metal_Init((__bridge id<MTLDevice>)(device));
@@ -148,7 +112,7 @@ bool Metal_CreateDeviceObjects(MTL::Device *device) {
 
 #endif // #ifdef METAL_CPP
 
-#pragma mark - Dear Gui Metal Backend API
+#pragma mark - Gui Metal Backend API
 
 bool Metal_Init(id<MTLDevice> device) {
   Metal_Data *bd = Metal_CreateBackendData();
@@ -466,8 +430,8 @@ void Metal_DestroyDeviceObjects() {
 //--------------------------------------------------------------------------------------------------------
 // MULTI-VIEWPORT / PLATFORM INTERFACE SUPPORT
 // This is an _advanced_ and _optional_ feature, allowing the back-end to create
-// and handle multiple viewports simultaneously. If you are new to dear imgui or
-// creating a new binding for dear imgui, it is recommended that you completely
+// and handle multiple viewports simultaneously. If you are new to gui or
+// creating a new binding for gui, it is recommended that you completely
 // ignore this section first..
 //--------------------------------------------------------------------------------------------------------
 

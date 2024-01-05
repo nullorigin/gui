@@ -1,12 +1,5 @@
-// Dear Gui: standalone example application for OSX + OpenGL2, using legacy
+// Gui: standalone example application for OSX + OpenGL2, using legacy
 // fixed pipeline
-
-// Learn about Dear Gui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/
-// folder).
-// - Introduction, links and more at the top of gui.cpp
 
 #import <Cocoa/Cocoa.h>
 #import <OpenGL/gl.h>
@@ -40,7 +33,7 @@
 }
 
 - (void)initialize {
-  // Setup Dear Gui context
+  // Setup Gui context
   // FIXME: This example doesn't have proper cleanup...
   CHECKVERSION();
   Gui::CreateContext();
@@ -52,7 +45,7 @@
   io.ConfigFlags |= ConfigFlags_ViewportsEnable;   // Enable Multi-Viewport /
                                                    // Platform Windows
 
-  // Setup Dear Gui style
+  // Setup Gui style
   Gui::StyleColorsDark();
   // Gui::StyleColorsLight();
 
@@ -69,7 +62,7 @@
   OpenGL2_Init();
 
   // Load Fonts
-  // - If no fonts are loaded, dear imgui will use the default font. You can
+  // - If no fonts are loaded, gui will use the default font. You can
   // also load multiple fonts and use Gui::PushFont()/PopFont() to select
   // them.
   // - AddFontFromFileTTF() will return the Font* so you can store it if you
@@ -96,7 +89,7 @@
 }
 
 - (void)updateAndDrawDemoView {
-  // Start the Dear Gui frame
+  // Start the Gui frame
   IO &io = Gui::GetIO();
   OpenGL2_NewFrame();
   OSX_NewFrame(self);
@@ -109,7 +102,7 @@
   static Vec4 clear_color = Vec4(0.45f, 0.55f, 0.60f, 1.00f);
 
   // 1. Show the big demo window (Most of the sample code is in
-  // Gui::ShowDemoWindow()! You can browse its code to learn more about Dear
+  // Gui::ShowDemoWindow()! You can browse its code to learn more about
   // Gui!).
   if (show_demo_window)
     Gui::ShowDemoWindow(&show_demo_window);
@@ -239,7 +232,7 @@
                           NSWindowStyleMaskResizable | NSWindowStyleMaskClosable
                   backing:NSBackingStoreBuffered
                     defer:YES];
-  [_window setTitle:@"Dear Gui OSX+OpenGL2 Example"];
+  [_window setTitle:@"Gui OSX+OpenGL2 Example"];
   [_window setAcceptsMouseMovedEvents:YES];
   [_window setOpaque:YES];
   [_window makeKeyAndOrderFront:NSApp];
@@ -252,8 +245,8 @@
   NSMenu *appMenu;
   NSMenuItem *menuItem;
 
-  appMenu = [[NSMenu alloc] initWithTitle:@"Dear Gui OSX+OpenGL2 Example"];
-  menuItem = [appMenu addItemWithTitle:@"Quit Dear Gui OSX+OpenGL2 Example"
+  appMenu = [[NSMenu alloc] initWithTitle:@"Gui OSX+OpenGL2 Example"];
+  menuItem = [appMenu addItemWithTitle:@"Quit Gui OSX+OpenGL2 Example"
                                 action:@selector(terminate:)
                          keyEquivalent:@"q"];
   [menuItem setKeyEquivalentModifierMask:NSEventModifierFlagCommand];

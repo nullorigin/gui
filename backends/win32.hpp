@@ -1,10 +1,10 @@
-// dear imgui: Platform Backend for Windows (standard windows API for 32-bits
+// gui: Platform Backend for Windows (standard windows API for 32-bits
 // AND 64-bits applications) This needs to be used along with a Renderer (e.g.
 // DirectX11, OpenGL3, Vulkan..)
 
 // Implemented features:
 //  [X] Platform: Clipboard support (for Win32 this is actually part of core
-//  dear imgui) [X] Platform: Mouse support. Can discriminate
+//  gui) [X] Platform: Mouse support. Can discriminate
 //  Mouse/TouchScreen/Pen. [X] Platform: Keyboard support. Since 1.87 we are
 //  using the io.AddKeyEvent() function. Pass Key values to all key
 //  functions e.g. Gui::IsKeyPressed(Key_Space). [Legacy VK_* values will
@@ -15,16 +15,6 @@
 //  ConfigFlags_NoMouseCursorChange'. [X] Platform: Multi-viewport support
 //  (multiple windows). Enable with 'io.ConfigFlags |=
 //  ConfigFlags_ViewportsEnable'.
-
-// You can use unmodified * files in your project. See examples/
-// folder for examples of using this. Prefer including the entire imgui/
-// repository into your project (either as a copy or as a submodule), and only
-// build the backends you need. Learn about Dear Gui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/
-// folder).
-// - Introduction, links and more at the top of gui.cpp
 
 #pragma once
 #include "../gui.hpp" // API

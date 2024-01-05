@@ -1,13 +1,6 @@
-// Dear Gui: standalone example application for SDL2 + SDL_Renderer
+// Gui: standalone example application for SDL2 + SDL_Renderer
 // (SDL is a cross-platform general purpose library for handling windows,
 // inputs, OpenGL/Vulkan/Metal graphics context creation, etc.)
-
-// Learn about Dear Gui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/
-// folder).
-// - Introduction, links and more at the top of gui.cpp
 
 // Important to understand: SDL_Renderer is an _optional_ component of SDL2.
 // For a multi-platform app consider using e.g. SDL+DirectX on Windows and
@@ -40,9 +33,9 @@ int main(int, char **) {
   // Create window with SDL_Renderer graphics context
   SDL_WindowFlags window_flags =
       (SDL_WindowFlags)(SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI);
-  SDL_Window *window = SDL_CreateWindow(
-      "Dear Gui SDL2+SDL_Renderer example", SDL_WINDOWPOS_CENTERED,
-      SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
+  SDL_Window *window =
+      SDL_CreateWindow("Gui SDL2+SDL_Renderer example", SDL_WINDOWPOS_CENTERED,
+                       SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
   if (window == nullptr) {
     printf("Error: SDL_CreateWindow(): %s\n", SDL_GetError());
     return -1;
@@ -57,7 +50,7 @@ int main(int, char **) {
   // SDL_GetRendererInfo(renderer, &info);
   // SDL_Log("Current SDL_Renderer: %s", info.name);
 
-  // Setup Dear Gui context
+  // Setup Gui context
   CHECKVERSION();
   Gui::CreateContext();
   IO &io = Gui::GetIO();
@@ -65,7 +58,7 @@ int main(int, char **) {
   io.ConfigFlags |= ConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
   io.ConfigFlags |= ConfigFlags_NavEnableGamepad;  // Enable Gamepad Controls
 
-  // Setup Dear Gui style
+  // Setup Gui style
   Gui::StyleColorsDark();
   // Gui::StyleColorsLight();
 
@@ -74,7 +67,7 @@ int main(int, char **) {
   SDLRenderer2_Init(renderer);
 
   // Load Fonts
-  // - If no fonts are loaded, dear imgui will use the default font. You can
+  // - If no fonts are loaded, gui will use the default font. You can
   // also load multiple fonts and use Gui::PushFont()/PopFont() to select
   // them.
   // - AddFontFromFileTTF() will return the Font* so you can store it if you
@@ -109,12 +102,12 @@ int main(int, char **) {
   while (!done) {
     // Poll and handle events (inputs, window resize, etc.)
     // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to
-    // tell if dear imgui wants to use your inputs.
+    // tell if gui wants to use your inputs.
     // - When io.WantCaptureMouse is true, do not dispatch mouse input data to
     // your main application, or clear/overwrite your copy of the mouse data.
     // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input
     // data to your main application, or clear/overwrite your copy of the
-    // keyboard data. Generally you may always pass all inputs to dear imgui,
+    // keyboard data. Generally you may always pass all inputs to gui,
     // and hide them from your application based on those two flags.
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
@@ -127,13 +120,13 @@ int main(int, char **) {
         done = true;
     }
 
-    // Start the Dear Gui frame
+    // Start the Gui frame
     SDLRenderer2_NewFrame();
     SDL2_NewFrame();
     Gui::NewFrame();
 
     // 1. Show the big demo window (Most of the sample code is in
-    // Gui::ShowDemoWindow()! You can browse its code to learn more about Dear
+    // Gui::ShowDemoWindow()! You can browse its code to learn more about
     // Gui!).
     if (show_demo_window)
       Gui::ShowDemoWindow(&show_demo_window);

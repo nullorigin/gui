@@ -1,10 +1,3 @@
-// dear imgui, v1.90.1 WIP
-// (tables and columns code)
-
-/*
-
-Index of this file:
-
 // [SECTION] Commentary
 // [SECTION] Header mess
 // [SECTION] Tables: Main code
@@ -20,8 +13,6 @@ Index of this file:
 // [SECTION] Tables: Garbage Collection
 // [SECTION] Tables: Debugging
 // [SECTION] Columns, BeginColumns, EndColumns, etc.
-
-*/
 
 // Navigating this file:
 // - In Visual Studio IDE: CTRL+comma ("Edit.GoToAll") can follow symbols in

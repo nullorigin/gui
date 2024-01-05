@@ -1,13 +1,3 @@
-// dear imgui, v1.90.1 WIP
-// (internal structures/api)
-
-// You may use this file to debug, understand or extend Dear Gui features but
-// we don't provide any guarantee of forward compatibility.
-
-/*
-
-Index of this file:
-
 // [SECTION] Header mess
 // [SECTION] Forward declarations
 // [SECTION] Context pointer
@@ -36,7 +26,7 @@ Index of this file:
 // [SECTION] FontAtlas internal API
 // [SECTION] Test Engine specific hooks (test_engine)
 
-*/
+* /
 
 #pragma once
 #ifndef DISABLE
@@ -138,17 +128,17 @@ Index of this file:
 #define ENABLE_TRUETYPE
 #endif
 
-//-----------------------------------------------------------------------------
-// [SECTION] Forward declarations
-//-----------------------------------------------------------------------------
+    //-----------------------------------------------------------------------------
+    // [SECTION] Forward declarations
+    //-----------------------------------------------------------------------------
 
-struct BitVector;          // Store 1-bit per value
+    struct BitVector;      // Store 1-bit per value
 struct Rect;               // An axis-aligned rectangle (2 points)
 struct DrawDataBuilder;    // Helper to build a DrawData instance
 struct DrawListSharedData; // Data shared between all DrawList instances
 struct ColorMod;     // Stacked color modifier, backup of modified data so we
                      // can restore it
-struct Context;      // Main Dear Gui context
+struct Context;      // Main Gui context
 struct ContextHook;  // Hook for extensions like TestEngine
 struct DataVarInfo;  // Variable information (e.g. to avoid style variables
                      // from an enum)
@@ -287,7 +277,7 @@ namespace Stb {
 //-----------------------------------------------------------------------------
 
 // Internal Drag and Drop payload types. String starting with '_' are reserved
-// for Dear Gui.
+// for Gui.
 #define PAYLOAD_TYPE_WINDOW "_IMWINDOW" // Payload == Window*
 
 // Debug Printing Into TTY
@@ -1387,8 +1377,7 @@ enum ItemFlags_ {
               // io.KeyRepeatDelay and io.KeyRepeatRate settings.
   ItemFlags_Disabled =
       1 << 2, // false     // Disable interactions but doesn't affect visuals.
-              // See BeginDisabled()/EndDisabled(). See
-              // github.com/ocornut/imgui/issues/211
+              // See BeginDisabled()/EndDisabled().
   ItemFlags_NoNav =
       1 << 3, // false     // Disable any form of focusing (keyboard/gamepad
               // directional navigation and SetKeyboardFocusHere() calls)
@@ -2281,7 +2270,7 @@ enum InputFlags_ {
                            << 12, // Do not register route, poll keys directly.
   InputFlags_RouteUnlessBgFocused =
       1 << 13, // Global routes will not be applied if underlying
-               // background/void is focused (== no Dear Gui windows are
+               // background/void is focused (== no Gui windows are
                // focused). Useful for overlay applications.
   InputFlags_RouteExtraMask_ =
       InputFlags_RouteAlways | InputFlags_RouteUnlessBgFocused,
@@ -3125,7 +3114,7 @@ struct ContextHook {
 };
 
 //-----------------------------------------------------------------------------
-// [SECTION] Context (main Dear Gui context)
+// [SECTION] Context (main Gui context)
 //-----------------------------------------------------------------------------
 
 struct Context {
@@ -5509,7 +5498,7 @@ API void TabItemLabelAndCloseButton(
     bool *out_just_closed, bool *out_text_clipped);
 
 // Render helpers
-// AVOID USING OUTSIDE OF IMGUI.CPP! NOT FOR PUBLIC CONSUMPTION. THOSE FUNCTIONS
+// AVOID USING OUTSIDE OF GUI.CPP! NOT FOR PUBLIC CONSUMPTION. THOSE FUNCTIONS
 // ARE A MESS. THEIR SIGNATURE AND BEHAVIOR WILL CHANGE, THEY NEED TO BE
 // REFACTORED INTO SOMETHING DECENT. NB: All position are in absolute pixels
 // coordinates (we are never using window coordinates internally)

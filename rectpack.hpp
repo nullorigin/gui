@@ -1,66 +1,3 @@
-// [DEAR IMGUI]
-// This is a slightly modified version of rect_pack.h 1.01.
-// Grep for [DEAR IMGUI] to find the changes.
-//
-// rect_pack.h - v1.01 - public domain - rectangle packing
-// Sean Barrett 2014
-//
-// Useful for e.g. packing rectangular textures into an atlas.
-// Does not do rotation.
-//
-// Before #including,
-//
-//    #define RECT_PACK_IMPLEMENTATION
-//
-// in the file that you want to have the implementation.
-//
-// Not necessarily the awesomest packing method, but better than
-// the totally naive one in truetype (which is primarily what
-// this is meant to replace).
-//
-// Has only had a few tests run, may have issues.
-//
-// More docs to come.
-//
-// No memory allocations; uses qsort() and assert() from stdlib.
-// Can override those by defining STBRP_SORT and STBRP_ASSERT.
-//
-// This library currently uses the Skyline Bottom-Left algorithm.
-//
-// Please note: better rectangle packers are welcome! Please
-// implement them to the same API, but with a different init
-// function.
-//
-// Credits
-//
-//  Library
-//    Sean Barrett
-//  Minor features
-//    Martins Mozeiko
-//    github:IntellectualKitty
-//
-//  Bugfixes / warning fixes
-//    Jeremy Jaussaud
-//    Fabian Giesen
-//
-// Version history:
-//
-//     1.01  (2021-07-11)  always use large rect mode, expose STBRP__MAXVAL in
-//     public section 1.00  (2019-02-25)  avoid small space waste; gracefully
-//     fail too-wide rectangles 0.99  (2019-02-07)  warning fixes 0.11
-//     (2017-03-03)  return packing success/fail result 0.10  (2016-10-25)
-//     remove cast-away-const to avoid warnings 0.09  (2016-08-27)  fix compiler
-//     warnings 0.08  (2015-09-13)  really fix bug with empty rects (w=0 or h=0)
-//     0.07  (2015-09-13)  fix bug with empty rects (w=0 or h=0)
-//     0.06  (2015-04-15)  added STBRP_SORT to allow replacing qsort
-//     0.05:  added STBRP_ASSERT to allow replacing assert
-//     0.04:  fixed minor bug in STBRP_LARGE_RECTS support
-//     0.01:  initial release
-//
-// LICENSE
-//
-//   See end of file for license information.
-
 //////////////////////////////////////////////////////////////////////////////
 //
 //       INCLUDE SECTION
@@ -433,7 +370,7 @@ static stbrp__findresult stbrp__skyline_find_best_pos(stbrp_context *c,
           if (y < best_y || waste < best_waste ||
               (waste == best_waste && xpos < best_x)) {
             best_x = xpos;
-            // STBRP_ASSERT(y <= best_y); [DEAR IMGUI]
+            // STBRP_ASSERT(y <= best_y); [GUI]
             best_y = y;
             best_waste = waste;
             best = prev;

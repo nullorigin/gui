@@ -1,4 +1,4 @@
-// dear imgui: Platform Backend for OSX / Cocoa
+// gui: Platform Backend for OSX / Cocoa
 // This needs to be used along with a Renderer (e.g. OpenGL2, OpenGL3, Vulkan,
 // Metal..)
 // - Not well tested. If you want a portable application, prefer using the GLFW
@@ -13,20 +13,10 @@
 //  Since 1.87 we are using the io.AddKeyEvent() function. Pass Key values
 //  to all key functions e.g. Gui::IsKeyPressed(Key_Space). [Legacy kVK_*
 //  values will also be supported unless DISABLE_OBSOLETE_KEYIO is set] [X]
-//  Platform: OSX clipboard is supported within core Dear Gui (no specific
+//  Platform: OSX clipboard is supported within core Gui (no specific
 //  code in this backend). [X] Platform: Gamepad support. Enabled with
 //  'io.ConfigFlags |= ConfigFlags_NavEnableGamepad'. [X] Platform: IME
 //  support. [X] Platform: Multi-viewport / platform windows.
-
-// You can use unmodified * files in your project. See examples/
-// folder for examples of using this. Prefer including the entire imgui/
-// repository into your project (either as a copy or as a submodule), and only
-// build the backends you need. Learn about Dear Gui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/
-// folder).
-// - Introduction, links and more at the top of gui.cpp
 
 #import "gui.hpp"
 #ifndef DISABLE
@@ -35,56 +25,6 @@
 #import <Cocoa/Cocoa.h>
 #import <GameController/GameController.h>
 #import <time.h>
-
-// CHANGELOG
-// (minor and older changes stripped away, please see git history for details)
-//  2023-XX-XX: Added support for multiple windows via the PlatformIO
-//  interface. 2023-10-05: Inputs: Added support for extra Key values: F13
-//  to F20 function keys. Stopped mapping F13 into PrintScreen. 2023-04-09:
-//  Inputs: Added support for io.AddMouseSourceEvent() to discriminate
-//  MouseSource_Mouse/MouseSource_Pen. 2023-02-01: Fixed scroll wheel
-//  scaling for devices emitting events with hasPreciseScrollingDeltas==false
-//  (e.g. non-Apple mices). 2022-11-02: Fixed mouse coordinates before clicking
-//  the host window. 2022-10-06: Fixed mouse inputs on flipped views.
-//  2022-09-26: Inputs: Renamed Key_ModXXX introduced in 1.87 to
-//  Mod_XXX (old names still supported). 2022-05-03: Inputs: Removed
-//  OSX_HandleEvent() from backend API in favor of backend
-//  automatically handling event capture. 2022-04-27: Misc: Store backend data
-//  in a per-context struct, allowing to use this backend with multiple
-//  contexts. 2022-03-22: Inputs: Monitor NSKeyUp events to catch missing keyUp
-//  for key when user press Cmd + key 2022-02-07: Inputs: Forward keyDown/keyUp
-//  events to OS when unused by dear imgui. 2022-01-31: Fixed building with old
-//  Xcode versions that are missing gamepad features. 2022-01-26: Inputs:
-//  replaced short-lived io.AddKeyModsEvent() (added two weeks ago) with
-//  io.AddKeyEvent() using Key_ModXXX flags. Sorry for the confusion.
-//  2021-01-20: Inputs: calling new io.AddKeyAnalogEvent() for gamepad support,
-//  instead of writing directly to io.NavInputs[]. 2022-01-17: Inputs: calling
-//  new io.AddMousePosEvent(), io.AddMouseButtonEvent(), io.AddMouseWheelEvent()
-//  API (1.87+). 2022-01-12: Inputs: Added basic Platform IME support, hooking
-//  the io.SetPlatformImeDataFn() function. 2022-01-10: Inputs: calling new
-//  io.AddKeyEvent(), io.AddKeyModsEvent() + io.SetKeyEventNativeData() API
-//  (1.87+). Support for full Key range. 2021-12-13: *BREAKING CHANGE* Add
-//  NSView parameter to OSX_Init(). Generally fix keyboard support.
-//  Using kVK_* codes for keyboard keys. 2021-12-13: Add game controller
-//  support. 2021-09-21: Use mach_absolute_time as CFAbsoluteTimeGetCurrent can
-//  jump backwards. 2021-08-17: Calling io.AddFocusEvent() on
-//  NSApplicationDidBecomeActiveNotification/NSApplicationDidResignActiveNotification
-//  events. 2021-06-23: Inputs: Added a fix for shortcuts using CTRL key instead
-//  of CMD key. 2021-04-19: Inputs: Added a fix for keys remaining stuck in
-//  pressed state when CMD-tabbing into different application. 2021-01-27:
-//  Inputs: Added a fix for mouse position not being reported when mouse buttons
-//  other than left one are down. 2020-10-28: Inputs: Added a fix for handling
-//  keypad-enter key. 2020-05-25: Inputs: Added a fix for missing trackpad
-//  clicks when done with "soft tap". 2019-12-05: Inputs: Added support for
-//  MouseCursor_NotAllowed mouse cursor. 2019-10-11: Inputs:  Fix using
-//  Backspace key. 2019-07-21: Re-added clipboard handlers as they are not
-//  enabled by default in core gui.cpp (reverted 2019-05-18 change).
-//  2019-05-28: Inputs: Added mouse cursor shape and visibility support.
-//  2019-05-18: Misc: Removed clipboard handlers as they are now supported by
-//  core gui.cpp. 2019-05-11: Inputs: Don't filter character values before
-//  calling AddInputCharacter() apart from 0xF700..0xFFFF range. 2018-11-30:
-//  Misc: Setting up io.BackendPlatformName so it can be displayed in the About
-//  Window. 2018-07-07: Initial version.
 
 #define APPLE_HAS_BUTTON_OPTIONS                                               \
   (__IPHONE_OS_VERSION_MIN_REQUIRED >= 130000 ||                               \
@@ -813,7 +753,7 @@ static MouseSource GetMouseSource(NSEvent *event) {
     return MouseSource_Pen;
   // macOS considers input from relative touch devices (like the trackpad or
   // Apple Magic Mouse) to be touch input. This doesn't really make sense for
-  // Dear Gui, which expects absolute touch devices only. There does not seem
+  // Gui, which expects absolute touch devices only. There does not seem
   // to be a simple way to disambiguate things here so we consider
   // NSEventSubtypeTouch events to always come from mice. See
   // https://developer.apple.com/library/archive/documentation/Cocoa/Conceptual/EventOverview/HandlingTouchEvents/HandlingTouchEvents.html#//apple_ref/doc/uid/10000060i-CH13-SW24
@@ -994,7 +934,7 @@ static void OSX_AddTrackingArea(NSView *_Nonnull view) {
   // If we want to receive key events, we either need to be in the responder
   // chain of the key view, or else we can install a local monitor. The
   // consequence of this heavy-handed approach is that we receive events for all
-  // controls, not just Dear Gui widgets. If we had native controls in our
+  // controls, not just Gui widgets. If we had native controls in our
   // window, we'd want to be much more careful than just ingesting the complete
   // event stream. To match the behavior of other backends, we pass every event
   // down to the OS.
@@ -1021,8 +961,8 @@ static void OSX_AddTrackingArea(NSView *_Nonnull view) {
 //--------------------------------------------------------------------------------------------------------
 // MULTI-VIEWPORT / PLATFORM INTERFACE SUPPORT
 // This is an _advanced_ and _optional_ feature, allowing the back-end to create
-// and handle multiple viewports simultaneously. If you are new to dear imgui or
-// creating a new binding for dear imgui, it is recommended that you completely
+// and handle multiple viewports simultaneously. If you are new to gui or
+// creating a new binding for gui, it is recommended that you completely
 // ignore this section first..
 //--------------------------------------------------------------------------------------------------------
 

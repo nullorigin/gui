@@ -1,10 +1,3 @@
-// dear imgui, v1.90.1 WIP
-// (drawing and font code)
-
-/*
-
-Index of this file:
-
 // [SECTION] STB libraries implementation
 // [SECTION] Style functions
 // [SECTION] DrawList
@@ -19,8 +12,6 @@ Index of this file:
 // [SECTION] Gui Internal Render Helpers
 // [SECTION] Decompression code
 // [SECTION] Default font data (ProggyClean.ttf)
-
-*/
 
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
 #define _CRT_SECURE_NO_WARNINGS
@@ -2428,7 +2419,7 @@ FontConfig::FontConfig() {
 
 // A work of art lies ahead! (. = white layer, X = black layer, others are
 // blank) The 2x2 white texels on the top left are the ones we'll use everywhere
-// in Dear Gui to render filled shapes. (This is used when io.MouseDrawCursor
+// in Gui to render filled shapes. (This is used when io.MouseDrawCursor
 // = true)
 const int FONT_ATLAS_DEFAULT_TEX_DATA_W =
     122; // Actual texture will be 2 times that + 1 spacing.
@@ -3565,8 +3556,6 @@ static void UnpackAccumulativeOffsetsIntoRanges(
 
 const Wchar *FontAtlas::GetGlyphRangesChineseSimplifiedCommon() {
   // Store 2500 regularly used characters for Simplified Chinese.
-  // Sourced from
-  // https://zh.wiktionary.org/wiki/%E9%99%84%E5%BD%95:%E7%8E%B0%E4%BB%A3%E6%B1%89%E8%AF%AD%E5%B8%B8%E7%94%A8%E5%AD%97%E8%A1%A8
   // This table covers 97.97% of all characters used during the month in July,
   // 1987. You can use FontGlyphRangesBuilder to create your own ranges
   // derived from this, by merging existing ranges or adding new characters.
@@ -3776,11 +3765,11 @@ const Wchar *FontAtlas::GetGlyphRangesJapanese() {
   //   - List of Jinmeiyo Kanji
   //     - (Wikipedia) https://en.wikipedia.org/wiki/Jinmeiy%C5%8D_kanji
   // - Missing 1 Joyo Kanji: U+20B9F (Kun'yomi: Shikaru, On'yomi:
-  // Shitsu,shichi), see https://github.com/ocornut/imgui/pull/3627 for details.
-  // You can use FontGlyphRangesBuilder to create your own ranges derived from
-  // this, by merging existing ranges or adding new characters. (Stored as
-  // accumulative offsets from the initial unicode codepoint 0x4E00. This
-  // encoding is designed to helps us compact the source code size.)
+  // Shitsu,shichi). You can use FontGlyphRangesBuilder to create your own
+  // ranges derived from this, by merging existing ranges or adding new
+  // characters. (Stored as accumulative offsets from the initial unicode
+  // codepoint 0x4E00. This encoding is designed to helps us compact the source
+  // code size.)
   static const short accumulative_offsets_from_0x4E00[] = {
       0,  1,  2,   4,  1,  1,  1,  1,   2,  1,  3,   3,  2,  2,   1,     5,
       3,  5,  7,   5,  6,  1,  2,  1,   7,  2,  6,   3,  1,  8,   1,     1,

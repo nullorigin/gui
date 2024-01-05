@@ -1,11 +1,4 @@
-// Dear Gui: standalone example application for DirectX 12
-
-// Learn about Dear Gui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/
-// folder).
-// - Introduction, links and more at the top of gui.cpp
+// Gui: standalone example application for DirectX 12
 
 // Important: to compile on 32-bit systems, the DirectX12 backend requires code
 // to be compiled with '#define TextureID U64'. This is because we need
@@ -80,7 +73,7 @@ int main(int, char **) {
                     L"Gui Example",
                     nullptr};
   ::RegisterClassExW(&wc);
-  HWND hwnd = ::CreateWindowW(wc.lpszClassName, L"Dear Gui DirectX12 Example",
+  HWND hwnd = ::CreateWindowW(wc.lpszClassName, L"Gui DirectX12 Example",
                               WS_OVERLAPPEDWINDOW, 100, 100, 1280, 800, nullptr,
                               nullptr, wc.hInstance, nullptr);
 
@@ -95,7 +88,7 @@ int main(int, char **) {
   ::ShowWindow(hwnd, SW_SHOWDEFAULT);
   ::UpdateWindow(hwnd);
 
-  // Setup Dear Gui context
+  // Setup Gui context
   CHECKVERSION();
   Gui::CreateContext();
   IO &io = Gui::GetIO();
@@ -108,7 +101,7 @@ int main(int, char **) {
   // io.ConfigViewportsNoAutoMerge = true;
   // io.ConfigViewportsNoTaskBarIcon = true;
 
-  // Setup Dear Gui style
+  // Setup Gui style
   Gui::StyleColorsDark();
   // Gui::StyleColorsLight();
 
@@ -128,7 +121,7 @@ int main(int, char **) {
             g_pd3dSrvDescHeap->GetGPUDescriptorHandleForHeapStart());
 
   // Load Fonts
-  // - If no fonts are loaded, dear imgui will use the default font. You can
+  // - If no fonts are loaded, gui will use the default font. You can
   // also load multiple fonts and use Gui::PushFont()/PopFont() to select
   // them.
   // - AddFontFromFileTTF() will return the Font* so you can store it if you
@@ -174,13 +167,13 @@ int main(int, char **) {
     if (done)
       break;
 
-    // Start the Dear Gui frame
+    // Start the Gui frame
     DX12_NewFrame();
     Win32_NewFrame();
     Gui::NewFrame();
 
     // 1. Show the big demo window (Most of the sample code is in
-    // Gui::ShowDemoWindow()! You can browse its code to learn more about Dear
+    // Gui::ShowDemoWindow()! You can browse its code to learn more about
     // Gui!).
     if (show_demo_window)
       Gui::ShowDemoWindow(&show_demo_window);
@@ -248,7 +241,7 @@ int main(int, char **) {
     g_pd3dCommandList->Reset(frameCtx->CommandAllocator, nullptr);
     g_pd3dCommandList->ResourceBarrier(1, &barrier);
 
-    // Render Dear Gui graphics
+    // Render Gui graphics
     const float clear_color_with_alpha[4] = {
         clear_color.x * clear_color.w, clear_color.y * clear_color.w,
         clear_color.z * clear_color.w, clear_color.w};
@@ -540,12 +533,12 @@ extern API LRESULT Win32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam,
 
 // Win32 message handler
 // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if
-// dear imgui wants to use your inputs.
+// gui wants to use your inputs.
 // - When io.WantCaptureMouse is true, do not dispatch mouse input data to your
 // main application, or clear/overwrite your copy of the mouse data.
 // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input data to
 // your main application, or clear/overwrite your copy of the keyboard data.
-// Generally you may always pass all inputs to dear imgui, and hide them from
+// Generally you may always pass all inputs to gui, and hide them from
 // your application based on those two flags.
 LRESULT WINAPI WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
   if (Win32_WndProcHandler(hWnd, msg, wParam, lParam))

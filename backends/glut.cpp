@@ -1,4 +1,4 @@
-// dear imgui: Platform Backend for GLUT/FreeGLUT
+// gui: Platform Backend for GLUT/FreeGLUT
 // This needs to be used along with a Renderer (e.g. OpenGL2)
 
 // !!! GLUT/FreeGLUT IS OBSOLETE PREHISTORIC SOFTWARE. Using GLUT is not
@@ -18,33 +18,6 @@
 //  Platform: Missing mouse cursor shape/visibility support. [ ] Platform:
 //  Missing clipboard support (not supported by Glut). [ ] Platform: Missing
 //  gamepad support.
-
-// You can use unmodified * files in your project. See examples/
-// folder for examples of using this. Prefer including the entire imgui/
-// repository into your project (either as a copy or as a submodule), and only
-// build the backends you need. Learn about Dear Gui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/
-// folder).
-// - Introduction, links and more at the top of gui.cpp
-
-// CHANGELOG
-// (minor and older changes stripped away, please see git history for details)
-//  2023-04-17: BREAKING: Removed call to Gui::NewFrame() from
-//  GLUT_NewFrame(). Needs to be called from the main application
-//  loop, like with every other backends. 2022-09-26: Inputs: Renamed
-//  Key_ModXXX introduced in 1.87 to Mod_XXX (old names still
-//  supported). 2022-01-26: Inputs: replaced short-lived io.AddKeyModsEvent()
-//  (added two weeks ago) with io.AddKeyEvent() using Key_ModXXX flags.
-//  Sorry for the confusion. 2022-01-17: Inputs: calling new
-//  io.AddMousePosEvent(), io.AddMouseButtonEvent(), io.AddMouseWheelEvent() API
-//  (1.87+). 2022-01-10: Inputs: calling new io.AddKeyEvent(),
-//  io.AddKeyModsEvent() + io.SetKeyEventNativeData() API (1.87+). Support for
-//  full Key range. 2019-04-03: Misc: Renamed freeglut.cpp/.h to
-//  glut.cpp/.h. 2019-03-25: Misc: Made io.DeltaTime always above
-//  zero. 2018-11-30: Misc: Setting up io.BackendPlatformName so it can be
-//  displayed in the About Window. 2018-03-22: Added GLUT Platform binding.
 
 #include "../gui.hpp"
 #ifndef DISABLE

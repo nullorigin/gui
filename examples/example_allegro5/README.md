@@ -1,9 +1,9 @@
 
 # Configuration
 
-Dear Gui outputs 16-bit vertex indices by default.
-Allegro doesn't support them natively, so we have two solutions: convert the indices manually in allegro5.cpp, or compile dear imgui with 32-bit indices.
-You can either modify config.hpp that comes with Dear Gui (easier), or set a C++ preprocessor option USER_CONFIG to find to a filename.
+Gui outputs 16-bit vertex indices by default.
+Allegro doesn't support them natively, so we have two solutions: convert the indices manually in allegro5.cpp, or compile gui with 32-bit indices.
+You can either modify config.hpp that comes with Gui (easier), or set a C++ preprocessor option USER_CONFIG to find to a filename.
 We are providing `imconfig_allegro5.h` that enables 32-bit indices.
 Note that the backend supports _BOTH_ 16-bit and 32-bit indices, but 32-bit indices will be slightly faster as they won't require a manual conversion.
 

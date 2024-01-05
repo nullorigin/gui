@@ -1,4 +1,4 @@
-// dear imgui: Renderer for WebGPU
+// gui: Renderer for WebGPU
 // This needs to be used along with a Platform Binding (e.g. GLFW)
 // (Please note that WebGPU is currently experimental, will not run on non-beta
 // browsers, and may break.)
@@ -11,45 +11,13 @@
 //  [ ] Renderer: Multi-viewport support (multiple windows). Not meaningful on
 //  the web.
 
-// You can use unmodified * files in your project. See examples/
-// folder for examples of using this. Prefer including the entire imgui/
-// repository into your project (either as a copy or as a submodule), and only
-// build the backends you need. Learn about Dear Gui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/
-// folder).
-// - Introduction, links and more at the top of gui.cpp
-
-// CHANGELOG
-// (minor and older changes stripped away, please see git history for details)
-//  2023-07-13: Use WGPUShaderModuleWGSLDescriptor's code instead of source. use
-//  WGPUMipmapFilterMode_Linear instead of WGPUFilterMode_Linear. (#6602)
-//  2023-04-11: Align buffer sizes. Use WGSL shaders instead of precompiled
-//  SPIR-V. 2023-04-11: Reorganized backend to pull data from a single structure
-//  to facilitate usage with multiple-contexts (all g_XXXX access changed to
-//  bd->XXXX). 2023-01-25: Revert automatic pipeline layout generation (see
-//  https://github.com/gpuweb/gpuweb/issues/2470) 2022-11-24: Fixed validation
-//  error with default depth buffer settings. 2022-11-10: Fixed rendering when a
-//  depth buffer is enabled. Added 'WGPUTextureFormat depth_format' parameter to
-//  WGPU_Init(). 2022-10-11: Using 'nullptr' instead of 'NULL' as per
-//  our switch to C++11. 2021-11-29: Passing explicit buffer sizes to
-//  wgpuRenderPassEncoderSetVertexBuffer()/wgpuRenderPassEncoderSetIndexBuffer().
-//  2021-08-24: Fixed for latest specs.
-//  2021-05-24: Add support for draw_data->FramebufferScale.
-//  2021-05-19: Replaced direct access to DrawCmd::TextureId with a call to
-//  DrawCmd::GetTexID(). (will become a requirement) 2021-05-16: Update to
-//  latest WebGPU specs (compatible with Emscripten 2.0.20 and Chrome Canary
-//  92). 2021-02-18: Change blending equation to preserve alpha in output
-//  buffer. 2021-01-28: Initial version.
-
 #include "../gui.hpp"
 #ifndef DISABLE
 #include "wgpu.hpp"
 #include <limits.h>
 #include <webgpu/webgpu.h>
 
-// Dear Gui prototypes from internal.hpp
+// Gui prototypes from internal.hpp
 extern ID HashData(const void *data_p, size_t data_size, U32 seed = 0);
 #define MEMALIGN(_SIZE, _ALIGN)                                                \
   (((_SIZE) + ((_ALIGN)-1)) &                                                  \
@@ -65,7 +33,7 @@ struct RenderResources {
       nullptr; // Resources bind-group to bind the common resources to pipeline
   Storage ImageBindGroups; // Resources bind-group to bind the font/image
                            // resources to pipeline (this is a key->value map)
-  WGPUBindGroup ImageBindGroup = nullptr; // Default font-resource of Dear Gui
+  WGPUBindGroup ImageBindGroup = nullptr; // Default font-resource of Gui
   WGPUBindGroupLayout ImageBindGroupLayout =
       nullptr; // Cache layout used for the image bind group. Avoids allocating
                // unnecessary JS objects when working with WebASM
@@ -99,9 +67,9 @@ struct WGPU_Data {
 };
 
 // Backend data stored in io.BackendRendererUserData to allow support for
-// multiple Dear Gui contexts It is STRONGLY preferred that you use docking
-// branch with multi-viewports (== single Dear Gui context + multiple windows)
-// instead of multiple Dear Gui contexts.
+// multiple Gui contexts It is STRONGLY preferred that you use docking
+// branch with multi-viewports (== single Gui context + multiple windows)
+// instead of multiple Gui contexts.
 static WGPU_Data *WGPU_GetBackendData() {
   return Gui::GetCurrentContext()
              ? (WGPU_Data *)Gui::GetIO().BackendRendererUserData
@@ -372,7 +340,7 @@ void WGPU_RenderDrawData(DrawData *draw_data,
     fr->VertexBufferSize = draw_data->TotalVtxCount + 5000;
 
     WGPUBufferDescriptor vb_desc = {
-        nullptr, "Dear Gui Vertex buffer",
+        nullptr, "Gui Vertex buffer",
         WGPUBufferUsage_CopyDst | WGPUBufferUsage_Vertex,
         MEMALIGN(fr->VertexBufferSize * sizeof(DrawVert), 4), false};
     fr->VertexBuffer = wgpuDeviceCreateBuffer(bd->wgpuDevice, &vb_desc);
@@ -391,7 +359,7 @@ void WGPU_RenderDrawData(DrawData *draw_data,
     fr->IndexBufferSize = draw_data->TotalIdxCount + 10000;
 
     WGPUBufferDescriptor ib_desc = {
-        nullptr, "Dear Gui Index buffer",
+        nullptr, "Gui Index buffer",
         WGPUBufferUsage_CopyDst | WGPUBufferUsage_Index,
         MEMALIGN(fr->IndexBufferSize * sizeof(DrawIdx), 4), false};
     fr->IndexBuffer = wgpuDeviceCreateBuffer(bd->wgpuDevice, &ib_desc);
@@ -513,7 +481,7 @@ static void WGPU_CreateFontsTexture() {
   // Upload texture to graphics system
   {
     WGPUTextureDescriptor tex_desc = {};
-    tex_desc.label = "Dear Gui Font Texture";
+    tex_desc.label = "Gui Font Texture";
     tex_desc.dimension = WGPUTextureDimension_2D;
     tex_desc.size.width = width;
     tex_desc.size.height = height;
@@ -579,7 +547,7 @@ static void WGPU_CreateFontsTexture() {
 
 static void WGPU_CreateUniformBuffer() {
   WGPU_Data *bd = WGPU_GetBackendData();
-  WGPUBufferDescriptor ub_desc = {nullptr, "Dear Gui Uniform buffer",
+  WGPUBufferDescriptor ub_desc = {nullptr, "Gui Uniform buffer",
                                   WGPUBufferUsage_CopyDst |
                                       WGPUBufferUsage_Uniform,
                                   MEMALIGN(sizeof(Uniforms), 16), false};

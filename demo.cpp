@@ -1,83 +1,3 @@
-// dear imgui, v1.90.1 WIP
-// (demo code)
-
-// Help:
-// - Read FAQ at http://dearimgui.com/faq
-// - Call and read Gui::ShowDemoWindow() in demo.cpp. All applications
-// in examples/ are doing that.
-// - Need help integrating Dear Gui in your codebase?
-//   - Read Getting Started
-//   https://github.com/ocornut/imgui/wiki/Getting-Started
-//   - Read 'Programmer guide' in gui.cpp for notes on how to setup Dear Gui
-//   in your codebase.
-// Read gui.cpp for more details, documentation and comments.
-// Get the latest version at https://github.com/ocornut/imgui
-
-//---------------------------------------------------
-// PLEASE DO NOT REMOVE THIS FILE FROM YOUR PROJECT!
-//---------------------------------------------------
-// Message to the person tempted to delete this file when integrating Dear Gui
-// into their codebase: Think again! It is the most useful reference code that
-// you and other coders will want to refer to and call. Have the
-// Gui::ShowDemoWindow() function wired in an always-available debug menu of
-// your game/app! Also include Metrics! ItemPicker! DebugLog! and other debug
-// features. Removing this file from your project is hindering access to
-// documentation for everyone in your team, likely leading you to poorer usage
-// of the library. Everything in this file will be stripped out by the linker if
-// you don't call Gui::ShowDemoWindow(). If you want to link core Dear Gui
-// in your shipped builds but want a thorough guarantee that the demo will not
-// be linked, you can setup your config.hpp with #define DISABLE_DEMO_WINDOWS
-// and those functions will be empty. In another situation, whenever you have
-// Dear Gui available you probably want this to be available for reference.
-// Thank you,
-// -Your beloved friend, demo.cpp (which you won't delete)
-
-//--------------------------------------------
-// ABOUT THE MEANING OF THE 'static' KEYWORD:
-//--------------------------------------------
-// In this demo code, we frequently use 'static' variables inside functions.
-// A static variable persists across calls. It is essentially a global variable
-// but declared inside the scope of the function. Think of "static int n = 0;"
-// as "global int n = 0;" ! We do this IN THE DEMO because we want:
-// - to gather code and data in the same place.
-// - to make the demo source code faster to read, faster to change, smaller in
-// size.
-// - it is also a convenient way of storing simple UI related information as
-// long as your function
-//   doesn't need to be reentrant or used in multiple threads.
-// This might be a pattern you will want to use in your code, but most of the
-// data you would be working with in a complex codebase is likely going to be
-// stored outside your functions.
-
-//-----------------------------------------
-// ABOUT THE CODING STYLE OF OUR DEMO CODE
-//-----------------------------------------
-// The Demo code in this file is designed to be easy to copy-and-paste into your
-// application! Because of this:
-// - We never omit the Gui:: prefix when calling functions, even though most
-// code here is in the same namespace.
-// - We try to declare static variables in the local scope, as close as possible
-// to the code using them.
-// - We never use any of the helpers/facilities used internally by Dear Gui,
-// unless available in the public API.
-// - We never use maths operators on Vec2/Vec4. For our other sources files
-// we use them, and they are provided
-//   by gui.hpp using the DEFINE_MATH_OPERATORS define. For your own sources
-//   file they are optional and require you either enable those, either provide
-//   your own via VEC2_CLASS_EXTRA in config.hpp. Because we can't assume
-//   anything about your support of maths operators, we cannot use them in
-//   demo.cpp.
-
-// Navigating this file:
-// - In Visual Studio IDE: CTRL+comma ("Edit.GoToAll") can follow symbols in
-// comments, whereas CTRL+F12 ("Edit.GoToImplementation") cannot.
-// - With Visual Assist installed: ALT+G ("VAssistX.GoToImplementation") can
-// also follow symbols in comments.
-
-/*
-
-Index of this file:
-
 // [SECTION] Forward Declarations
 // [SECTION] Helpers
 // [SECTION] Demo Window / ShowDemoWindow()
@@ -102,12 +22,12 @@ Index of this file:
 // [SECTION] Example App: Fullscreen window / ShowExampleAppFullscreen()
 // [SECTION] Example App: Manipulating window titles /
 ShowExampleAppWindowTitles()
-// [SECTION] Example App: Custom Rendering using DrawList API /
-ShowExampleAppCustomRendering()
-// [SECTION] Example App: Docking, DockSpace / ShowExampleAppDockSpace()
-// [SECTION] Example App: Documents Handling / ShowExampleAppDocuments()
+    // [SECTION] Example App: Custom Rendering using DrawList API /
+    ShowExampleAppCustomRendering()
+    // [SECTION] Example App: Docking, DockSpace / ShowExampleAppDockSpace()
+    // [SECTION] Example App: Documents Handling / ShowExampleAppDocuments()
 
-*/
+    * /
 
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
 #define _CRT_SECURE_NO_WARNINGS
@@ -262,8 +182,8 @@ ShowExampleAppCustomRendering()
 
 #if !defined(DISABLE_DEMO_WINDOWS)
 
-// Forward Declarations
-static void ShowExampleAppMainMenuBar();
+    // Forward Declarations
+    static void ShowExampleAppMainMenuBar();
 static void ShowExampleAppConsole(bool *p_open);
 static void ShowExampleAppCustomRendering(bool *p_open);
 static void ShowExampleAppDockSpace(bool *p_open);
@@ -341,16 +261,16 @@ void *GDemoMarkerCallbackUserData = NULL;
 // - ShowDemoWindowInputs()
 //-----------------------------------------------------------------------------
 
-// Demonstrate most Dear Gui features (this is big function!)
+// Demonstrate most Gui features (this is big function!)
 // You may execute this function to experiment with the UI and understand what
 // it does. You may then search for keywords in the code when you are interested
 // by a specific feature.
 void Gui::ShowDemoWindow(bool *p_open) {
   // Exceptionally add an extra assert here for people confused about initial
-  // Dear Gui setup Most functions would normally just assert/crash if the
+  // Gui setup Most functions would normally just assert/crash if the
   // context is missing.
   ASSERT(Gui::GetCurrentContext() != NULL &&
-         "Missing Dear Gui context. Refer to examples app!");
+         "Missing Gui context. Refer to examples app!");
 
   // Examples Apps (accessible from the "Examples" menu)
   static bool show_app_main_menu_bar = false;
@@ -402,7 +322,7 @@ void Gui::ShowDemoWindow(bool *p_open) {
   if (show_app_window_titles)
     ShowExampleAppWindowTitles(&show_app_window_titles);
 
-  // Dear Gui Tools (accessible from the "Tools" menu)
+  // Gui Tools (accessible from the "Tools" menu)
   static bool show_tool_metrics = false;
   static bool show_tool_debug_log = false;
   static bool show_tool_id_stack_tool = false;
@@ -416,7 +336,7 @@ void Gui::ShowDemoWindow(bool *p_open) {
   if (show_tool_id_stack_tool)
     Gui::ShowIDStackToolWindow(&show_tool_id_stack_tool);
   if (show_tool_style_editor) {
-    Gui::Begin("Dear Gui Style Editor", &show_tool_style_editor);
+    Gui::Begin("Gui Style Editor", &show_tool_style_editor);
     Gui::ShowStyleEditor();
     Gui::End();
   }
@@ -474,7 +394,7 @@ void Gui::ShowDemoWindow(bool *p_open) {
   Gui::SetNextWindowSize(Vec2(550, 680), Cond_FirstUseEver);
 
   // Main body of the Demo window starts here.
-  if (!Gui::Begin("Dear Gui Demo", p_open, window_flags)) {
+  if (!Gui::Begin("Gui Demo", p_open, window_flags)) {
     // Early out if the window is collapsed, as an optimization.
     Gui::End();
     return;
@@ -535,13 +455,13 @@ void Gui::ShowDemoWindow(bool *p_open) {
       Gui::MenuItem("ID Stack Tool", NULL, &show_tool_id_stack_tool,
                     has_debug_tools);
       Gui::MenuItem("Style Editor", NULL, &show_tool_style_editor);
-      Gui::MenuItem("About Dear Gui", NULL, &show_tool_about);
+      Gui::MenuItem("About Gui", NULL, &show_tool_about);
       Gui::EndMenu();
     }
     Gui::EndMenuBar();
   }
 
-  Gui::Text("dear imgui says hello! (%s) (%d)", VERSION, VERSION_NUM);
+  Gui::Text("gui says hello! (%s) (%d)", VERSION, VERSION_NUM);
   Gui::Spacing();
 
   DEMO_MARKER("Help");
@@ -552,14 +472,13 @@ void Gui::ShowDemoWindow(bool *p_open) {
     Gui::BulletText("The \"Examples\" menu above leads to more demo contents.");
     Gui::BulletText(
         "The \"Tools\" menu above gives access to: About Box, Style Editor,\n"
-        "and Metrics/Debugger (general purpose Dear Gui debugging tool).");
+        "and Metrics/Debugger (general purpose Gui debugging tool).");
 
     Gui::SeparatorText("PROGRAMMER GUIDE:");
     Gui::BulletText(
         "See the ShowDemoWindow() code in demo.cpp. <- you are here!");
     Gui::BulletText("See comments in gui.cpp.");
     Gui::BulletText("See example applications in the examples/ folder.");
-    Gui::BulletText("Read the FAQ at https://www.dearimgui.com/faq/");
     Gui::BulletText(
         "Set 'io.ConfigFlags |= NavEnableKeyboard' for keyboard controls.");
     Gui::BulletText(
@@ -691,7 +610,7 @@ void Gui::ShowDemoWindow(bool *p_open) {
       Gui::Checkbox("io.MouseDrawCursor", &io.MouseDrawCursor);
       Gui::SameLine();
       HelpMarker(
-          "Instruct Dear Gui to render a mouse cursor itself. Note that a "
+          "Instruct Gui to render a mouse cursor itself. Note that a "
           "mouse cursor rendered via your application GPU rendering path will "
           "feel more laggy than hardware cursor, but will be more in sync with "
           "your other visuals.\n\nSome desktop applications may use both kinds "
@@ -1495,9 +1414,6 @@ static void ShowDemoWindowWidgets() {
     //   it will help you debug issues if you are confused about it.
     // - Consider using the lower-level DrawList::AddImage() API, via
     // Gui::GetWindowDrawList()->AddImage().
-    // - Read https://github.com/ocornut/imgui/blob/master/docs/FAQ.md
-    // - Read
-    // https://github.com/ocornut/imgui/wiki/Image-Loading-and-Displaying-Examples
     TextureID my_tex_id = io.Fonts->TexID;
     float my_tex_w = (float)io.Fonts->TexWidth;
     float my_tex_h = (float)io.Fonts->TexHeight;
@@ -1547,8 +1463,7 @@ static void ShowDemoWindowWidgets() {
     for (int i = 0; i < 8; i++) {
       // UV coordinates are often (0.0f, 0.0f) and (1.0f, 1.0f) to display an
       // entire textures. Here are trying to display only a 32x32 pixels area of
-      // the texture, hence the UV computation. Read about UV coordinates here:
-      // https://github.com/ocornut/imgui/wiki/Image-Loading-and-Displaying-Examples
+      // the texture, hence the UV computation.
       Gui::PushID(i);
       if (i > 0)
         Gui::PushStyleVar(StyleVar_FramePadding, Vec2(i - 1.0f, i - 1.0f));
@@ -2280,9 +2195,7 @@ static void ShowDemoWindowWidgets() {
   }
 
   // Plot/Graph widgets are not very good.
-  // Consider using a third-party library such as Plot:
-  // https://github.com/epezent/implot (see others
-  // https://github.com/ocornut/imgui/wiki/Useful-Extensions)
+  // Consider using a third-party library such as Plot.
   DEMO_MARKER("Widgets/Plotting");
   if (Gui::TreeNode("Plotting")) {
     static bool animate = true;
@@ -2773,7 +2686,7 @@ static void ShowDemoWindowWidgets() {
     Gui::SeparatorText("Drags");
     Gui::Checkbox("Clamp integers to 0..50", &drag_clamp);
     Gui::SameLine();
-    HelpMarker("As with every widget in dear imgui, we never modify values "
+    HelpMarker("As with every widget in gui, we never modify values "
                "unless there is a user interaction.\n"
                "You can override the clamping limits by using CTRL+Click to "
                "input a value.");
@@ -4457,7 +4370,7 @@ static void ShowDemoWindowPopups() {
   // - They block normal mouse hovering detection outside them. (*)
   // - Unless modal, they can be closed by clicking anywhere outside them, or by
   // pressing ESCAPE.
-  // - Their visibility state (~bool) is held internally by Dear Gui instead
+  // - Their visibility state (~bool) is held internally by Gui instead
   // of being held by the programmer as
   //   we are used to with regular Begin() calls. User can manipulate the
   //   visibility state by calling OpenPopup().
@@ -4781,7 +4694,7 @@ struct MyItem {
 
   // We have a problem which is affecting _only this demo_ and should not affect
   // your code: As we don't rely on std:: or other third-party library to
-  // compile dear imgui, we only have reliable access to qsort(), however qsort
+  // compile gui, we only have reliable access to qsort(), however qsort
   // doesn't allow passing user data to comparing function. As a workaround, we
   // are storing the sort specs in a static/global for the comparing function to
   // access. In your own use case you would probably pass the sort specs to your
@@ -7366,12 +7279,12 @@ static void ShowDemoWindowInputs() {
     Gui::SetNextItemOpen(true, Cond_Once);
     if (Gui::TreeNode("Outputs")) {
       HelpMarker("The value of io.WantCaptureMouse and io.WantCaptureKeyboard "
-                 "are normally set by Dear Gui "
+                 "are normally set by Gui "
                  "to instruct your application of how to route inputs. "
                  "Typically, when a value is true, it means "
-                 "Dear Gui wants the corresponding inputs and we expect the "
+                 "Gui wants the corresponding inputs and we expect the "
                  "underlying application to ignore them.\n\n"
-                 "The most typical case is: when hovering a window, Dear Gui "
+                 "The most typical case is: when hovering a window, Gui "
                  "set io.WantCaptureMouse to true, "
                  "and underlying application should ignore mouse inputs (in "
                  "practice there are many and more subtle "
@@ -7568,19 +7481,19 @@ static void ShowDemoWindowInputs() {
 
 //-----------------------------------------------------------------------------
 // [SECTION] About Window / ShowAboutWindow()
-// Access from Dear Gui Demo -> Tools -> About
+// Access from Gui Demo -> Tools -> About
 //-----------------------------------------------------------------------------
 
 void Gui::ShowAboutWindow(bool *p_open) {
-  if (!Gui::Begin("About Dear Gui", p_open, WindowFlags_AlwaysAutoResize)) {
+  if (!Gui::Begin("About Gui", p_open, WindowFlags_AlwaysAutoResize)) {
     Gui::End();
     return;
   }
-  DEMO_MARKER("Tools/About Dear Gui");
-  Gui::Text("Dear Gui %s (%d)", VERSION, VERSION_NUM);
+  DEMO_MARKER("Tools/About Gui");
+  Gui::Text("Gui %s (%d)", VERSION, VERSION_NUM);
   Gui::Separator();
-  Gui::Text("By Omar Cornut and all Dear Gui contributors.");
-  Gui::Text("Dear Gui is licensed under the MIT License, see LICENSE for "
+  Gui::Text("By Omar Cornut and all Gui contributors.");
+  Gui::Text("Gui is licensed under the MIT License, see LICENSE for "
             "more information.");
   Gui::Text(
       "If your company uses this, please consider sponsoring the project!");
@@ -7600,7 +7513,7 @@ void Gui::ShowAboutWindow(bool *p_open) {
                              // formatting when pasting on GitHub
     }
 
-    Gui::Text("Dear Gui %s (%d)", VERSION, VERSION_NUM);
+    Gui::Text("Gui %s (%d)", VERSION, VERSION_NUM);
     Gui::Separator();
     Gui::Text("sizeof(size_t): %d, sizeof(DrawIdx): %d, sizeof(DrawVert): %d",
               (int)sizeof(size_t), (int)sizeof(DrawIdx), (int)sizeof(DrawVert));
@@ -8417,7 +8330,7 @@ struct ExampleAppConsole {
     Commands.push_back("CLASSIFY");
     AutoScroll = true;
     ScrollToBottom = false;
-    AddLog("Welcome to Dear Gui!");
+    AddLog("Welcome to Gui!");
   }
   ~ExampleAppConsole() {
     ClearLog();
@@ -9489,7 +9402,7 @@ static void ShowExampleAppCustomRendering(bool *p_open) {
   // Tip: If you do a lot of custom rendering, you probably want to use your own
   // geometrical types and benefit of overloaded operators, etc. Define
   // VEC2_CLASS_EXTRA in config.hpp to create implicit conversions between
-  // your types and Vec2/Vec4. Dear Gui defines overloaded operators but
+  // your types and Vec2/Vec4. Gui defines overloaded operators but
   // they are internal to gui.cpp and not exposed outside (to avoid messing
   // with your types) In this example we are not using the maths operators!
 
@@ -9781,11 +9694,11 @@ static void ShowExampleAppCustomRendering(bool *p_open) {
       static bool draw_fg = true;
       Gui::Checkbox("Draw in Background draw list", &draw_bg);
       Gui::SameLine();
-      HelpMarker("The Background draw list will be rendered below every Dear "
+      HelpMarker("The Background draw list will be rendered below every  "
                  "Gui windows.");
       Gui::Checkbox("Draw in Foreground draw list", &draw_fg);
       Gui::SameLine();
-      HelpMarker("The Foreground draw list will be rendered over every Dear "
+      HelpMarker("The Foreground draw list will be rendered over every  "
                  "Gui windows.");
       Vec2 window_pos = Gui::GetWindowPos();
       Vec2 window_size = Gui::GetWindowSize();
@@ -10377,7 +10290,8 @@ void ShowExampleAppDocuments(bool *p_open) {
 // End of Demo code
 #else
 
-void Gui::ShowAboutWindow(bool *) {}
+    void Gui::ShowAboutWindow(bool *) {
+}
 void Gui::ShowDemoWindow(bool *) {}
 void Gui::ShowUserGuide() {}
 void Gui::ShowStyleEditor(Style *) {}

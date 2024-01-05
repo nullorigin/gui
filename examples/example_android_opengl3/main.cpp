@@ -1,11 +1,4 @@
-// dear imgui: standalone example application for Android + OpenGL ES 3
-
-// Learn about Dear Gui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/
-// folder).
-// - Introduction, links and more at the top of gui.cpp
+// gui: standalone example application for Android + OpenGL ES 3
 
 #include "android.hpp"
 #include "gui.hpp"
@@ -145,18 +138,18 @@ void Init(struct android_app *app) {
     eglMakeCurrent(g_EglDisplay, g_EglSurface, g_EglSurface, g_EglContext);
   }
 
-  // Setup Dear Gui context
+  // Setup Gui context
   CHECKVERSION();
   Gui::CreateContext();
   IO &io = Gui::GetIO();
 
   // Redirect loading/saving of .ini file to our location.
-  // Make sure 'g_IniFilename' persists while we use Dear Gui.
+  // Make sure 'g_IniFilename' persists while we use Gui.
   g_IniFilename = std::string(app->activity->internalDataPath) + "/gui.ini";
   io.IniFilename = g_IniFilename.c_str();
   ;
 
-  // Setup Dear Gui style
+  // Setup Gui style
   Gui::StyleColorsDark();
   // Gui::StyleColorsLight();
 
@@ -165,7 +158,7 @@ void Init(struct android_app *app) {
   OpenGL3_Init("#version 300 es");
 
   // Load Fonts
-  // - If no fonts are loaded, dear imgui will use the default font. You can
+  // - If no fonts are loaded, gui will use the default font. You can
   // also load multiple fonts and use Gui::PushFont()/PopFont() to select
   // them.
   // - If the file cannot be loaded, the function will return a nullptr. Please
@@ -185,7 +178,7 @@ void Init(struct android_app *app) {
   // devices with "high" DPI.
   // FIXME: Put some effort into DPI awareness.
   // Important: when calling AddFontFromMemoryTTF(), ownership of font_data is
-  // transfered by Dear Gui by default (deleted is handled by Dear Gui),
+  // transfered by Gui by default (deleted is handled by Gui),
   // unless we set FontDataOwnedByAtlas=false in FontConfig
   FontConfig font_cfg;
   font_cfg.SizePixels = 22.0f;
@@ -232,19 +225,19 @@ void MainLoopStep() {
   // FIXME: do not call this every frame because of JNI overhead
   PollUnicodeChars();
 
-  // Open on-screen (soft) input if requested by Dear Gui
+  // Open on-screen (soft) input if requested by Gui
   static bool WantTextInputLast = false;
   if (io.WantTextInput && !WantTextInputLast)
     ShowSoftKeyboardInput();
   WantTextInputLast = io.WantTextInput;
 
-  // Start the Dear Gui frame
+  // Start the Gui frame
   OpenGL3_NewFrame();
   Android_NewFrame();
   Gui::NewFrame();
 
   // 1. Show the big demo window (Most of the sample code is in
-  // Gui::ShowDemoWindow()! You can browse its code to learn more about Dear
+  // Gui::ShowDemoWindow()! You can browse its code to learn more about
   // Gui!).
   if (show_demo_window)
     Gui::ShowDemoWindow(&show_demo_window);
@@ -373,7 +366,7 @@ static int ShowSoftKeyboardInput() {
 // Unfortunately, the native KeyEvent implementation has no getUnicodeChar()
 // function. Therefore, we implement the processing of KeyEvents in
 // MainActivity.kt and poll the resulting Unicode characters here via JNI and
-// send them to Dear Gui.
+// send them to Gui.
 static int PollUnicodeChars() {
   JavaVM *java_vm = g_App->activity->vm;
   JNIEnv *java_env = nullptr;
@@ -396,7 +389,7 @@ static int PollUnicodeChars() {
   if (method_id == nullptr)
     return -4;
 
-  // Send the actual characters to Dear Gui
+  // Send the actual characters to Gui
   IO &io = Gui::GetIO();
   jint unicode_character;
   while ((unicode_character =

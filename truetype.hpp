@@ -1,7 +1,7 @@
-// [DEAR IMGUI]
+// [GUI]
 // This is a slightly modified version of truetype.h 1.26.
 // Mostly fixing for compiler and static analyzer warnings.
-// Grep for [DEAR IMGUI] to find the changes.
+// Grep for [GUI] to find the changes.
 
 // truetype.h - v1.26 - public domain
 // authored from 2009-2021 by Sean Barrett / RAD Game Tools
@@ -2204,8 +2204,7 @@ static tt__buf tt__cid_get_glyph_subrs(const tt_fontinfo *info,
     }
   }
   if (fdselector == -1)
-    return tt__new_buf(
-        NULL, 0); // [DEAR IMGUI] fixed, see #6007 and nothings/stb#1422
+    return tt__new_buf(NULL, 0); // [GUI] fixed, see #6007 and nothings/stb#1422
   return tt__get_subrs(info->cff,
                        tt__cff_index_get(info->fontdicts, fdselector));
 }
@@ -3515,7 +3514,7 @@ static void tt__fill_active_edges_new(float *scanline, float *scanline_fill,
           if (y_final > y_bottom) {
             int denom = (x2 - (x1 + 1));
             y_final = y_bottom;
-            if (denom != 0) { // [DEAR IMGUI] Avoid div by zero
+            if (denom != 0) { // [GUI] Avoid div by zero
                               // (https://github.com/nothings/stb/issues/1316)
               dy = (y_final - y_crossing) /
                    denom; // if denom=0, y_final = y_crossing, so y_final <=
@@ -4737,7 +4736,7 @@ STBTT_DEF int tt_PackFontRanges(tt_pack_context *spc,
                                 const unsigned char *fontdata, int font_index,
                                 tt_pack_range *ranges, int num_ranges) {
   tt_fontinfo info;
-  int i, j, n, return_value; // [DEAR IMGUI] removed = 1;
+  int i, j, n, return_value; // [GUI] removed = 1;
   // stbrp_context *context = (stbrp_context *) spc->pack_info;
   stbrp_rect *rects;
 

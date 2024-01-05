@@ -1,4 +1,4 @@
-// dear imgui: Platform Backend for GLFW
+// gui: Platform Backend for GLFW
 // This needs to be used along with a Renderer (e.g. OpenGL3, Vulkan, WebGPU..)
 // (Info: GLFW is a cross-platform general purpose library for handling windows,
 // inputs, OpenGL/Vulkan graphics context creation, etc.) (Requires: GLFW 3.1+.
@@ -20,16 +20,6 @@
 // Issues:
 //  [ ] Platform: Multi-viewport support: ParentViewportID not honored, and so
 //  io.ConfigViewportsNoDefaultParent has no effect (minor).
-
-// You can use unmodified * files in your project. See examples/
-// folder for examples of using this. Prefer including the entire imgui/
-// repository into your project (either as a copy or as a submodule), and only
-// build the backends you need. Learn about Dear Gui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/
-// folder).
-// - Introduction, links and more at the top of gui.cpp
 
 #pragma once
 #include "../gui.hpp" // API

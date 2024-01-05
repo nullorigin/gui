@@ -1,4 +1,4 @@
-// dear imgui: Renderer Backend for DirectX12
+// gui: Renderer Backend for DirectX12
 // This needs to be used along with a Platform Backend (e.g. Win32)
 
 // Implemented features:
@@ -11,16 +11,6 @@
 // Important: to compile on 32-bit systems, this backend requires code to be
 // compiled with '#define TextureID U64'. See dx12.cpp file for
 // details.
-
-// You can use unmodified * files in your project. See examples/
-// folder for examples of using this. Prefer including the entire imgui/
-// repository into your project (either as a copy or as a submodule), and only
-// build the backends you need. Learn about Dear Gui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/
-// folder).
-// - Introduction, links and more at the top of gui.cpp
 
 #pragma once
 #include "../gui.hpp" // API
@@ -48,7 +38,7 @@ API void DX12_NewFrame();
 API void DX12_RenderDrawData(DrawData *draw_data,
                              ID3D12GraphicsCommandList *graphics_command_list);
 
-// Use if you want to reset your rendering device without losing Dear Gui
+// Use if you want to reset your rendering device without losing Gui
 // state.
 API void DX12_InvalidateDeviceObjects();
 API bool DX12_CreateDeviceObjects();

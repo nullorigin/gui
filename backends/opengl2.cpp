@@ -1,4 +1,4 @@
-// dear imgui: Renderer Backend for OpenGL2 (legacy OpenGL, fixed pipeline)
+// gui: Renderer Backend for OpenGL2 (legacy OpenGL, fixed pipeline)
 // This needs to be used along with a Platform Backend (e.g. GLFW, SDL, Win32,
 // custom..)
 
@@ -7,59 +7,6 @@
 //  as void*/TextureID. Read the FAQ about TextureID! [X] Renderer:
 //  Multi-viewport support (multiple windows). Enable with 'io.ConfigFlags |=
 //  ConfigFlags_ViewportsEnable'.
-
-// You can use unmodified * files in your project. See examples/
-// folder for examples of using this. Prefer including the entire imgui/
-// repository into your project (either as a copy or as a submodule), and only
-// build the backends you need. Learn about Dear Gui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/
-// folder).
-// - Introduction, links and more at the top of gui.cpp
-
-// **DO NOT USE THIS CODE IF YOUR CODE/ENGINE IS USING MODERN OPENGL (SHADERS,
-// VBO, VAO, etc.)**
-// **Prefer using the code in opengl3.cpp**
-// This code is mostly provided as a reference to learn how Gui integration
-// works, because it is shorter to read. If your code is using GL3+ context or
-// any semi modern OpenGL calls, using this is likely to make everything more
-// complicated, will require your code to reset every single OpenGL attributes
-// to their initial state, and might confuse your GPU driver. The GL2 code is
-// unable to reset attributes or even call e.g. "glUseProgram(0)" because they
-// don't exist in that API.
-
-// CHANGELOG
-// (minor and older changes stripped away, please see git history for details)
-//  2023-XX-XX: Platform: Added support for multiple windows via the
-//  PlatformIO interface. 2022-10-11: Using 'nullptr' instead of 'NULL' as
-//  per our switch to C++11. 2021-12-08: OpenGL: Fixed mishandling of the the
-//  DrawCmd::IdxOffset field! This is an old bug but it never had an effect
-//  until some internal rendering changes in 1.86. 2021-06-29: Reorganized
-//  backend to pull data from a single structure to facilitate usage with
-//  multiple-contexts (all g_XXXX access changed to bd->XXXX). 2021-05-19:
-//  OpenGL: Replaced direct access to DrawCmd::TextureId with a call to
-//  DrawCmd::GetTexID(). (will become a requirement) 2021-01-03: OpenGL:
-//  Backup, setup and restore GL_SHADE_MODEL state, disable GL_STENCIL_TEST and
-//  disable GL_NORMAL_ARRAY client state to increase compatibility with legacy
-//  OpenGL applications. 2020-01-23: OpenGL: Backup, setup and restore
-//  GL_TEXTURE_ENV to increase compatibility with legacy OpenGL applications.
-//  2019-04-30: OpenGL: Added support for special
-//  DrawCallback_ResetRenderState callback to reset render state. 2019-02-11:
-//  OpenGL: Projecting clipping rectangles correctly using
-//  draw_data->FramebufferScale to allow multi-viewports for retina display.
-//  2018-11-30: Misc: Setting up io.BackendRendererName so it can be displayed
-//  in the About Window. 2018-08-03: OpenGL: Disabling/restoring GL_LIGHTING and
-//  GL_COLOR_MATERIAL to increase compatibility with legacy OpenGL applications.
-//  2018-06-08: Misc: Extracted opengl2.cpp/.h away from the old
-//  combined GLFW/SDL+OpenGL2 examples. 2018-06-08: OpenGL: Use
-//  draw_data->DisplayPos and draw_data->DisplaySize to setup projection matrix
-//  and clipping rectangle. 2018-02-16: Misc: Obsoleted the io.RenderDrawListsFn
-//  callback and exposed OpenGL2_RenderDrawData() in the .h file so
-//  you can call it yourself. 2017-09-01: OpenGL: Save and restore current
-//  polygon mode. 2016-09-10: OpenGL: Uploading font texture as RGBA32 to
-//  increase compatibility with users shaders (not ideal). 2016-09-05: OpenGL:
-//  Fixed save and restore of current scissor rectangle.
 
 #include "../gui.hpp"
 #ifndef DISABLE
@@ -97,9 +44,9 @@ struct OpenGL2_Data {
 };
 
 // Backend data stored in io.BackendRendererUserData to allow support for
-// multiple Dear Gui contexts It is STRONGLY preferred that you use docking
-// branch with multi-viewports (== single Dear Gui context + multiple windows)
-// instead of multiple Dear Gui contexts.
+// multiple Gui contexts It is STRONGLY preferred that you use docking
+// branch with multi-viewports (== single Gui context + multiple windows)
+// instead of multiple Gui contexts.
 static OpenGL2_Data *OpenGL2_GetBackendData() {
   return Gui::GetCurrentContext()
              ? (OpenGL2_Data *)Gui::GetIO().BackendRendererUserData
@@ -368,8 +315,8 @@ void OpenGL2_DestroyDeviceObjects() { OpenGL2_DestroyFontsTexture(); }
 //--------------------------------------------------------------------------------------------------------
 // MULTI-VIEWPORT / PLATFORM INTERFACE SUPPORT
 // This is an _advanced_ and _optional_ feature, allowing the backend to create
-// and handle multiple viewports simultaneously. If you are new to dear imgui or
-// creating a new binding for dear imgui, it is recommended that you completely
+// and handle multiple viewports simultaneously. If you are new to gui or
+// creating a new binding for gui, it is recommended that you completely
 // ignore this section first..
 //--------------------------------------------------------------------------------------------------------
 

@@ -1,1717 +1,39 @@
-// dear imgui, v1.90.1 WIP
-// (main code and documentation)
-
-// Help:
-// - See links below.
-// - Call and read Gui::ShowDemoWindow() in demo.cpp. All applications
-// in examples/ are doing that.
-// - Read top of gui.cpp for more details, links and comments.
-
-// Resources:
-// - FAQ                   https://dearimgui.com/faq
-// - Getting Started       https://dearimgui.com/getting-started
-// - Homepage              https://github.com/ocornut/imgui
-// - Releases & changelog  https://github.com/ocornut/imgui/releases
-// - Gallery               https://github.com/ocornut/imgui/issues/6897 (please
-// post your screenshots/video there!)
-// - Wiki                  https://github.com/ocornut/imgui/wiki (lots of good
-// stuff there)
-// - Glossary              https://github.com/ocornut/imgui/wiki/Glossary
-// - Issues & support      https://github.com/ocornut/imgui/issues
-// - Tests & Automation    https://github.com/ocornut/test_engine
-
-// For first-time users having issues compiling/linking/running/loading fonts:
-// please post in https://github.com/ocornut/imgui/discussions if you cannot
-// find a solution in resources above. Everything else should be asked in
-// 'Issues'! We are building a database of cross-linked knowledge there.
-
-// Copyright (c) 2014-2024 Omar Cornut
-// Developed by Omar Cornut and every direct or indirect contributors to the
-// GitHub. See LICENSE.txt for copyright and licensing details (standard MIT
-// License). This library is free but needs your support to sustain development
-// and maintenance. Businesses: you can support continued development via B2B
-// invoiced technical support, maintenance and sponsoring contracts. PLEASE
-// reach out at omar AT dearimgui DOT com. See
-// https://github.com/ocornut/imgui/wiki/Sponsors Businesses: you can also
-// purchase licenses for the Dear Gui Automation/Test Engine.
-
-// It is recommended that you don't modify gui.cpp! It will become difficult
-// for you to update the library. Note that 'Gui::' being a namespace, you can
-// add functions into the namespace from your own source files, without
-// modifying gui.hpp or gui.cpp. You may include internal.hpp to access
-// internal data structures, but it doesn't come with any guarantee of forward
-// compatibility. Discussing your changes on the GitHub Issue Tracker may lead
-// you to a better solution or official support for them.
-
-/*
-
-Index of this file:
-
-DOCUMENTATION
-
-- MISSION STATEMENT
-- CONTROLS GUIDE
-- PROGRAMMER GUIDE
-  - READ FIRST
-  - HOW TO UPDATE TO A NEWER VERSION OF DEAR IMGUI
-  - GETTING STARTED WITH INTEGRATING DEAR IMGUI IN YOUR CODE/ENGINE
-  - HOW A SIMPLE APPLICATION MAY LOOK LIKE
-  - HOW A SIMPLE RENDERING FUNCTION MAY LOOK LIKE
-- API BREAKING CHANGES (read me when you update!)
-- FREQUENTLY ASKED QUESTIONS (FAQ)
-  - Read all answers online: https://www.dearimgui.com/faq, or in docs/FAQ.md
-(with a Markdown viewer)
-
-CODE
-(search for "[SECTION]" in the code to find them)
-
-// [SECTION] INCLUDES
-// [SECTION] FORWARD DECLARATIONS
-// [SECTION] CONTEXT AND MEMORY ALLOCATORS
-// [SECTION] USER FACING STRUCTURES (Style, IO)
-// [SECTION] MISC HELPERS/UTILITIES (Geometry functions)
-// [SECTION] MISC HELPERS/UTILITIES (String, Format, Hash functions)
-// [SECTION] MISC HELPERS/UTILITIES (File functions)
-// [SECTION] MISC HELPERS/UTILITIES (Text* functions)
-// [SECTION] MISC HELPERS/UTILITIES (Color functions)
-// [SECTION] Storage
-// [SECTION] TextFilter
-// [SECTION] TextBuffer, TextIndex
-// [SECTION] ListClipper
-// [SECTION] STYLING
-// [SECTION] RENDER HELPERS
-// [SECTION] INITIALIZATION, SHUTDOWN
-// [SECTION] MAIN CODE (most of the code! lots of stuff, needs tidying up!)
-// [SECTION] INPUTS
-// [SECTION] ERROR CHECKING
-// [SECTION] LAYOUT
-// [SECTION] SCROLLING
-// [SECTION] TOOLTIPS
-// [SECTION] POPUPS
-// [SECTION] KEYBOARD/GAMEPAD NAVIGATION
-// [SECTION] DRAG AND DROP
-// [SECTION] LOGGING/CAPTURING
-// [SECTION] SETTINGS
-// [SECTION] LOCALIZATION
-// [SECTION] VIEWPORTS, PLATFORM WINDOWS
-// [SECTION] DOCKING
-// [SECTION] PLATFORM DEPENDENT HELPERS
-// [SECTION] METRICS/DEBUGGER WINDOW
-// [SECTION] DEBUG LOG WINDOW
-// [SECTION] OTHER DEBUG TOOLS (ITEM PICKER, ID STACK TOOL)
-
-*/
-
-//-----------------------------------------------------------------------------
-// DOCUMENTATION
-//-----------------------------------------------------------------------------
-
-/*
-
- MISSION STATEMENT
- =================
-
- - Easy to use to create code-driven and data-driven tools.
- - Easy to use to create ad hoc short-lived tools and long-lived, more elaborate
-tools.
- - Easy to hack and improve.
- - Minimize setup and maintenance.
- - Minimize state storage on user side.
- - Minimize state synchronization.
- - Portable, minimize dependencies, run on target (consoles, phones, etc.).
- - Efficient runtime and memory consumption.
-
- Designed primarily for developers and content-creators, not the typical
-end-user! Some of the current weaknesses (which we aim to address in the future)
-includes:
-
- - Doesn't look fancy.
- - Limited layout features, intricate layouts are typically crafted in code.
-
-
- CONTROLS GUIDE
- ==============
-
- - MOUSE CONTROLS
-   - Mouse wheel:                   Scroll vertically.
-   - SHIFT+Mouse wheel:             Scroll horizontally.
-   - Click [X]:                     Close a window, available when 'bool*
-p_open' is passed to Gui::Begin().
-   - Click ^, Double-Click title:   Collapse window.
-   - Drag on corner/border:         Resize window (double-click to auto fit
-window to its contents).
-   - Drag on any empty space:       Move window (unless
-io.ConfigWindowsMoveFromTitleBarOnly = true).
-   - Left-click outside popup:      Close popup stack (right-click over
-underlying popup: Partially close popup stack).
-
- - TEXT EDITOR
-   - Hold SHIFT or Drag Mouse:      Select text.
-   - CTRL+Left/Right:               Word jump.
-   - CTRL+Shift+Left/Right:         Select words.
-   - CTRL+A or Double-Click:        Select All.
-   - CTRL+X, CTRL+C, CTRL+V:        Use OS clipboard.
-   - CTRL+Z, CTRL+Y:                Undo, Redo.
-   - ESCAPE:                        Revert text to its original value.
-   - On OSX, controls are automatically adjusted to match standard OSX text
-editing shortcuts and behaviors.
-
- - KEYBOARD CONTROLS
-   - Basic:
-     - Tab, SHIFT+Tab               Cycle through text editable fields.
-     - CTRL+Tab, CTRL+Shift+Tab     Cycle through windows.
-     - CTRL+Click                   Input text into a Slider or Drag widget.
-   - Extended features with `io.ConfigFlags |=
-ConfigFlags_NavEnableKeyboard`:
-     - Tab, SHIFT+Tab:              Cycle through every items.
-     - Arrow keys                   Move through items using directional
-navigation. Tweak value.
-     - Arrow keys + Alt, Shift      Tweak slower, tweak faster (when using arrow
-keys).
-     - Enter                        Activate item (prefer text input when
-possible).
-     - Space                        Activate item (prefer tweaking with arrows
-when possible).
-     - Escape                       Deactivate item, leave child window, close
-popup.
-     - Page Up, Page Down           Previous page, next page.
-     - Home, End                    Scroll to top, scroll to bottom.
-     - Alt                          Toggle between scrolling layer and menu
-layer.
-     - CTRL+Tab then Ctrl+Arrows    Move window. Hold SHIFT to resize instead of
-moving.
-   - Output when ConfigFlags_NavEnableKeyboard set,
-     - io.WantCaptureKeyboard flag is set when keyboard is claimed.
-     - io.NavActive: true when a window is focused and it doesn't have the
-WindowFlags_NoNavInputs flag set.
-     - io.NavVisible: true when the navigation cursor is visible (usually goes
-to back false when mouse is used).
-
- - GAMEPAD CONTROLS
-   - Enable with 'io.ConfigFlags |= ConfigFlags_NavEnableGamepad'.
-   - Particularly useful to use Dear Gui on a console system (e.g.
-PlayStation, Switch, Xbox) without a mouse!
-   - Download controller mapping PNG/PSD at http://dearimgui.com/controls_sheets
-   - Backend support: backend needs to:
-      - Set 'io.BackendFlags |= BackendFlags_HasGamepad' + call
-io.AddKeyEvent/AddKeyAnalogEvent() with Key_Gamepad_XXX keys.
-      - For analog values (0.0f to 1.0f), backend is responsible to handling a
-dead-zone and rescaling inputs accordingly. Backend code will probably need to
-transform your raw inputs (such as e.g. remapping your 0.2..0.9 raw input range
-to 0.0..1.0 imgui range, etc.).
-      - BEFORE 1.87, BACKENDS USED TO WRITE TO io.NavInputs[]. This is now
-obsolete. Please call io functions instead!
-   - If you need to share inputs between your game and the Dear Gui interface,
-the easiest approach is to go all-or-nothing, with a buttons combo to toggle the
-target. Please reach out if you think the game vs navigation input sharing could
-be improved.
-
- - REMOTE INPUTS SHARING & MOUSE EMULATION
-   - PS4/PS5 users: Consider emulating a mouse cursor with DualShock touch pad
-or a spare analog stick as a mouse-emulation fallback.
-   - Consoles/Tablet/Phone users: Consider using a Synergy 1.x server (on your
-PC) + run examples/libs/synergy/uSynergy.c (on your console/tablet/phone app) in
-order to share your PC mouse/keyboard.
-   - See https://github.com/ocornut/imgui/wiki/Useful-Extensions#remoting for
-other remoting solutions.
-   - On a TV/console system where readability may be lower or mouse inputs may
-be awkward, you may want to set the ConfigFlags_NavEnableSetMousePos flag.
-     Enabling ConfigFlags_NavEnableSetMousePos +
-BackendFlags_HasSetMousePos instructs Dear Gui to move your mouse cursor
-along with navigation movements. When enabled, the NewFrame() function may alter
-'io.MousePos' and set 'io.WantSetMousePos' to notify you that it wants the mouse
-cursor to be moved. When that happens your backend NEEDS to move the OS or
-underlying mouse cursor on the next frame. Some of the backends in examples/ do
-that. (If you set the NavEnableSetMousePos flag but don't honor
-'io.WantSetMousePos' properly, Dear Gui will misbehave as it will see your
-mouse moving back & forth!) (In a setup when you may not have easy control over
-the mouse cursor, e.g. uSynergy.c doesn't expose moving remote mouse cursor, you
-may want to set a boolean to ignore your other external mouse positions until
-the external source is moved again.)
-
-
- PROGRAMMER GUIDE
- ================
-
- READ FIRST
- ----------
- - Remember to check the wonderful Wiki (https://github.com/ocornut/imgui/wiki)
- - Your code creates the UI every frame of your application loop, if your code
-doesn't run the UI is gone! The UI can be highly dynamic, there are no
-construction or destruction steps, less superfluous data retention on your side,
-less state duplication, less state synchronization, fewer bugs.
- - Call and read Gui::ShowDemoWindow() for demo code demonstrating most
-features. Or browse
-https://pthom.github.io/manual_online/manual/manual.html for
-interactive web version.
- - The library is designed to be built from sources. Avoid pre-compiled binaries
-and packaged versions. See config.hpp to configure your build.
- - Dear Gui is an implementation of the IMGUI paradigm (immediate-mode
-graphical user interface, a term coined by Casey Muratori). You can learn about
-IMGUI principles at http://www.johno.se/book/gui.hpptml,
-http://mollyrocket.com/861 & more links in Wiki.
- - Dear Gui is a "single pass" rasterizing implementation of the IMGUI
-paradigm, aimed at ease of use and high-performances. For every application
-frame, your UI code will be called only once. This is in contrast to e.g.
-Unity's implementation of an IMGUI, where the UI code is called multiple times
-("multiple passes") from a single entry point. There are pros and cons to both
-approaches.
- - Our origin is on the top-left. In axis aligned bounding boxes, Min =
-top-left, Max = bottom-right.
- - Please make sure you have asserts enabled (ASSERT redirects to assert() by
-default, but can be redirected). If you get an assert, read the messages and
-comments around the assert.
- - This codebase aims to be highly optimized:
-   - A typical idle frame should never call malloc/free.
-   - We rely on a maximum of constant-time or O(N) algorithms. Limiting
-searches/scans as much as possible.
-   - We put particular energy in making sure performances are decent with
-typical "Debug" build settings as well. Which mean we tend to avoid over-relying
-on "zero-cost abstraction" as they aren't zero-cost at all.
- - This codebase aims to be both highly opinionated and highly flexible:
-   - This code works because of the things it choose to solve or not solve.
-   - C++: this is a pragmatic C-ish codebase: we don't use fancy C++ features,
-we don't include C++ headers, and Gui:: is a namespace. We rarely use member
-functions (and when we did, I am mostly regretting it now). This is to increase
-compatibility, increase maintainability and facilitate use from other languages.
-   - C++: Vec2/Vec4 do not expose math operators by default, because it is
-expected that you use your own math types. See FAQ "How can I use my own math
-types instead of Vec2/Vec4?" for details about setting up config.hpp for
-that. We can can optionally export math operators for Vec2/Vec4 using
-DEFINE_MATH_OPERATORS, which we use internally.
-   - C++: pay attention that Vector<> manipulates plain-old-data and does not
-honor construction/destruction (so don't use Vector in your code or at our own
-risk!).
-   - Building: We don't use nor mandate a build system for the main library.
-     This is in an effort to ensure that it works in the real world aka with any
-esoteric build setup. This is also because providing a build system for the main
-library would be of little-value. The build problems are almost never coming
-from the main library but from specific backends.
-
-
- HOW TO UPDATE TO A NEWER VERSION OF DEAR IMGUI
- ----------------------------------------------
- - Update submodule or copy/overwrite every file.
- - About config.hpp:
-   - You may modify your copy of config.hpp, in this case don't overwrite it.
-   - or you may locally branch to modify config.hpp and merge/rebase latest.
-   - or you may '#define USER_CONFIG "my_config_file.h"' globally from your
-build system to specify a custom path for your config.hpp file and instead not
-have to modify the default one.
-
- - Overwrite all the sources files except for config.hpp (if you have modified
-your copy of config.hpp)
- - Or maintain your own branch where you have config.hpp modified as a top-most
-commit which you can regularly rebase over "master".
- - You can also use '#define USER_CONFIG "my_config_file.h" to redirect
-configuration to your own file.
- - Read the "API BREAKING CHANGES" section (below). This is where we list
-occasional API breaking changes. If a function/type has been renamed / or marked
-obsolete, try to fix the name in your code before it is permanently removed from
-the public API. If you have a problem with a missing function/symbols, search
-for its name in the code, there will likely be a comment about it. Please report
-any issue to the GitHub page!
- - To find out usage of old API, you can add '#define
-DISABLE_OBSOLETE_FUNCTIONS' in your configuration file.
- - Try to keep your copy of Dear Gui reasonably up to date!
-
-
- GETTING STARTED WITH INTEGRATING DEAR IMGUI IN YOUR CODE/ENGINE
- ---------------------------------------------------------------
- - See https://github.com/ocornut/imgui/wiki/Getting-Started.
- - Run and study the examples and demo in demo.cpp to get acquainted with
-the library.
- - In the majority of cases you should be able to use unmodified backends files
-available in the backends/ folder.
- - Add the Dear Gui source files + selected backend source files to your
-projects or using your preferred build system. It is recommended you build and
-statically link the .cpp files as part of your project and NOT as a shared
-library (DLL).
- - You can later customize the config.hpp file to tweak some compile-time
-behavior, such as integrating Dear Gui types with your own maths types.
- - When using Dear Gui, your programming IDE is your friend: follow the
-declaration of variables, functions and types to find comments about them.
- - Dear Gui never touches or knows about your GPU state. The only function
-that knows about GPU is the draw function that you provide. Effectively it means
-you can create widgets at any time in your code, regardless of considerations of
-being in "update" vs "render" phases of your own application. All rendering
-information is stored into command-lists that you will retrieve after calling
-Gui::Render().
- - Refer to the backends and demo applications in the examples/ folder for
-instruction on how to setup your code.
- - If you are running over a standard OS with a common graphics API, you should
-be able to use unmodified *** files from the examples/ folder.
-
-
- HOW A SIMPLE APPLICATION MAY LOOK LIKE
- --------------------------------------
- EXHIBIT 1: USING THE EXAMPLE BACKENDS (= XXX.cpp files from the
-backends/ folder). The sub-folders in examples/ contain examples applications
-following this structure.
-
-     // Application init: create a dear imgui context, setup some options, load
-fonts Gui::CreateContext(); IO& io = Gui::GetIO();
-     // TODO: Set optional io.ConfigFlags values, e.g. 'io.ConfigFlags |=
-ConfigFlags_NavEnableKeyboard' to enable keyboard controls.
-     // TODO: Fill optional fields of the io structure later.
-     // TODO: Load TTF/OTF fonts if you don't want to use the default font.
-
-     // Initialize helper Platform and Renderer backends (here we are using
-win32.cpp and dx11.cpp) Win32_Init(hwnd);
-     DX11_Init(g_pd3dDevice, g_pd3dDeviceContext);
-
-     // Application main loop
-     while (true)
-     {
-         // Feed inputs to dear imgui, start new frame
-         DX11_NewFrame();
-         Win32_NewFrame();
-         Gui::NewFrame();
-
-         // Any application code here
-         Gui::Text("Hello, world!");
-
-         // Render dear imgui into screen
-         Gui::Render();
-         DX11_RenderDrawData(Gui::GetDrawData());
-         g_pSwapChain->Present(1, 0);
-     }
-
-     // Shutdown
-     DX11_Shutdown();
-     Win32_Shutdown();
-     Gui::DestroyContext();
-
- EXHIBIT 2: IMPLEMENTING CUSTOM BACKEND / CUSTOM ENGINE
-
-     // Application init: create a dear imgui context, setup some options, load
-fonts Gui::CreateContext(); IO& io = Gui::GetIO();
-     // TODO: Set optional io.ConfigFlags values, e.g. 'io.ConfigFlags |=
-ConfigFlags_NavEnableKeyboard' to enable keyboard controls.
-     // TODO: Fill optional fields of the io structure later.
-     // TODO: Load TTF/OTF fonts if you don't want to use the default font.
-
-     // Build and load the texture atlas into a texture
-     // (In the examples/ app this is usually done within the
-XXX_Init() function from one of the demo Renderer) int width, height;
-     unsigned char* pixels = nullptr;
-     io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height);
-
-     // At this point you've got the texture data and you need to upload that to
-your graphic system:
-     // After we have created the texture, store its pointer/identifier (_in
-whichever format your engine uses_) in 'io.Fonts->TexID'.
-     // This will be passed back to your via the renderer. Basically TextureID
-== void*. Read FAQ for details about TextureID. MyTexture* texture =
-MyEngine::CreateTextureFromMemoryPixels(pixels, width, height,
-TEXTURE_TYPE_RGBA32) io.Fonts->SetTexID((void*)texture);
-
-     // Application main loop
-     while (true)
-     {
-        // Setup low-level inputs, e.g. on Win32: calling GetKeyboardState(), or
-write to those fields from your Windows message handlers, etc.
-        // (In the examples/ app this is usually done within the
-XXX_NewFrame() function from one of the demo Platform Backends)
-        io.DeltaTime = 1.0f/60.0f;              // set the time elapsed since
-the previous frame (in seconds) io.DisplaySize.x = 1920.0f;             // set
-the current display width io.DisplaySize.y = 1280.0f;             // set the
-current display height here io.AddMousePosEvent(mouse_x, mouse_y);  // update
-mouse position io.AddMouseButtonEvent(0, mouse_b[0]);  // update mouse button
-states io.AddMouseButtonEvent(1, mouse_b[1]);  // update mouse button states
-
-        // Call NewFrame(), after this point you can use Gui::* functions
-anytime
-        // (So you want to try calling NewFrame() as early as you can in your
-main loop to be able to use Dear Gui everywhere) Gui::NewFrame();
-
-        // Most of your application code here
-        Gui::Text("Hello, world!");
-        MyGameUpdate(); // may use any Dear Gui functions, e.g.
-Gui::Begin("My window"); Gui::Text("Hello, world!"); Gui::End();
-        MyGameRender(); // may use any Dear Gui functions as well!
-
-        // Render dear imgui, swap buffers
-        // (You want to try calling EndFrame/Render as late as you can, to be
-able to use Dear Gui in your own game rendering code) Gui::EndFrame();
-        Gui::Render();
-        DrawData* draw_data = Gui::GetDrawData();
-        MyRenderFunction(draw_data);
-        SwapBuffers();
-     }
-
-     // Shutdown
-     Gui::DestroyContext();
-
- To decide whether to dispatch mouse/keyboard inputs to Dear Gui to the rest
-of your application, you should read the 'io.WantCaptureMouse',
-'io.WantCaptureKeyboard' and 'io.WantTextInput' flags! Please read the FAQ entry
-"How can I tell whether to dispatch mouse/keyboard to Dear Gui or my
-application?" about this.
-
-
- HOW A SIMPLE RENDERING FUNCTION MAY LOOK LIKE
- ---------------------------------------------
- The backends in XXX.cpp files contain many working implementations of
-a rendering function.
-
-    void MyRenderFunction(DrawData* draw_data)
-    {
-       // TODO: Setup render state: alpha-blending enabled, no face culling, no
-depth testing, scissor enabled
-       // TODO: Setup texture sampling state: sample with bilinear filtering
-(NOT point/nearest filtering). Use 'io.Fonts->Flags |=
-FontAtlasFlags_NoBakedLines;' to allow point/nearest filtering.
-       // TODO: Setup viewport covering draw_data->DisplayPos to
-draw_data->DisplayPos + draw_data->DisplaySize
-       // TODO: Setup orthographic projection matrix cover draw_data->DisplayPos
-to draw_data->DisplayPos + draw_data->DisplaySize
-       // TODO: Setup shader: vertex { float2 pos, float2 uv, u32 color },
-fragment shader sample color from 1 texture, multiply by vertex color. Vec2
-clip_off = draw_data->DisplayPos; for (int n = 0; n < draw_data->CmdListsCount;
-n++)
-       {
-          const DrawList* cmd_list = draw_data->CmdLists[n];
-          const DrawVert* vtx_buffer = cmd_list->VtxBuffer.Data;  // vertex
-buffer generated by Dear Gui const DrawIdx* idx_buffer =
-cmd_list->IdxBuffer.Data;   // index buffer generated by Dear Gui for (int
-cmd_i = 0; cmd_i < cmd_list->CmdBuffer.Size; cmd_i++)
-          {
-             const DrawCmd* pcmd = &cmd_list->CmdBuffer[cmd_i];
-             if (pcmd->UserCallback)
-             {
-                 pcmd->UserCallback(cmd_list, pcmd);
-             }
-             else
-             {
-                 // Project scissor/clipping rectangles into framebuffer space
-                 Vec2 clip_min(pcmd->ClipRect.x - clip_off.x, pcmd->ClipRect.y
-- clip_off.y); Vec2 clip_max(pcmd->ClipRect.z - clip_off.x, pcmd->ClipRect.w -
-clip_off.y); if (clip_max.x <= clip_min.x || clip_max.y <= clip_min.y) continue;
-
-                 // We are using scissoring to clip some objects. All low-level
-graphics API should support it.
-                 // - If your engine doesn't support scissoring yet, you may
-ignore this at first. You will get some small glitches
-                 //   (some elements visible outside their bounds) but you can
-fix that once everything else works!
-                 // - Clipping coordinates are provided in imgui coordinates
-space:
-                 //   - For a given viewport, draw_data->DisplayPos ==
-viewport->Pos and draw_data->DisplaySize == viewport->Size
-                 //   - In a single viewport application, draw_data->DisplayPos
-== (0,0) and draw_data->DisplaySize == io.DisplaySize, but always use
-GetMainViewport()->Pos/Size instead of hardcoding those values.
-                 //   - In the interest of supporting multi-viewport
-applications (see 'docking' branch on github),
-                 //     always subtract draw_data->DisplayPos from clipping
-bounds to convert them to your viewport space.
-                 // - Note that pcmd->ClipRect contains Min+Max bounds. Some
-graphics API may use Min+Max, other may use Min+Size (size being Max-Min)
-                 MyEngineSetScissor(clip_min.x, clip_min.y, clip_max.x,
-clip_max.y);
-
-                 // The texture for the draw call is specified by
-pcmd->GetTexID().
-                 // The vast majority of draw calls will use the Dear Gui
-texture atlas, which value you have set yourself during initialization.
-                 MyEngineBindTexture((MyTexture*)pcmd->GetTexID());
-
-                 // Render 'pcmd->ElemCount/3' indexed triangles.
-                 // By default the indices DrawIdx are 16-bit, you can change
-them to 32-bit in config.hpp if your engine doesn't support 16-bit indices.
-                 MyEngineDrawIndexedTriangles(pcmd->ElemCount, sizeof(DrawIdx)
-== 2 ? GL_UNSIGNED_SHORT : GL_UNSIGNED_INT, idx_buffer + pcmd->IdxOffset,
-vtx_buffer, pcmd->VtxOffset);
-             }
-          }
-       }
-    }
-
-
- API BREAKING CHANGES
- ====================
-
- Occasionally introducing changes that are breaking the API. We try to make the
-breakage minor and easy to fix. Below is a change-log of API breaking changes
-only. If you are using one of the functions listed, expect to have to fix some
-code. When you are not sure about an old symbol or function name, try using the
-Search/Find function of your IDE to look for comments or references in all imgui
-files. You can read releases logs https://github.com/ocornut/imgui/releases for
-more details.
-
-(Docking/Viewport Branch)
- - 2023/XX/XX (1.XXXX) - when multi-viewports are enabled, all positions will be
-in your natural OS coordinates space. It means that:
-                          - reference to hard-coded positions such as in
-SetNextWindowPos(Vec2(0,0)) are probably not what you want anymore. you may
-use GetMainViewport()->Pos to offset hard-coded positions, e.g.
-SetNextWindowPos(GetMainViewport()->Pos)
-                          - likewise io.MousePos and GetMousePos() will use OS
-coordinates. If you query mouse positions to interact with non-imgui coordinates
-you will need to offset them, e.g. subtract GetWindowViewport()->Pos.
-
- - 2023/12/19 (1.90.1) - commented out obsolete Key_KeyPadEnter redirection
-to Key_KeypadEnter.
- - 2023/11/06 (1.90.1) - removed CalcListClipping() marked obsolete in 1.86.
-Prefer using ListClipper which can return non-contiguous ranges.
- - 2023/11/05 (1.90.1) - freetype: commented out
-FreeType::BuildFontAtlas() obsoleted in 1.81. prefer using #define
-ENABLE_FREETYPE or see commented code for manual calls.
- - 2023/11/05 (1.90.1) - internals,columns: commented out legacy
-ColumnsFlags_XXX symbols redirecting to OldColumnsFlags_XXX, obsoleted
-from internal.hpp in 1.80.
- - 2023/11/09 (1.90.0) - removed OFFSETOF() macro in favor of using
-offsetof() available in C++11. Kept redirection define (will obsolete).
- - 2023/11/07 (1.90.0) - removed BeginChildFrame()/EndChildFrame() in favor of
-using BeginChild() with the ChildFlags_FrameStyle flag. kept inline
-redirection function (will obsolete). those functions were merely
-PushStyle/PopStyle helpers, the removal isn't so much motivated by needing to
-add the feature in BeginChild(), but by the necessity to avoid BeginChildFrame()
-signature mismatching BeginChild() signature and features.
- - 2023/11/02 (1.90.0) - BeginChild: upgraded 'bool border = true' parameter to
-'ChildFlags flags' type, added ChildFlags_Border equivalent. As with
-our prior "bool-to-flags" API updates, the ChildFlags_Border value is
-guaranteed to be == true forever to ensure a smoother transition, meaning all
-existing calls will still work.
-                           - old: BeginChild("Name", size, true)
-                           - new: BeginChild("Name", size,
-ChildFlags_Border)
-                           - old: BeginChild("Name", size, false)
-                           - new: BeginChild("Name", size) or BeginChild("Name",
-0) or BeginChild("Name", size, ChildFlags_None)
- - 2023/11/02 (1.90.0) - BeginChild: added child-flag
-ChildFlags_AlwaysUseWindowPadding as a replacement for the window-flag
-WindowFlags_AlwaysUseWindowPadding: the feature only ever made sense for
-BeginChild() anyhow.
-                           - old: BeginChild("Name", size, 0,
-WindowFlags_AlwaysUseWindowPadding);
-                           - new: BeginChild("Name", size,
-ChildFlags_AlwaysUseWindowPadding, 0);
- - 2023/09/27 (1.90.0) - io: removed io.MetricsActiveAllocations introduced
-in 1.63. Same as 'g.DebugMemAllocCount - g.DebugMemFreeCount' (still displayed
-in Metrics, unlikely to be accessed by end-user).
- - 2023/09/26 (1.90.0) - debug tools: Renamed ShowStackToolWindow() ("Stack
-Tool") to ShowIDStackToolWindow() ("ID Stack Tool"), as earlier name was
-misleading. Kept inline redirection function. (#4631)
- - 2023/09/15 (1.90.0) - ListBox, Combo: changed signature of "name getter"
-callback in old one-liner ListBox()/Combo() apis. kept inline redirection
-function (will obsolete).
-                           - old: bool Combo(const char* label, int*
-current_item, bool (*getter)(void* user_data, int idx, const char** out_text),
-...)
-                           - new: bool Combo(const char* label, int*
-current_item, const char* (*getter)(void* user_data, int idx), ...);
-                           - old: bool ListBox(const char* label, int*
-current_item, bool (*getting)(void* user_data, int idx, const char** out_text),
-...);
-                           - new: bool ListBox(const char* label, int*
-current_item, const char* (*getter)(void* user_data, int idx), ...);
- - 2023/09/08 (1.90.0) - commented out obsolete redirecting functions:
-                           - GetWindowContentRegionWidth()  -> use
-GetWindowContentRegionMax().x - GetWindowContentRegionMin().x. Consider that
-generally 'GetContentRegionAvail().x' is more useful.
-                           - DrawCornerFlags_XXX          -> use
-DrawFlags_RoundCornersXXX flags. Read 1.82 Changelog for details + grep
-commented names in sources.
-                       - commented out runtime support for hardcoded ~0 or
-0x01..0x0F rounding flags values for
-AddRect()/AddRectFilled()/PathRect()/AddImageRounded() -> use
-DrawFlags_RoundCornersXXX flags. Read 1.82 Changelog for details
- - 2023/08/25 (1.89.9) - clipper: Renamed IncludeRangeByIndices() (also called
-ForceDisplayRangeByIndices() before 1.89.6) to IncludeItemsByIndex(). Kept
-inline redirection function. Sorry!
- - 2023/07/12 (1.89.8) - DrawData: CmdLists now owned, changed from
-DrawList** to Vector<DrawList*>. Majority of users shouldn't be affected,
-but you cannot compare to NULL nor reassign manually anymore. Instead use
-AddDrawList(). (#6406, #4879, #1878)
- - 2023/06/28 (1.89.7) - overlapping items: obsoleted 'SetItemAllowOverlap()'
-(called after item) in favor of calling 'SetNextItemAllowOverlap()' (called
-before item). 'SetItemAllowOverlap()' didn't and couldn't work reliably
-since 1.89 (2022-11-15).
- - 2023/06/28 (1.89.7) - overlapping items: renamed
-'TreeNodeFlags_AllowItemOverlap' to 'TreeNodeFlags_AllowOverlap',
-'SelectableFlags_AllowItemOverlap' to 'SelectableFlags_AllowOverlap'.
-Kept redirecting enums (will obsolete).
- - 2023/06/28 (1.89.7) - overlapping items: IsItemHovered() now by default
-return false when querying an item using AllowOverlap mode which is being
-overlapped. Use HoveredFlags_AllowWhenOverlappedByItem to revert to old
-behavior.
- - 2023/06/28 (1.89.7) - overlapping items: Selectable and TreeNode don't allow
-overlap when active so overlapping widgets won't appear as hovered. While this
-fixes a common small visual issue, it also means that calling IsItemHovered()
-after a non-reactive elements - e.g. Text() - overlapping an active one may fail
-if you don't use IsItemHovered(HoveredFlags_AllowWhenBlockedByActiveItem).
-(#6610)
- - 2023/06/20 (1.89.7) - moved io.HoverDelayShort/io.HoverDelayNormal to
-style.HoverDelayShort/style.HoverDelayNormal. As the fields were added in 1.89
-and expected to be left unchanged by most users, or only tweaked once during app
-initialization, we are exceptionally accepting the breakage.
- - 2023/05/30 (1.89.6) - backends: renamed "sdlrenderer.cpp" to
-"sdlrenderer2.cpp" and "sdlrenderer.hpp" to
-"sdlrenderer2.hpp". This is in prevision for the future release of
-SDL3.
- - 2023/05/22 (1.89.6) - listbox: commented out obsolete/redirecting functions
-that were marked obsolete more than two years ago:
-                           - ListBoxHeader()  -> use BeginListBox() (note how
-two variants of ListBoxHeader() existed. Check commented versions in gui.hpp for
-reference)
-                           - ListBoxFooter()  -> use EndListBox()
- - 2023/05/15 (1.89.6) - clipper: commented out obsolete redirection constructor
-'ListClipper(int items_count, float items_height = -1.0f)' that was marked
-obsolete in 1.79. Use default constructor + clipper.Begin().
- - 2023/05/15 (1.89.6) - clipper: renamed
-ListClipper::ForceDisplayRangeByIndices() to
-ListClipper::IncludeRangeByIndices().
- - 2023/03/14 (1.89.4) - commented out redirecting enums/functions names that
-were marked obsolete two years ago:
-                           - SliderFlags_ClampOnInput        -> use
-SliderFlags_AlwaysClamp
-                           - InputTextFlags_AlwaysInsertMode -> use
-InputTextFlags_AlwaysOverwrite
-                           - DrawList::AddBezierCurve()         -> use
-DrawList::AddBezierCubic()
-                           - DrawList::PathBezierCurveTo()      -> use
-DrawList::PathBezierCubicCurveTo()
- - 2023/03/09 (1.89.4) - renamed
-PushAllowKeyboardFocus()/PopAllowKeyboardFocus() to PushTabStop()/PopTabStop().
-Kept inline redirection functions (will obsolete).
- - 2023/03/09 (1.89.4) - tooltips: Added 'bool' return value to BeginTooltip()
-for API consistency. Please only submit contents and call EndTooltip() if
-BeginTooltip() returns true. In reality the function will _currently_ always
-return true, but further changes down the line may change this, best to clarify
-API sooner.
- - 2023/02/15 (1.89.4) - moved the optional "courtesy maths operators"
-implementation from internal.hpp in gui.hpp. Even though we encourage using
-your own maths types and operators by setting up VEC2_CLASS_EXTRA, it has
-been frequently requested by people to use our own. We had an opt-in define
-which was previously fulfilled in internal.hpp. It is now fulfilled in
-gui.hpp. (#6164)
-                           - OK:     #define DEFINE_MATH_OPERATORS / #include
-"gui.hpp" / #include "internal.hpp"
-                           - Error:  #include "gui.hpp" / #define
-DEFINE_MATH_OPERATORS / #include "internal.hpp"
- - 2023/02/07 (1.89.3) - backends: renamed "sdl.cpp" to
-"sdl2.cpp" and "sdl.h" to "sdl2.hpp". (#6146)
-This is in prevision for the future release of SDL3.
- - 2022/10/26 (1.89)   - commented out redirecting OpenPopupContextItem() which
-was briefly the name of OpenPopupOnItemClick() from 1.77 to 1.79.
- - 2022/10/12 (1.89)   - removed runtime patching of invalid "%f"/"%0.f" format
-strings for DragInt()/SliderInt(). This was obsoleted in 1.61 (May 2018).
-See 1.61 changelog for details.
- - 2022/09/26 (1.89)   - renamed and merged keyboard modifiers key enums and
-flags into a same set. Kept inline redirection enums (will obsolete).
-                           - Key_ModCtrl  and ModFlags_Ctrl  ->
-Mod_Ctrl
-                           - Key_ModShift and ModFlags_Shift ->
-Mod_Shift
-                           - Key_ModAlt   and ModFlags_Alt   ->
-Mod_Alt
-                           - Key_ModSuper and ModFlags_Super ->
-Mod_Super the Key_ModXXX were introduced in 1.87 and mostly used by
-backends. the ModFlags_XXX have been exposed in gui.hpp but not really used
-by any public api only by third-party extensions. exceptionally commenting out
-the older KeyModFlags_XXX names ahead of obsolescence schedule to reduce
-confusion and because they were not meant to be used anyway.
- - 2022/09/20 (1.89)   - Key is now a typed enum, allowing Key_XXX
-symbols to be named in debuggers. this will require uses of legacy
-backend-dependent indices to be casted, e.g.
-                            - with glfw:  IsKeyPressed(GLFW_KEY_A) ->
-IsKeyPressed((Key)GLFW_KEY_A);
-                            - with win32: IsKeyPressed('A')        ->
-IsKeyPressed((Key)'A')
-                            - etc. However if you are upgrading code you might
-well use the better, backend-agnostic IsKeyPressed(Key_A) now!
- - 2022/09/12 (1.89) - removed the bizarre legacy default argument for
-'TreePush(const void* ptr = NULL)', always pass a pointer value explicitly.
-NULL/nullptr is ok but require cast, e.g. TreePush((void*)nullptr);
- - 2022/09/05 (1.89) - commented out redirecting functions/enums names that were
-marked obsolete in 1.77 and 1.78 (June 2020):
-                         - DragScalar(), DragScalarN(), DragFloat(),
-DragFloat2(), DragFloat3(), DragFloat4(): For old signatures ending with (...,
-const char* format, float power = 1.0f) -> use (..., format
-SliderFlags_Logarithmic) if power != 1.0f.
-                         - SliderScalar(), SliderScalarN(), SliderFloat(),
-SliderFloat2(), SliderFloat3(), SliderFloat4(): For old signatures ending with
-(..., const char* format, float power = 1.0f) -> use (..., format
-SliderFlags_Logarithmic) if power != 1.0f.
-                         - BeginPopupContextWindow(const char*,
-MouseButton, bool) -> use BeginPopupContextWindow(const char*,
-PopupFlags)
- - 2022/09/02 (1.89) - obsoleted using SetCursorPos()/SetCursorScreenPos() to
-extend parent window/cell boundaries. this relates to when moving the cursor
-position beyond current boundaries WITHOUT submitting an item.
-                         - previously this would make the window content size
-~200x200: Begin(...) + SetCursorScreenPos(GetCursorScreenPos() +
-Vec2(200,200)) + End();
-                         - instead, please submit an item:
-                              Begin(...) +
-SetCursorScreenPos(GetCursorScreenPos() + Vec2(200,200)) + Dummy(Vec2(0,0))
-+ End();
-                         - alternative:
-                              Begin(...) + Dummy(Vec2(200,200)) + End();
-                         - content size is now only extended when submitting an
-item!
-                         - with '#define DISABLE_OBSOLETE_FUNCTIONS' this will
-now be detected and assert.
-                         - without '#define DISABLE_OBSOLETE_FUNCTIONS' this
-will silently be fixed until we obsolete it.
- - 2022/08/03 (1.89) - changed signature of ImageButton() function. Kept
-redirection function (will obsolete).
-                        - added 'const char* str_id' parameter + removed 'int
-frame_padding = -1' parameter.
-                        - old signature: bool ImageButton(TextureID tex_id,
-Vec2 size, Vec2 uv0 = Vec2(0,0), Vec2 uv1 = Vec2(1,1), int
-frame_padding = -1, Vec4 bg_col = Vec4(0,0,0,0), Vec4 tint_col =
-Vec4(1,1,1,1));
-                          - used the TextureID value to create an ID. This was
-inconsistent with other functions, led to ID conflicts, and caused problems with
-engines using transient TextureID values.
-                          - had a FramePadding override which was inconsistent
-with other functions and made the already-long signature even longer.
-                        - new signature: bool ImageButton(const char* str_id,
-TextureID tex_id, Vec2 size, Vec2 uv0 = Vec2(0,0), Vec2 uv1 =
-Vec2(1,1), Vec4 bg_col = Vec4(0,0,0,0), Vec4 tint_col =
-Vec4(1,1,1,1));
-                          - requires an explicit identifier. You may still use
-e.g. PushID() calls and then pass an empty identifier.
-                          - always uses style.FramePadding for padding, to be
-consistent with other buttons. You may use PushStyleVar() to alter this.
- - 2022/07/08 (1.89) - inputs: removed io.NavInputs[] and NavInput enum
-(following 1.87 changes).
-                        - Official backends from 1.87+                  -> no
-issue.
-                        - Official backends from 1.60 to 1.86           -> will
-build and convert gamepad inputs, unless DISABLE_OBSOLETE_KEYIO is defined. Need
-updating!
-                        - Custom backends not writing to io.NavInputs[] -> no
-issue.
-                        - Custom backends writing to io.NavInputs[]     -> will
-build and convert gamepad inputs, unless DISABLE_OBSOLETE_KEYIO is defined. Need
-fixing!
-                        - TL;DR: Backends should call
-io.AddKeyEvent()/io.AddKeyAnalogEvent() with Key_GamepadXXX values instead
-of filling io.NavInput[].
- - 2022/06/15 (1.88) - renamed DISABLE_METRICS_WINDOW to DISABLE_DEBUG_TOOLS for
-correctness. kept support for old define (will obsolete).
- - 2022/05/03 (1.88) - backends: osx: removed OSX_HandleEvent() from
-backend API in favor of backend automatically handling event capture. All
-OSX_HandleEvent() calls should be removed as they are now unnecessary.
- - 2022/04/05 (1.88) - inputs: renamed KeyModFlags to ModFlags. Kept
-inline redirection enums (will obsolete). This was never used in public API
-functions but technically present in gui.hpp and IO.
- - 2022/01/20 (1.87) - inputs: reworded gamepad IO.
-                        - Backend writing to io.NavInputs[]            ->
-backend should call io.AddKeyEvent()/io.AddKeyAnalogEvent() with
-Key_GamepadXXX values.
- - 2022/01/19 (1.87) - sliders, drags: removed support for legacy arithmetic
-operators (+,+-,*,/) when inputing text. This doesn't break any api/code but a
-feature that used to be accessible by end-users (which seemingly no one used).
- - 2022/01/17 (1.87) - inputs: reworked mouse IO.
-                        - Backend writing to io.MousePos               ->
-backend should call io.AddMousePosEvent()
-                        - Backend writing to io.MouseDown[]            ->
-backend should call io.AddMouseButtonEvent()
-                        - Backend writing to io.MouseWheel             ->
-backend should call io.AddMouseWheelEvent()
-                        - Backend writing to io.MouseHoveredViewport   ->
-backend should call io.AddMouseViewportEvent() [Docking branch w/
-multi-viewports only] note: for all calls to IO new functions, the Dear Gui
-context should be bound/current. read
-https://github.com/ocornut/imgui/issues/4921 for details.
- - 2022/01/10 (1.87) - inputs: reworked keyboard IO. Removed io.KeyMap[],
-io.KeysDown[] in favor of calling io.AddKeyEvent(). Removed GetKeyIndex(), now
-unecessary. All IsKeyXXX() functions now take Key values. All features are
-still functional until DISABLE_OBSOLETE_KEYIO is defined. Read Changelog and
-Release Notes for details.
-                        - IsKeyPressed(MY_NATIVE_KEY_XXX)              -> use
-IsKeyPressed(Key_XXX)
-                        - IsKeyPressed(GetKeyIndex(Key_XXX))      -> use
-IsKeyPressed(Key_XXX)
-                        - Backend writing to io.KeyMap[],io.KeysDown[] ->
-backend should call io.AddKeyEvent() (+ call io.SetKeyEventNativeData() if you
-want legacy user code to stil function with legacy key codes).
-                        - Backend writing to io.KeyCtrl, io.KeyShift.. ->
-backend should call io.AddKeyEvent() with Mod_XXX values. *IF YOU PULLED
-CODE BETWEEN 2021/01/10 and 2021/01/27: We used to have a io.AddKeyModsEvent()
-function which was now replaced by io.AddKeyEvent() with Mod_XXX values.*
-                     - one case won't work with backward compatibility: if your
-custom backend used Key as mock native indices (e.g. "io.KeyMap[Key_A]
-= Key_A") because those values are now larger than the legacy KeyDown[]
-array. Will assert.
-                     - inputs: added
-Key_ModCtrl/Key_ModShift/Key_ModAlt/Key_ModSuper values to
-submit keyboard modifiers using io.AddKeyEvent(), instead of writing directly to
-io.KeyCtrl, io.KeyShift, io.KeyAlt, io.KeySuper.
- - 2022/01/05 (1.87) - inputs: renamed Key_KeyPadEnter to
-Key_KeypadEnter to align with new symbols. Kept redirection enum.
- - 2022/01/05 (1.87) - removed io.ImeSetInputScreenPosFn() in favor of more
-flexible io.SetPlatformImeDataFn(). Removed 'void* io.ImeWindowHandle' in favor
-of writing to 'void* Viewport::PlatformHandleRaw'.
- - 2022/01/01 (1.87) - commented out redirecting functions/enums names that were
-marked obsolete in 1.69, 1.70, 1.71, 1.72 (March-July 2019)
-                        - Gui::SetNextTreeNodeOpen()        -> use
-Gui::SetNextItemOpen()
-                        - Gui::GetContentRegionAvailWidth() -> use
-Gui::GetContentRegionAvail().x
-                        - Gui::TreeAdvanceToLabelPos()      -> use
-Gui::SetCursorPosX(Gui::GetCursorPosX() +
-Gui::GetTreeNodeToLabelSpacing());
-                        - FontAtlas::CustomRect             -> use
-FontAtlasCustomRect
-                        - ColorEditFlags_RGB/HSV/HEX     -> use
-ColorEditFlags_DisplayRGB/HSV/Hex
- - 2021/12/20 (1.86) - backends: removed obsolete Marmalade backend
-(marmalade.cpp) + example. Find last supported version at
-https://github.com/ocornut/imgui/wiki/Bindings
- - 2021/11/04 (1.86) - removed CalcListClipping() function. Prefer using
-ListClipper which can return non-contiguous ranges. Please open an issue if
-you think you really need this function.
- - 2021/08/23 (1.85) - removed GetWindowContentRegionWidth() function. keep
-inline redirection helper. can use 'GetWindowContentRegionMax().x -
-GetWindowContentRegionMin().x' instead for generally 'GetContentRegionAvail().x'
-is more useful.
- - 2021/07/26 (1.84) - commented out redirecting functions/enums names that were
-marked obsolete in 1.67 and 1.69 (March 2019):
-                        - Gui::GetOverlayDrawList() -> use
-Gui::GetForegroundDrawList()
-                        - Font::GlyphRangesBuilder  -> use
-FontGlyphRangesBuilder
- - 2021/05/19 (1.83) - backends: obsoleted direct access to DrawCmd::TextureId
-in favor of calling DrawCmd::GetTexID().
-                        - if you are using official backends from the source
-tree: you have nothing to do.
-                        - if you have copied old backend code or using your own:
-change access to draw_cmd->TextureId to draw_cmd->GetTexID().
- - 2021/03/12 (1.82) - upgraded DrawList::AddRect(), AddRectFilled(),
-PathRect() to use DrawFlags instead of DrawCornersFlags.
-                        - DrawCornerFlags_TopLeft  -> use
-DrawFlags_RoundCornersTopLeft
-                        - DrawCornerFlags_BotRight -> use
-DrawFlags_RoundCornersBottomRight
-                        - DrawCornerFlags_None     -> use
-DrawFlags_RoundCornersNone etc. flags now sanely defaults to 0 instead of
-0x0F, consistent with all other flags in the API. breaking: the default with
-rounding > 0.0f is now "round all corners" vs old implicit "round no corners":
-                        - rounding == 0.0f + flags == 0 --> meant no rounding
---> unchanged (common use)
-                        - rounding  > 0.0f + flags != 0 --> meant rounding -->
-unchanged (common use)
-                        - rounding == 0.0f + flags != 0 --> meant no rounding
---> unchanged (unlikely use)
-                        - rounding  > 0.0f + flags == 0 --> meant no rounding
---> BREAKING (unlikely use): will now round all corners --> use
-DrawFlags_RoundCornersNone or rounding == 0.0f. this ONLY matters for hard
-coded use of 0 + rounding > 0.0f. Use of named DrawFlags_RoundCornersNone
-(new) or DrawCornerFlags_None (old) are ok. the old DrawCornersFlags used
-awkward default values of ~0 or 0xF (4 lower bits set) to signify "round all
-corners" and we sometimes encouraged using them as shortcuts. legacy path still
-support use of hard coded ~0 or any value from 0x1 or 0xF. They will behave the
-same with legacy paths enabled (will assert otherwise).
- - 2021/03/11 (1.82) - removed redirecting functions/enums names that were
-marked obsolete in 1.66 (September 2018):
-                        - Gui::SetScrollHere()              -> use
-Gui::SetScrollHereY()
- - 2021/03/11 (1.82) - clarified that DrawList::PathArcTo(),
-DrawList::PathArcToFast() won't render with radius < 0.0f. Previously it sorts
-of accidentally worked but would generally lead to counter-clockwise paths and
-have an effect on anti-aliasing.
- - 2021/03/10 (1.82) - upgraded DrawList::AddPolyline() and PathStroke() "bool
-closed" parameter to "DrawFlags flags". The matching DrawFlags_Closed value
-is guaranteed to always stay == 1 in the future.
- - 2021/02/22 (1.82) - (*undone in 1.84*) win32+mingw: Re-enabled IME functions
-by default even under MinGW. In July 2016, issue #738 had me incorrectly disable
-those default functions for MinGW. MinGW users should: either link with -limm32,
-either set their imconfig file  with '#define
-DISABLE_WIN32_DEFAULT_IME_FUNCTIONS'.
- - 2021/02/17 (1.82) - renamed rarely used style.CircleSegmentMaxError (old
-default = 1.60f) to style.CircleTessellationMaxError (new default = 0.30f) as
-the meaning of the value changed.
- - 2021/02/03 (1.81) - renamed ListBoxHeader(const char* label, Vec2 size) to
-BeginListBox(). Kept inline redirection function (will obsolete).
-                     - removed ListBoxHeader(const char* label, int items_count,
-int height_in_items = -1) in favor of specifying size. Kept inline redirection
-function (will obsolete).
-                     - renamed ListBoxFooter() to EndListBox(). Kept inline
-redirection function (will obsolete).
- - 2021/01/26 (1.81) - removed FreeType::BuildFontAtlas(). Kept inline
-redirection function. Prefer using '#define ENABLE_FREETYPE', but there's a
-runtime selection path available too. The shared extra flags parameters (very
-rarely used) are now stored in FontAtlas::FontBuilderFlags.
-                     - renamed FontConfig::RasterizerFlags (used by FreeType)
-to FontConfig::FontBuilderFlags.
-                     - renamed FreeType::XXX flags to
-FreeTypeBuilderFlags_XXX for consistency with other API.
- - 2020/10/12 (1.80) - removed redirecting functions/enums that were marked
-obsolete in 1.63 (August 2018):
-                        - Gui::IsItemDeactivatedAfterChange() -> use
-Gui::IsItemDeactivatedAfterEdit().
-                        - Col_ModalWindowDarkening       -> use
-Col_ModalWindowDimBg
-                        - InputTextCallback              -> use
-TextEditCallback
-                        - InputTextCallbackData          -> use
-TextEditCallbackData
- - 2020/12/21 (1.80) - renamed DrawList::AddBezierCurve() to AddBezierCubic(),
-and PathBezierCurveTo() to PathBezierCubicCurveTo(). Kept inline redirection
-function (will obsolete).
- - 2020/12/04 (1.80) - added tables.cpp file! Manually constructed project
-files will need the new file added!
- - 2020/11/18 (1.80) - renamed undocumented/internals ColumnsFlags_* to
-OldColumnFlags_* in prevision of incoming Tables API.
- - 2020/11/03 (1.80) - renamed io.ConfigWindowsMemoryCompactTimer to
-io.ConfigMemoryCompactTimer as the feature will apply to other data structures
- - 2020/10/14 (1.80) - backends: moved all backends files (XXXX.cpp,
-XXXX.h) from examples/ to backends/.
- - 2020/10/12 (1.80) - removed redirecting functions/enums that were marked
-obsolete in 1.60 (April 2018):
-                        - io.RenderDrawListsFn pointer        -> use
-Gui::GetDrawData() value and call the render function of your backend
-                        - Gui::IsAnyWindowFocused()         -> use
-Gui::IsWindowFocused(FocusedFlags_AnyWindow)
-                        - Gui::IsAnyWindowHovered()         -> use
-Gui::IsWindowHovered(HoveredFlags_AnyWindow)
-                        - StyleVar_Count_                -> use
-StyleVar_COUNT
-                        - MouseCursor_Count_             -> use
-MouseCursor_COUNT
-                      - removed redirecting functions names that were marked
-obsolete in 1.61 (May 2018):
-                        - InputFloat (... int decimal_precision ...) -> use
-InputFloat (... const char* format ...) with format = "%.Xf" where X is your
-value for decimal_precision.
-                        - same for InputFloat2()/InputFloat3()/InputFloat4()
-variants taking a `int decimal_precision` parameter.
- - 2020/10/05 (1.79) - removed ListClipper: Renamed constructor parameters
-which created an ambiguous alternative to using the ListClipper::Begin()
-function, with misleading edge cases (note: memory_editor <0.40 from
-club/ used this old clipper API. Update your copy if needed).
- - 2020/09/25 (1.79) - renamed SliderFlags_ClampOnInput to
-SliderFlags_AlwaysClamp. Kept redirection enum (will obsolete sooner
-because previous name was added recently).
- - 2020/09/25 (1.79) - renamed style.TabMinWidthForUnselectedCloseButton to
-style.TabMinWidthForCloseButton.
- - 2020/09/21 (1.79) - renamed OpenPopupContextItem() back to
-OpenPopupOnItemClick(), reverting the change from 1.77. For varieties of reason
-this is more self-explanatory.
- - 2020/09/21 (1.79) - removed return value from OpenPopupOnItemClick() -
-returned true on mouse release on an item - because it is inconsistent with
-other popup APIs and makes others misleading. It's also and unnecessary: you can
-use IsWindowAppearing() after BeginPopup() for a similar result.
- - 2020/09/17 (1.79) - removed Font::DisplayOffset in favor of
-FontConfig::GlyphOffset. DisplayOffset was applied after scaling and not very
-meaningful/useful outside of being needed by the default ProggyClean font. If
-you scaled this value after calling AddFontDefault(), this is now done
-automatically. It was also getting in the way of better font scaling, so let's
-get rid of it now!
- - 2020/08/17 (1.78) - obsoleted use of the trailing 'float power=1.0f'
-parameter for DragFloat(), DragFloat2(), DragFloat3(), DragFloat4(),
-DragFloatRange2(), DragScalar(), DragScalarN(), SliderFloat(), SliderFloat2(),
-SliderFloat3(), SliderFloat4(), SliderScalar(), SliderScalarN(), VSliderFloat()
-and VSliderScalar(). replaced the 'float power=1.0f' argument with integer-based
-flags defaulting to 0 (as with all our flags). worked out a
-backward-compatibility scheme so hopefully most C++ codebase should not be
-affected. in short, when calling those functions:
-                       - if you omitted the 'power' parameter (likely!), you are
-not affected.
-                       - if you set the 'power' parameter to 1.0f (same as
-previous default value): 1/ your compiler may warn on float>int conversion, 2/
-everything else will work. 3/ you can replace the 1.0f value with 0 to fix the
-warning, and be technically correct.
-                       - if you set the 'power' parameter to >1.0f (to enable
-non-linear editing): 1/ your compiler may warn on float>int conversion, 2/ code
-will assert at runtime, 3/ in case asserts are disabled, the code will not crash
-and enable the _Logarithmic flag. 4/ you can replace the >1.0f value with
-SliderFlags_Logarithmic to fix the warning/assert and get a _similar_
-effect as previous uses of power >1.0f. see
-https://github.com/ocornut/imgui/issues/3361 for all details. kept inline
-redirection functions (will obsolete) apart for: DragFloatRange2(),
-VSliderFloat(), VSliderScalar(). For those three the 'float power=1.0f' version
-was removed directly as they were most unlikely ever used. for shared code, you
-can version check at compile-time with `#if VERSION_NUM >= 17704`.
-                     - obsoleted use of v_min > v_max in DragInt, DragFloat,
-DragScalar to lock edits (introduced in 1.73, was not demoed nor documented
-very), will be replaced by a more generic ReadOnly feature. You may use the
-SliderFlags_ReadOnly internal flag in the meantime.
- - 2020/06/23 (1.77) - removed BeginPopupContextWindow(const char*, int
-mouse_button, bool also_over_items) in favor of BeginPopupContextWindow(const
-char*, PopupFlags flags) with PopupFlags_NoOverItems.
- - 2020/06/15 (1.77) - renamed OpenPopupOnItemClick() to OpenPopupContextItem().
-Kept inline redirection function (will obsolete). [NOTE: THIS WAS REVERTED
-IN 1.79]
- - 2020/06/15 (1.77) - removed CalcItemRectClosestPoint() entry point which was
-made obsolete and asserting in December 2017.
- - 2020/04/23 (1.77) - removed unnecessary ID (first arg) of
-FontAtlas::AddCustomRectRegular().
- - 2020/01/22 (1.75) - DrawList::AddCircle()/AddCircleFilled() functions don't
-accept negative radius any more.
- - 2019/12/17 (1.75) - [undid this change in 1.76] made Columns() limited to 64
-columns by asserting above that limit. While the current code technically
-supports it, future code may not so we're putting the restriction ahead.
- - 2019/12/13 (1.75) - [internal.hpp] changed Rect() default constructor
-initializes all fields to 0.0f instead of (FLT_MAX,FLT_MAX,-FLT_MAX,-FLT_MAX).
-If you used Rect::Add() to create bounding boxes by adding multiple points
-into it, you may need to fix your initial value.
- - 2019/12/08 (1.75) - removed redirecting functions/enums that were marked
-obsolete in 1.53 (December 2017):
-                       - ShowTestWindow()                    -> use
-ShowDemoWindow()
-                       - IsRootWindowFocused()               -> use
-IsWindowFocused(FocusedFlags_RootWindow)
-                       - IsRootWindowOrAnyChildFocused()     -> use
-IsWindowFocused(FocusedFlags_RootAndChildWindows)
-                       - SetNextWindowContentWidth(w)        -> use
-SetNextWindowContentSize(Vec2(w, 0.0f)
-                       - GetItemsLineHeightWithSpacing()     -> use
-GetFrameHeightWithSpacing()
-                       - Col_ChildWindowBg              -> use
-Col_ChildBg
-                       - StyleVar_ChildWindowRounding   -> use
-StyleVar_ChildRounding
-                       - TreeNodeFlags_AllowOverlapMode -> use
-TreeNodeFlags_AllowItemOverlap
-                       - DISABLE_TEST_WINDOWS          -> use
-DISABLE_DEMO_WINDOWS
- - 2019/12/08 (1.75) - obsoleted calling DrawList::PrimReserve() with a
-negative count (which was vaguely documented and rarely if ever used). Instead,
-we added an explicit PrimUnreserve() API.
- - 2019/12/06 (1.75) - removed implicit default parameter to IsMouseDragging(int
-button = 0) to be consistent with other mouse functions (none of the other
-functions have it).
- - 2019/11/21 (1.74) - FontAtlas::AddCustomRectRegular() now requires an ID
-larger than 0x110000 (instead of 0x10000) to conform with supporting Unicode
-planes 1-16 in a future update. ID below 0x110000 will now assert.
- - 2019/11/19 (1.74) - renamed DISABLE_FORMAT_STRING_FUNCTIONS to
-DISABLE_DEFAULT_FORMAT_FUNCTIONS for consistency.
- - 2019/11/19 (1.74) - renamed DISABLE_MATH_FUNCTIONS to
-DISABLE_DEFAULT_MATH_FUNCTIONS for consistency.
- - 2019/10/22 (1.74) - removed redirecting functions/enums that were marked
-obsolete in 1.52 (October 2017):
-                       - Begin() [old 5 args version]        -> use Begin() [3
-args], use SetNextWindowSize() SetNextWindowBgAlpha() if needed
-                       - IsRootWindowOrAnyChildHovered()     -> use
-IsWindowHovered(HoveredFlags_RootAndChildWindows)
-                       - AlignFirstTextHeightToWidgets()     -> use
-AlignTextToFramePadding()
-                       - SetNextWindowPosCenter()            -> use
-SetNextWindowPos() with a pivot of (0.5f, 0.5f)
-                       - Font::Glyph                       -> use FontGlyph
- - 2019/10/14 (1.74) - inputs: Fixed a miscalculation in the keyboard/mouse
-"typematic" repeat delay/rate calculation, used by keys and e.g. repeating mouse
-buttons as well as the GetKeyPressedAmount() function. if you were using a
-non-default value for io.KeyRepeatRate (previous default was 0.250), you can add
-+io.KeyRepeatDelay to it to compensate for the fix. The function was triggering
-on: 0.0 and (delay+rate*N) where (N>=1). Fixed formula responds to (N>=0).
-Effectively it made io.KeyRepeatRate behave like it was set to (io.KeyRepeatRate
-+ io.KeyRepeatDelay). If you never altered io.KeyRepeatRate nor used
-GetKeyPressedAmount() this won't affect you.
- - 2019/07/15 (1.72) - removed TreeAdvanceToLabelPos() which is rarely used and
-only does SetCursorPosX(GetCursorPosX() + GetTreeNodeToLabelSpacing()). Kept
-redirection function (will obsolete).
- - 2019/07/12 (1.72) - renamed FontAtlas::CustomRect to FontAtlasCustomRect.
-Kept redirection typedef (will obsolete).
- - 2019/06/14 (1.72) - removed redirecting functions/enums names that were
-marked obsolete in 1.51 (June 2017): Col_Column*, SetCond_*,
-IsItemHoveredRect(), IsPosHoveringAnyWindow(), IsMouseHoveringAnyWindow(),
-IsMouseHoveringWindow(), ONCE_UPON_A_FRAME. Grep this log for details and new
-names, or see how they were implemented until 1.71.
- - 2019/06/07 (1.71) - rendering of child window outer decorations (bg color,
-border, scrollbars) is now performed as part of the parent window. If you have
-                       overlapping child windows in a same parent, and relied on
-their relative z-order to be mapped to their submission order, this will affect
-your rendering. This optimization is disabled if the parent window has no visual
-output, because it appears to be the most common situation leading to the
-creation of overlapping child windows. Please reach out if you are affected.
- - 2019/05/13 (1.71) - renamed SetNextTreeNodeOpen() to SetNextItemOpen(). Kept
-inline redirection function (will obsolete).
- - 2019/05/11 (1.71) - changed io.AddInputCharacter(unsigned short c) signature
-to io.AddInputCharacter(unsigned int c).
- - 2019/04/29 (1.70) - improved DrawList thick strokes (>1.0f) preserving
-correct thickness up to 90 degrees angles (e.g. rectangles). If you have custom
-rendering using thick lines, they will appear thicker now.
- - 2019/04/29 (1.70) - removed GetContentRegionAvailWidth(), use
-GetContentRegionAvail().x instead. Kept inline redirection function (will
-obsolete).
- - 2019/03/04 (1.69) - renamed GetOverlayDrawList() to GetForegroundDrawList().
-Kept redirection function (will obsolete).
- - 2019/02/26 (1.69) - renamed
-ColorEditFlags_RGB/ColorEditFlags_HSV/ColorEditFlags_HEX to
-ColorEditFlags_DisplayRGB/ColorEditFlags_DisplayHSV/ColorEditFlags_DisplayHex.
-Kept redirection enums (will obsolete).
- - 2019/02/14 (1.68) - made it illegal/assert when io.DisplayTime == 0.0f (with
-an exception for the first frame). If for some reason your time step calculation
-gives you a zero value, replace it with an arbitrarily small value!
- - 2019/02/01 (1.68) - removed io.DisplayVisibleMin/DisplayVisibleMax (which
-were marked obsolete and removed from viewport/docking branch already).
- - 2019/01/06 (1.67) - renamed io.InputCharacters[], marked internal as was
-always intended. Please don't access directly, and use AddInputCharacter()
-instead!
- - 2019/01/06 (1.67) - renamed FontAtlas::GlyphRangesBuilder to
-FontGlyphRangesBuilder. Kept redirection typedef (will obsolete).
- - 2018/12/20 (1.67) - made it illegal to call Begin("") with an empty string.
-This somehow half-worked before but had various undesirable side-effects.
- - 2018/12/10 (1.67) - renamed io.ConfigResizeWindowsFromEdges to
-io.ConfigWindowsResizeFromEdges as we are doing a large pass on configuration
-flags.
- - 2018/10/12 (1.66) - renamed misc/stl/stl.* to misc/cpp/stdlib.*
-in prevision for other C++ helper files.
- - 2018/09/28 (1.66) - renamed SetScrollHere() to SetScrollHereY(). Kept
-redirection function (will obsolete).
- - 2018/09/06 (1.65) - renamed truetype.h to truetype.hpp,
-textedit.h to textedit.hpp, and rect_pack.h to rectpack.hpp. If
-you were conveniently using the imgui copy of those STB headers in your project
-you will have to update your include paths.
- - 2018/09/05 (1.65) - renamed io.OptCursorBlink/io.ConfigCursorBlink to
-io.ConfigInputTextCursorBlink. (#1427)
- - 2018/08/31 (1.64) - added widgets.cpp file, extracted and moved widgets
-code out of gui.cpp into widgets.cpp. Re-ordered some of the code
-remaining in gui.cpp. NONE OF THE FUNCTIONS HAVE CHANGED. THE CODE IS
-SEMANTICALLY 100% IDENTICAL, BUT _EVERY_ FUNCTION HAS BEEN MOVED. Because of
-this, any local modifications to gui.cpp will likely conflict when you update.
-Read docs/CHANGELOG.txt for suggestions.
- - 2018/08/22 (1.63) - renamed IsItemDeactivatedAfterChange() to
-IsItemDeactivatedAfterEdit() for consistency with new IsItemEdited() API. Kept
-redirection function (will obsolete soonish as IsItemDeactivatedAfterChange() is
-very recent).
- - 2018/08/21 (1.63) - renamed TextEditCallback to InputTextCallback,
-TextEditCallbackData to InputTextCallbackData for consistency. Kept
-redirection types (will obsolete).
- - 2018/08/21 (1.63) - removed InputTextCallbackData::ReadOnly since it is
-a duplication of (InputTextCallbackData::Flags &
-InputTextFlags_ReadOnly).
- - 2018/08/01 (1.63) - removed per-window WindowFlags_ResizeFromAnySide
-beta flag in favor of a global io.ConfigResizeWindowsFromEdges [update 1.67
-renamed to ConfigWindowsResizeFromEdges] to enable the feature.
- - 2018/08/01 (1.63) - renamed io.OptCursorBlink to io.ConfigCursorBlink [->
-io.ConfigInputTextCursorBlink in 1.65], io.OptMacOSXBehaviors to
-ConfigMacOSXBehaviors for consistency.
- - 2018/07/22 (1.63) - changed Gui::GetTime() return value from float to
-double to avoid accumulating floating point imprecisions over time.
- - 2018/07/08 (1.63) - style: renamed Col_ModalWindowDarkening to
-Col_ModalWindowDimBg for consistency with other features. Kept redirection
-enum (will obsolete).
- - 2018/06/08 (1.62) - examples: the XXX files have been split to
-separate platform (Win32, GLFW, SDL2, etc.) from renderer (DX11, OpenGL, Vulkan,
-etc.). old backends will still work as is, however prefer using the separated
-backends as they will be updated to support multi-viewports. when adopting new
-backends follow the main.cpp code of your preferred examples/ folder to know
-which functions to call. in particular, note that old backends called
-Gui::NewFrame() at the end of their XXXX_NewFrame() function.
- - 2018/06/06 (1.62) - renamed GetGlyphRangesChinese() to
-GetGlyphRangesChineseFull() to distinguish other variants and discourage using
-the full set.
- - 2018/06/06 (1.62) - TreeNodeEx()/TreeNodeBehavior(): the
-TreeNodeFlags_CollapsingHeader helper now include the
-TreeNodeFlags_NoTreePushOnOpen flag. See Changelog for details.
- - 2018/05/03 (1.61) - DragInt(): the default compile-time format string has
-been changed from "%.0f" to "%d", as we are not using integers internally any
-more. If you used DragInt() with custom format strings, make sure you change
-them to use %d or an integer-compatible format. To honor backward-compatibility,
-the DragInt() code will currently parse and modify format strings to replace %*f
-with %d, giving time to users to upgrade their code. If you have
-DISABLE_OBSOLETE_FUNCTIONS enabled, the code will instead assert! You may run a
-reg-exp search on your codebase for e.g. "DragInt.*%f" to help you find them.
- - 2018/04/28 (1.61) - obsoleted InputFloat() functions taking an optional "int
-decimal_precision" in favor of an equivalent and more flexible "const char*
-format", consistent with other functions. Kept redirection functions (will
-obsolete).
- - 2018/04/09 (1.61) - DELETE() helper function added in 1.60 doesn't clear
-the input _pointer_ reference, more consistent with expectation and allows
-passing r-value.
- - 2018/03/20 (1.60) - renamed io.WantMoveMouse to io.WantSetMousePos for
-consistency and ease of understanding (was added in 1.52, _not_ used by core and
-only honored by some backend ahead of merging the Nav branch).
- - 2018/03/12 (1.60) - removed Col_CloseButton, Col_CloseButtonActive,
-Col_CloseButtonHovered as the closing cross uses regular button colors now.
- - 2018/03/08 (1.60) - changed Font::DisplayOffset.y to default to 0 instead
-of +1. Fixed rounding of Ascent/Descent to match TrueType renderer. If you were
-adding or subtracting to Font::DisplayOffset check if your fonts are correctly
-aligned vertically.
- - 2018/03/03 (1.60) - renamed StyleVar_Count_ to StyleVar_COUNT and
-MouseCursor_Count_ to MouseCursor_COUNT for consistency with other
-public enums.
- - 2018/02/18 (1.60) - BeginDragDropSource(): temporarily removed the optional
-mouse_button=0 parameter because it is not really usable in many situations at
-the moment.
- - 2018/02/16 (1.60) - obsoleted the io.RenderDrawListsFn callback, you can call
-your graphics engine render function after Gui::Render(). Use
-Gui::GetDrawData() to retrieve the DrawData* to display.
- - 2018/02/07 (1.60) - reorganized context handling to be more explicit,
-                       - YOU NOW NEED TO CALL Gui::CreateContext() AT THE
-BEGINNING OF YOUR APP, AND CALL Gui::DestroyContext() AT THE END.
-                       - removed Shutdown() function, as DestroyContext() serve
-this purpose.
-                       - you may pass a FontAtlas* pointer to CreateContext()
-to share a font atlas between contexts. Otherwise CreateContext() will create
-its own font atlas instance.
-                       - removed allocator parameters from CreateContext(), they
-are now setup with SetAllocatorFunctions(), and shared by all contexts.
-                       - removed the default global context and font atlas
-instance, which were confusing for users of DLL reloading and users of multiple
-contexts.
- - 2018/01/31 (1.60) - moved sample TTF files from extra_fonts/ to misc/fonts/.
-If you loaded files directly from the imgui repo you may need to update your
-paths.
- - 2018/01/11 (1.60) - obsoleted IsAnyWindowHovered() in favor of
-IsWindowHovered(HoveredFlags_AnyWindow). Kept redirection function (will
-obsolete).
- - 2018/01/11 (1.60) - obsoleted IsAnyWindowFocused() in favor of
-IsWindowFocused(FocusedFlags_AnyWindow). Kept redirection function (will
-obsolete).
- - 2018/01/03 (1.60) - renamed SizeConstraintCallback to SizeCallback,
-SizeConstraintCallbackData to SizeCallbackData.
- - 2017/12/29 (1.60) - removed CalcItemRectClosestPoint() which was weird and
-not really used by anyone except demo code. If you need it it's easy to
-replicate on your side.
- - 2017/12/24 (1.53) - renamed the emblematic ShowTestWindow() function to
-ShowDemoWindow(). Kept redirection function (will obsolete).
- - 2017/12/21 (1.53) - DrawList: renamed style.AntiAliasedShapes to
-style.AntiAliasedFill for consistency and as a way to explicitly break code that
-manipulate those flag at runtime. You can now manipulate DrawList::Flags
- - 2017/12/21 (1.53) - DrawList: removed 'bool anti_aliased = true' final
-parameter of DrawList::AddPolyline() and DrawList::AddConvexPolyFilled().
-Prefer manipulating DrawList::Flags if you need to toggle them during the
-frame.
- - 2017/12/14 (1.53) - using the WindowFlags_NoScrollWithMouse flag on a
-child window forwards the mouse wheel event to the parent window, unless either
-WindowFlags_NoInputs or WindowFlags_NoScrollbar are also set.
- - 2017/12/13 (1.53) - renamed GetItemsLineHeightWithSpacing() to
-GetFrameHeightWithSpacing(). Kept redirection function (will obsolete).
- - 2017/12/13 (1.53) - obsoleted IsRootWindowFocused() in favor of using
-IsWindowFocused(FocusedFlags_RootWindow). Kept redirection function (will
-obsolete).
-                     - obsoleted IsRootWindowOrAnyChildFocused() in favor of
-using IsWindowFocused(FocusedFlags_RootAndChildWindows). Kept redirection
-function (will obsolete).
- - 2017/12/12 (1.53) - renamed TreeNodeFlags_AllowOverlapMode to
-TreeNodeFlags_AllowItemOverlap. Kept redirection enum (will obsolete).
- - 2017/12/10 (1.53) - removed SetNextWindowContentWidth(), prefer using
-SetNextWindowContentSize(). Kept redirection function (will obsolete).
- - 2017/11/27 (1.53) - renamed TextBuffer::append() helper to appendf(),
-appendv() to appendfv(). If you copied the 'Log' demo in your code, it uses
-appendv() so that needs to be renamed.
- - 2017/11/18 (1.53) - Style, Begin: removed WindowFlags_ShowBorders window
-flag. Borders are now fully set up in the Style structure (see e.g.
-style.FrameBorderSize, style.WindowBorderSize). Use Gui::ShowStyleEditor() to
-look them up. Please note that the style system will keep evolving (hopefully
-stabilizing in Q1 2018), and so custom styles will probably subtly break over
-time. It is recommended you use the StyleColorsClassic(), StyleColorsDark(),
-StyleColorsLight() functions.
- - 2017/11/18 (1.53) - Style: removed Col_ComboBg in favor of combo boxes
-using Col_PopupBg for consistency.
- - 2017/11/18 (1.53) - Style: renamed Col_ChildWindowBg to
-Col_ChildBg.
- - 2017/11/18 (1.53) - Style: renamed style.ChildWindowRounding to
-style.ChildRounding, StyleVar_ChildWindowRounding to
-StyleVar_ChildRounding.
- - 2017/11/02 (1.53) - obsoleted IsRootWindowOrAnyChildHovered() in favor of
-using IsWindowHovered(HoveredFlags_RootAndChildWindows);
- - 2017/10/24 (1.52) - renamed
-DISABLE_WIN32_DEFAULT_CLIPBOARD_FUNCS/DISABLE_WIN32_DEFAULT_IME_FUNCS to
-DISABLE_WIN32_DEFAULT_CLIPBOARD_FUNCTIONS/DISABLE_WIN32_DEFAULT_IME_FUNCTIONS
-for consistency.
- - 2017/10/20 (1.52) - changed IsWindowHovered() default parameters behavior to
-return false if an item is active in another window (e.g. click-dragging item
-from another window to this window). You can use the newly introduced
-IsWindowHovered() flags to requests this specific behavior if you need it.
- - 2017/10/20 (1.52) - marked IsItemHoveredRect()/IsMouseHoveringWindow() as
-obsolete, in favor of using the newly introduced flags for IsItemHovered() and
-IsWindowHovered(). See https://github.com/ocornut/imgui/issues/1382 for details.
-                       removed the IsItemRectHovered()/IsWindowRectHovered()
-names introduced in 1.51 since they were merely more consistent names for the
-two functions we are now obsoleting. IsItemHoveredRect()        -->
-IsItemHovered(HoveredFlags_RectOnly) IsMouseHoveringAnyWindow() -->
-IsWindowHovered(HoveredFlags_AnyWindow) IsMouseHoveringWindow()    -->
-IsWindowHovered(HoveredFlags_AllowWhenBlockedByPopup |
-HoveredFlags_AllowWhenBlockedByActiveItem) [weird, old behavior]
- - 2017/10/17 (1.52) - marked the old 5-parameters version of Begin() as
-obsolete (still available). Use SetNextWindowSize()+Begin() instead!
- - 2017/10/11 (1.52) - renamed AlignFirstTextHeightToWidgets() to
-AlignTextToFramePadding(). Kept inline redirection function (will obsolete).
- - 2017/09/26 (1.52) - renamed Font::Glyph to FontGlyph. Kept redirection
-typedef (will obsolete).
- - 2017/09/25 (1.52) - removed SetNextWindowPosCenter() because
-SetNextWindowPos() now has the optional pivot information to do the same and
-more. Kept redirection function (will obsolete).
- - 2017/08/25 (1.52) - io.MousePos needs to be set to Vec2(-FLT_MAX,-FLT_MAX)
-when mouse is unavailable/missing. Previously Vec2(-1,-1) was enough but we
-now accept negative mouse coordinates. In your backend if you need to support
-unavailable mouse, make sure to replace "io.MousePos = Vec2(-1,-1)" with
-"io.MousePos = Vec2(-FLT_MAX,-FLT_MAX)".
- - 2017/08/22 (1.51) - renamed IsItemHoveredRect() to IsItemRectHovered(). Kept
-inline redirection function (will obsolete). -> (1.52) use
-IsItemHovered(HoveredFlags_RectOnly)!
-                     - renamed IsMouseHoveringAnyWindow() to
-IsAnyWindowHovered() for consistency. Kept inline redirection function (will
-obsolete).
-                     - renamed IsMouseHoveringWindow() to IsWindowRectHovered()
-for consistency. Kept inline redirection function (will obsolete).
- - 2017/08/20 (1.51) - renamed GetStyleColName() to GetStyleColorName() for
-consistency.
- - 2017/08/20 (1.51) - added PushStyleColor(Col idx, U32 col) overload,
-which _might_ cause an "ambiguous call" compilation error if you are using
-Color() with implicit cast. Cast to U32 or Vec4 explicily to fix.
- - 2017/08/15 (1.51) - marked the weird ONCE_UPON_A_FRAME helper macro as
-obsolete. prefer using the more explicit OnceUponAFrame type.
- - 2017/08/15 (1.51) - changed parameter order for BeginPopupContextWindow()
-from (const char*,int buttons,bool also_over_items) to (const char*,int
-buttons,bool also_over_items). Note that most calls relied on default parameters
-completely.
- - 2017/08/13 (1.51) - renamed Col_Column to Col_Separator,
-Col_ColumnHovered to Col_SeparatorHovered, Col_ColumnActive to
-Col_SeparatorActive. Kept redirection enums (will obsolete).
- - 2017/08/11 (1.51) - renamed SetCond_Always to Cond_Always,
-SetCond_Once to Cond_Once, SetCond_FirstUseEver to
-Cond_FirstUseEver, SetCond_Appearing to Cond_Appearing. Kept
-redirection enums (will obsolete).
- - 2017/08/09 (1.51) - removed ValueColor() helpers, they are equivalent to
-calling Text(label) + SameLine() + ColorButton().
- - 2017/08/08 (1.51) - removed ColorEditMode() and ColorEditMode in favor
-of ColorEditFlags and parameters to the various Color*() functions. The
-SetColorEditOptions() allows to initialize default but the user can still change
-them with right-click context menu.
-                     - changed prototype of 'ColorEdit4(const char* label, float
-col[4], bool show_alpha = true)' to 'ColorEdit4(const char* label, float col[4],
-ColorEditFlags flags = 0)', where passing flags = 0x01 is a safe no-op
-(hello dodgy backward compatibility!). - check and run the demo window, under
-"Color/Picker Widgets", to understand the various new options.
-                     - changed prototype of rarely used 'ColorButton(Vec4 col,
-bool small_height = false, bool outline_border = true)' to 'ColorButton(const
-char* desc_id, Vec4 col, ColorEditFlags flags = 0, Vec2 size =
-Vec2(0, 0))'
- - 2017/07/20 (1.51) - removed IsPosHoveringAnyWindow(Vec2), which was partly
-broken and misleading. ASSERT + redirect user to io.WantCaptureMouse
- - 2017/05/26 (1.50) - removed FontConfig::MergeGlyphCenterV in favor of a
-more multipurpose FontConfig::GlyphOffset.
- - 2017/05/01 (1.50) - renamed DrawList::PathFill() (rarely used directly) to
-DrawList::PathFillConvex() for clarity.
- - 2016/11/06 (1.50) - BeginChild(const char*) now applies the stack id to the
-provided label, consistently with other functions as it should always have been.
-It shouldn't affect you unless (extremely unlikely) you were appending multiple
-times to a same child from different locations of the stack id. If that's the
-case, generate an id with GetID() and use it instead of passing string to
-BeginChild().
- - 2016/10/15 (1.50) - avoid 'void* user_data' parameter to
-io.SetClipboardTextFn/io.GetClipboardTextFn pointers. We pass
-io.ClipboardUserData to it.
- - 2016/09/25 (1.50) - style.WindowTitleAlign is now a Vec2 (Align enum
-was removed). set to (0.5f,0.5f) for horizontal+vertical centering, (0.0f,0.0f)
-for upper-left, etc.
- - 2016/07/30 (1.50) - SameLine(x) with x>0.0f is now relative to left of
-column/group if any, and not always to left of window. This was sort of always
-the intent and hopefully, breakage should be minimal.
- - 2016/05/12 (1.49) - title bar (using Col_TitleBg/Col_TitleBgActive
-colors) isn't rendered over a window background (Col_WindowBg color)
-anymore. If your TitleBg/TitleBgActive alpha was 1.0f or you are using the
-default theme it will not affect you, otherwise if <1.0f you need to tweak your
-custom theme to readjust for the fact that we don't draw a WindowBg background
-behind the title bar. This helper function will convert an old
-TitleBg/TitleBgActive color into a new one with the same visual output, given
-the OLD color and the OLD WindowBg color: Vec4 ConvertTitleBgCol(const Vec4&
-win_bg_col, const Vec4& title_bg_col) { float new_a = 1.0f - ((1.0f -
-win_bg_col.w) * (1.0f - title_bg_col.w)), k = title_bg_col.w / new_a; return
-Vec4((win_bg_col.x * win_bg_col.w + title_bg_col.x) * k, (win_bg_col.y *
-win_bg_col.w + title_bg_col.y) * k, (win_bg_col.z * win_bg_col.w +
-title_bg_col.z) * k, new_a); } If this is confusing, pick the RGB value from
-title bar from an old screenshot and apply this as TitleBg/TitleBgActive. Or you
-may just create TitleBgActive from a tweaked TitleBg color.
- - 2016/05/07 (1.49) - removed confusing set of GetInternalState(),
-GetInternalStateSize(), SetInternalState() functions. Now using CreateContext(),
-DestroyContext(), GetCurrentContext(), SetCurrentContext().
- - 2016/05/02 (1.49) - renamed SetNextTreeNodeOpened() to SetNextTreeNodeOpen(),
-no redirection.
- - 2016/05/01 (1.49) - obsoleted old signature of CollapsingHeader(const char*
-label, const char* str_id = NULL, bool display_frame = true, bool default_open =
-false) as extra parameters were badly designed and rarely used. You can replace
-the "default_open = true" flag in new API with CollapsingHeader(label,
-TreeNodeFlags_DefaultOpen).
- - 2016/04/26 (1.49) - changed DrawList::PushClipRect(Vec4 rect) to
-DrawList::PushClipRect(Imvec2 min,Vec2 max,bool
-intersect_with_current_clip_rect=false). Note that higher-level
-Gui::PushClipRect() is preferable because it will clip at logic/widget level,
-whereas DrawList::PushClipRect() only affect your renderer.
- - 2016/04/03 (1.48) - removed style.WindowFillAlphaDefault setting which was
-redundant. Bake default BG alpha inside style.Colors[Col_WindowBg] and all
-other Bg color values. (ref GitHub issue #337).
- - 2016/04/03 (1.48) - renamed Col_TooltipBg to Col_PopupBg, used by
-popups/menus and tooltips. popups/menus were previously using Col_WindowBg.
-(ref github issue #337)
- - 2016/03/21 (1.48) - renamed GetWindowFont() to GetFont(), GetWindowFontSize()
-to GetFontSize(). Kept inline redirection function (will obsolete).
- - 2016/03/02 (1.48) - InputText() completion/history/always callbacks: if you
-modify the text buffer manually (without using DeleteChars()/InsertChars()
-helper) you need to maintain the BufTextLen field. added an assert.
- - 2016/01/23 (1.48) - fixed not honoring exact width passed to PushItemWidth(),
-previously it would add extra FramePadding.x*2 over that width. if you had
-manual pixel-perfect alignment in place it might affect you.
- - 2015/12/27 (1.48) - fixed DrawList::AddRect() which used to render a
-rectangle 1 px too large on each axis.
- - 2015/12/04 (1.47) - renamed Color() helpers to ValueColor() - dangerously
-named, rarely used and probably to be made obsolete.
- - 2015/08/29 (1.45) - with the addition of horizontal scrollbar we made various
-fixes to inconsistencies with dealing with cursor position.
-                       GetCursorPos()/SetCursorPos() functions now include the
-scrolled amount. It shouldn't affect the majority of users, but take note that
-SetCursorPosX(100.0f) puts you at +100 from the starting x position which may
-include scrolling, not at +100 from the window left side.
-                       GetContentRegionMax()/GetWindowContentRegionMin()/GetWindowContentRegionMax()
-functions allow include the scrolled amount. Typically those were used in cases
-where no scrolling would happen so it may not be a problem, but watch out!
- - 2015/08/29 (1.45) - renamed style.ScrollbarWidth to style.ScrollbarSize
- - 2015/08/05 (1.44) - split gui.cpp into extra files: demo.cpp
-draw.cpp internal.hpp that you need to add to your project.
- - 2015/07/18 (1.44) - fixed angles in DrawList::PathArcTo(), PathArcToFast()
-(introduced in 1.43) being off by an extra PI for no justifiable reason
- - 2015/07/14 (1.43) - add new FontAtlas::AddFont() API. For the old
-AddFont***, moved the 'font_no' parameter of FontAtlas::AddFont** functions to
-the FontConfig structure. you need to render your textured triangles with
-bilinear filtering to benefit from sub-pixel positioning of text.
- - 2015/07/08 (1.43) - switched rendering data to use indexed rendering. this is
-saving a fair amount of CPU/GPU and enables us to get anti-aliasing for a
-marginal cost. this necessary change will break your rendering function! the fix
-should be very easy. sorry for that :(
-                     - if you are using a vanilla copy of one of the
-XXX.cpp provided in the example, you just need to update your copy
-and you can ignore the rest.
-                     - the signature of the io.RenderDrawListsFn handler has
-changed! old: XXXX_RenderDrawLists(DrawList** const cmd_lists, int
-cmd_lists_count) new: XXXX_RenderDrawLists(DrawData* draw_data).
-                         parameters: 'cmd_lists' becomes 'draw_data->CmdLists',
-'cmd_lists_count' becomes 'draw_data->CmdListsCount' DrawList: 'commands'
-becomes 'CmdBuffer', 'vtx_buffer' becomes 'VtxBuffer', 'IdxBuffer' is new.
-                         DrawCmd:  'vtx_count' becomes 'ElemCount',
-'clip_rect' becomes 'ClipRect', 'user_callback' becomes 'UserCallback',
-'texture_id' becomes 'TextureId'.
-                     - each DrawList now contains both a vertex buffer and an
-index buffer. For each command, render ElemCount/3 triangles using indices from
-the index buffer.
-                     - if you REALLY cannot render indexed primitives, you can
-call the draw_data->DeIndexAllBuffers() method to de-index the buffers. This is
-slow and a waste of CPU/GPU. Prefer using indexed rendering!
-                     - refer to code in the examples/ folder or ask on the
-GitHub if you are unsure of how to upgrade. please upgrade!
- - 2015/07/10 (1.43) - changed SameLine() parameters from int to float.
- - 2015/07/02 (1.42) - renamed SetScrollPosHere() to SetScrollFromCursorPos().
-Kept inline redirection function (will obsolete).
- - 2015/07/02 (1.42) - renamed GetScrollPosY() to GetScrollY(). Necessary to
-reduce confusion along with other scrolling functions, because positions (e.g.
-cursor position) are not equivalent to scrolling amount.
- - 2015/06/14 (1.41) - changed ImageButton() default bg_col parameter from
-(0,0,0,1) (black) to (0,0,0,0) (transparent) - makes a difference when texture
-have transparence
- - 2015/06/14 (1.41) - changed Selectable() API from (label, selected, size) to
-(label, selected, flags, size). Size override should have been rarely used.
-Sorry!
- - 2015/05/31 (1.40) - renamed GetWindowCollapsed() to IsWindowCollapsed() for
-consistency. Kept inline redirection function (will obsolete).
- - 2015/05/31 (1.40) - renamed IsRectClipped() to IsRectVisible() for
-consistency. Note that return value is opposite! Kept inline redirection
-function (will obsolete).
- - 2015/05/27 (1.40) - removed the third 'repeat_if_held' parameter from
-Button() - sorry! it was rarely used and inconsistent. Use
-PushButtonRepeat(true) / PopButtonRepeat() to enable repeat on desired buttons.
- - 2015/05/11 (1.40) - changed BeginPopup() API, takes a string identifier
-instead of a bool. Gui needs to manage the open/closed state of popups. Call
-OpenPopup() to actually set the "open" state of a popup. BeginPopup() returns
-true if the popup is opened.
- - 2015/05/03 (1.40) - removed style.AutoFitPadding, using style.WindowPadding
-makes more sense (the default values were already the same).
- - 2015/04/13 (1.38) - renamed IsClipped() to IsRectClipped(). Kept inline
-redirection function until 1.50.
- - 2015/04/09 (1.38) - renamed DrawList::AddArc() to DrawList::AddArcFast()
-for compatibility with future API
- - 2015/04/03 (1.38) - removed Col_CheckHovered, Col_CheckActive,
-replaced with the more general Col_FrameBgHovered, Col_FrameBgActive.
- - 2014/04/03 (1.38) - removed support for passing -FLT_MAX..+FLT_MAX as the
-range for a SliderFloat(). Use DragFloat() or Inputfloat() instead.
- - 2015/03/17 (1.36) - renamed
-GetItemBoxMin()/GetItemBoxMax()/IsMouseHoveringBox() to
-GetItemRectMin()/GetItemRectMax()/IsMouseHoveringRect(). Kept inline redirection
-function until 1.50.
- - 2015/03/15 (1.36) - renamed style.TreeNodeSpacing to style.IndentSpacing,
-StyleVar_TreeNodeSpacing to StyleVar_IndentSpacing
- - 2015/03/13 (1.36) - renamed GetWindowIsFocused() to IsWindowFocused(). Kept
-inline redirection function until 1.50.
- - 2015/03/08 (1.35) - renamed style.ScrollBarWidth to style.ScrollbarWidth
-(casing)
- - 2015/02/27 (1.34) - renamed OpenNextNode(bool) to SetNextTreeNodeOpened(bool,
-SetCond). Kept inline redirection function until 1.50.
- - 2015/02/27 (1.34) - renamed SetCondition_*** to SetCond_***, and
-_FirstUseThisSession becomes _Once.
- - 2015/02/11 (1.32) - changed text input callback TextEditCallback return
-type from void-->int. reserved for future use, return 0 for now.
- - 2015/02/10 (1.32) - renamed GetItemWidth() to CalcItemWidth() to clarify its
-evolving behavior
- - 2015/02/08 (1.31) - renamed GetTextLineSpacing() to
-GetTextLineHeightWithSpacing()
- - 2015/02/01 (1.31) - removed IO.MemReallocFn (unused)
- - 2015/01/19 (1.30) - renamed Storage::GetIntPtr()/GetFloatPtr() to
-GetIntRef()/GetIntRef() because Ptr was conflicting with actual pointer storage
-functions.
- - 2015/01/11 (1.30) - big font/image API change! now loads TTF file. allow for
-multiple fonts. no need for a PNG loader.
- - 2015/01/11 (1.30) - removed GetDefaultFontData(). uses
-io.Fonts->GetTextureData*() API to retrieve uncompressed pixels.
-                       - old:  const void* png_data; unsigned int png_size;
-Gui::GetDefaultFontData(NULL, NULL, &png_data, &png_size); [..Upload texture
-to GPU..];
-                       - new:  unsigned char* pixels; int width, height;
-io.Fonts->GetTexDataAsRGBA32(&pixels, &width, &height); [..Upload texture to
-GPU..]; io.Fonts->SetTexID(YourTexIdentifier); you now have more flexibility to
-load multiple TTF fonts and manage the texture buffer for internal needs. It is
-now recommended that you sample the font texture with bilinear interpolation.
- - 2015/01/11 (1.30) - added texture identifier in DrawCmd passed to your
-render function (we can now render images). make sure to call
-io.Fonts->SetTexID()
- - 2015/01/11 (1.30) - removed IO.PixelCenterOffset (unnecessary, can be handled
-in user projection matrix)
- - 2015/01/11 (1.30) - removed Gui::IsItemFocused() in favor of
-Gui::IsItemActive() which handles all widgets
- - 2014/12/10 (1.18) - removed SetNewWindowDefaultPos() in favor of new generic
-API SetNextWindowPos(pos, SetCondition_FirstUseEver)
- - 2014/11/28 (1.17) - moved IO.Font*** options to inside the IO.Font->
-structure (FontYOffset, FontTexUvForWhite, FontBaseScale, FontFallbackGlyph)
- - 2014/11/26 (1.17) - reworked syntax of ONCE_UPON_A_FRAME helper macro to
-increase compiler compatibility
- - 2014/11/07 (1.15) - renamed IsHovered() to IsItemHovered()
- - 2014/10/02 (1.14) - renamed INCLUDE_USER_CPP to INCLUDE_USER_INL and
-user.cpp to user.inl (more IDE friendly)
- - 2014/09/25 (1.13) - removed 'text_end' parameter from IO.SetClipboardTextFn
-(the string is now always zero-terminated for simplicity)
- - 2014/09/24 (1.12) - renamed SetFontScale() to SetWindowFontScale()
- - 2014/09/24 (1.12) - moved MALLOC/REALLOC/FREE preprocessor defines
-to IO.MemAllocFn/IO.MemReallocFn/IO.MemFreeFn
- - 2014/08/30 (1.09) - removed IO.FontHeight (now computed automatically)
- - 2014/08/30 (1.09) - moved FONT_TEX_UV_FOR_WHITE preprocessor define to
-IO.FontTexUvForWhite
- - 2014/08/28 (1.09) - changed the behavior of IO.PixelCenterOffset following
-various rendering fixes
-
-
- FREQUENTLY ASKED QUESTIONS (FAQ)
- ================================
-
- Read all answers online:
-   https://www.dearimgui.com/faq or
-https://github.com/ocornut/imgui/blob/master/docs/FAQ.md (same url) Read all
-answers locally (with a text editor or ideally a Markdown viewer): docs/FAQ.md
- Some answers are copied down here to facilitate searching in code.
-
- Q&A: Basics
- ===========
-
- Q: Where is the documentation?
- A: This library is poorly documented at the moment and expects the user to be
-acquainted with C/C++.
-    - Run the examples/ applications and explore them.
-    - Read Getting Started
-(https://github.com/ocornut/imgui/wiki/Getting-Started) guide.
-    - See demo code in demo.cpp and particularly the
-Gui::ShowDemoWindow() function.
-    - The demo covers most features of Dear Gui, so you can read the code and
-see its output.
-    - See documentation and comments at the top of gui.cpp + effectively
-gui.hpp.
-    - 20+ standalone example applications using e.g. OpenGL/DirectX are provided
-in the examples/ folder to explain how to integrate Dear Gui with your own
-engine/application.
-    - The Wiki (https://github.com/ocornut/imgui/wiki) has many resources and
-links.
-    - The Glossary (https://github.com/ocornut/imgui/wiki/Glossary) page also
-may be useful.
-    - Your programming IDE is your friend, find the type or function declaration
-to find comments associated with it.
-
- Q: What is this library called?
- Q: Which version should I get?
- >> This library is called "Dear Gui", please don't call it "Gui" :)
- >> See https://www.dearimgui.com/faq for details.
-
- Q&A: Integration
- ================
-
- Q: How to get started?
- A: Read https://github.com/ocornut/imgui/wiki/Getting-Started. Read 'PROGRAMMER
-GUIDE' above. Read examples/README.txt.
-
- Q: How can I tell whether to dispatch mouse/keyboard to Dear Gui or my
-application? A: You should read the 'io.WantCaptureMouse',
-'io.WantCaptureKeyboard' and 'io.WantTextInput' flags!
- >> See https://www.dearimgui.com/faq for a fully detailed answer. You really
-want to read this.
-
- Q. How can I enable keyboard or gamepad controls?
- Q: How can I use this on a machine without mouse, keyboard or screen? (input
-share, remote display) Q: I integrated Dear Gui in my engine and little
-squares are showing instead of text... Q: I integrated Dear Gui in my engine
-and some elements are clipping or disappearing when I move windows around... Q:
-I integrated Dear Gui in my engine and some elements are displaying outside
-their expected windows boundaries...
- >> See https://www.dearimgui.com/faq
-
- Q&A: Usage
- ----------
-
- Q: About the ID Stack system..
-   - Why is my widget not reacting when I click on it?
-   - How can I have widgets with an empty label?
-   - How can I have multiple widgets with the same label?
-   - How can I have multiple windows with the same label?
- Q: How can I display an image? What is TextureID, how does it work?
- Q: How can I use my own math types instead of Vec2?
- Q: How can I interact with standard C++ types (such as std::string and
-std::vector)? Q: How can I display custom shapes? (using low-level DrawList
-API)
- >> See https://www.dearimgui.com/faq
-
- Q&A: Fonts, Text
- ================
-
- Q: How should I handle DPI in my application?
- Q: How can I load a different font than the default?
- Q: How can I easily use icons in my application?
- Q: How can I load multiple fonts?
- Q: How can I display and input non-Latin characters such as Chinese, Japanese,
-Korean, Cyrillic?
- >> See https://www.dearimgui.com/faq and
-https://github.com/ocornut/imgui/edit/master/docs/FONTS.md
-
- Q&A: Concerns
- =============
-
- Q: Who uses Dear Gui?
- Q: Can you create elaborate/serious tools with Dear Gui?
- Q: Can you reskin the look of Dear Gui?
- Q: Why using C++ (as opposed to C)?
- >> See https://www.dearimgui.com/faq
-
- Q&A: Community
- ==============
-
- Q: How can I help?
- A: - Businesses: please reach out to "omar AT dearimgui DOT com" if you work in
-a place using Dear Gui! We can discuss ways for your company to fund
-development via invoiced technical support, maintenance or sponsoring contacts.
-      This is among the most useful thing you can do for Dear Gui. With
-increased funding, we sustain and grow work on this project. Also see
-https://github.com/ocornut/imgui/wiki/Sponsors
-    - Businesses: you can also purchase licenses for the Dear Gui
-Automation/Test Engine.
-    - If you are experienced with Dear Gui and C++, look at the GitHub issues,
-look at the Wiki, and see how you want to help and can help!
-    - Disclose your usage of Dear Gui via a dev blog post, a tweet, a
-screenshot, a mention somewhere etc. You may post screenshot or links in the
-gallery threads. Visuals are ideal as they inspire other programmers. But even
-without visuals, disclosing your use of dear imgui helps the library grow
-credibility, and help other teams and programmers with taking decisions.
-    - If you have issues or if you need to hack into the library, even if you
-don't expect any support it is useful that you share your issues (on GitHub or
-privately).
-
-*/
-
+//  [SECTION] INCLUDES
+//  [SECTION] FORWARD DECLARATIONS
+//  [SECTION] CONTEXT AND MEMORY ALLOCATORS
+//  [SECTION] USER FACING STRUCTURES (Style, IO)
+//  [SECTION] MISC HELPERS/UTILITIES (Geometry functions)
+//  [SECTION] MISC HELPERS/UTILITIES (String, Format, Hash functions)
+//  [SECTION] MISC HELPERS/UTILITIES (File functions)
+//  [SECTION] MISC HELPERS/UTILITIES (Text* functions)
+//  [SECTION] MISC HELPERS/UTILITIES (Color functions)
+//  [SECTION] Storage
+//  [SECTION] TextFilter
+//  [SECTION] TextBuffer, TextIndex
+//  [SECTION] ListClipper
+//  [SECTION] STYLING
+//  [SECTION] RENDER HELPERS
+//  [SECTION] INITIALIZATION, SHUTDOWN
+//  [SECTION] MAIN CODE (most of the code! lots of stuff, needs tidying up!)
+//  [SECTION] INPUTS
+//  [SECTION] ERROR CHECKING
+//  [SECTION] LAYOUT
+//  [SECTION] SCROLLING
+//  [SECTION] TOOLTIPS
+//  [SECTION] POPUPS
+//  [SECTION] KEYBOARD/GAMEPAD NAVIGATION
+//  [SECTION] DRAG AND DROP
+//  [SECTION] LOGGING/CAPTURING
+//  [SECTION] SETTINGS
+//  [SECTION] LOCALIZATION
+//  [SECTION] VIEWPORTS, PLATFORM WINDOWS
+//  [SECTION] DOCKING
+//  [SECTION] PLATFORM DEPENDENT HELPERS
+//  [SECTION] METRICS/DEBUGGER WINDOW
+//  [SECTION] DEBUG LOG WINDOW
+//  [SECTION] OTHER DEBUG TOOLS (ITEM PICKER, ID STACK TOOL)
 //-------------------------------------------------------------------------
-// [SECTION] INCLUDES
+//  [SECTION] INCLUDES
 //-------------------------------------------------------------------------
 
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
@@ -2037,18 +359,18 @@ static void UpdateViewportPlatformMonitor(ViewportP *viewport);
 // each static/DLL boundary you are calling from.
 // - Same applies for hot-reloading mechanisms that are reliant on reloading DLL
 // (note that many hot-reloading mechanisms work without DLL).
-// - Using Dear Gui via a shared library is not recommended, because of
+// - Using Gui via a shared library is not recommended, because of
 // function call overhead and because we don't guarantee backward nor forward
 // ABI compatibility.
 // - Confused? In a debugger: add GGui to your watch window and notice how its
 // value changes depending on your current location (which DLL boundary you are
 // in).
 
-// Current context pointer. Implicitly used by all Dear Gui functions. Always
+// Current context pointer. Implicitly used by all Gui functions. Always
 // assumed to be != NULL.
 // - Gui::CreateContext() will automatically set this pointer if it is NULL.
 //   Change to a different context by calling Gui::SetCurrentContext().
-// - Important: Dear Gui functions are not thread-safe because of this
+// - Important: Gui functions are not thread-safe because of this
 // pointer.
 //   If you want thread-safety to allow N threads to access N different
 //   contexts:
@@ -2061,7 +383,7 @@ static void UpdateViewportPlatformMonitor(ViewportP *viewport);
 //     thread_local is a C++11 keyword, earlier C++ uses compiler-specific
 //     keyword.
 //   - Future development aims to make this context pointer explicit to all
-//   calls. Also read https://github.com/ocornut/imgui/issues/586
+//   calls.
 //   - If you need a finite number of contexts, you may compile and use multiple
 //   instances of the Gui code from a different namespace.
 // - DLL users: read comments above.
@@ -2105,7 +427,7 @@ static void *GAllocatorUserData = NULL;
 //-----------------------------------------------------------------------------
 
 Style::Style() {
-  Alpha = 1.0f; // Global alpha applies to everything in Dear Gui.
+  Alpha = 1.0f; // Global alpha applies to everything in Gui.
   DisabledAlpha =
       0.60f; // Additional alpha multiplier applied by BeginDisabled(). Multiply
              // over current value of Alpha.
@@ -2979,8 +1301,7 @@ const char *StrSkipBlank(const char *str) {
 // When buf==NULL vsnprintf() will return the output size.
 #ifndef DISABLE_DEFAULT_FORMAT_FUNCTIONS
 
-// We support sprintf which is much faster (see:
-// https://github.com/nothings/stb/blob/master/sprintf.h) You may set
+// We support sprintf which is much faster.
 // USE_SPRINTF to use our default wrapper, or set
 // DISABLE_DEFAULT_FORMAT_FUNCTIONS and setup the wrapper yourself. (FIXME-OPT:
 // Some of our high-level operations such as TextBuffer::appendfv() are
@@ -4813,7 +3134,7 @@ void Gui::RenderMouseCursor(Vec2 base_pos, float base_scale,
 // [SECTION] INITIALIZATION, SHUTDOWN
 //-----------------------------------------------------------------------------
 
-// Internal state access - if you want to share Dear Gui state between modules
+// Internal state access - if you want to share Gui state between modules
 // (e.g. DLL) or allocate it yourself Note that we still point to some static
 // data and members (such as GFontAtlas), so the state instance you end up using
 // will point to the static data within its module
@@ -4868,7 +3189,7 @@ void Gui::DestroyContext(Context *ctx) {
 
 // IMPORTANT: ###xxx suffixes must be same in ALL languages
 static const LocEntry GLocalizationEntriesEnUS[] = {
-    {LocKey_VersionStr, "Dear Gui " VERSION " (" STRINGIFY(VERSION_NUM) ")"},
+    {LocKey_VersionStr, "Gui " VERSION " (" STRINGIFY(VERSION_NUM) ")"},
     {LocKey_TableSizeOne, "Size column to fit###SizeOne"},
     {LocKey_TableSizeAllFit, "Size all columns to fit###SizeAll"},
     {LocKey_TableSizeAllDefault, "Size all columns to default###SizeAll"},
@@ -4951,7 +3272,7 @@ void Gui::Shutdown() {
   g.IO.Fonts = NULL;
   g.DrawListSharedData.TempBuffer.clear();
 
-  // Cleanup of other data are conditional on actually having initialized Dear
+  // Cleanup of other data are conditional on actually having initialized
   // Gui.
   if (!g.Initialized)
     return;
@@ -5283,8 +3604,7 @@ void Gui::MarkItemEdited(ID id) {
     g.ActiveIdHasBeenEditedBefore = true;
   }
 
-  // We accept a MarkItemEdited() on drag and drop targets (see
-  // https://github.com/ocornut/imgui/issues/1875#issuecomment-978243343) We
+  // We accept a MarkItemEdited() on drag and drop targets.
   // accept 'ActiveIdPreviousFrame == id' for InputText() returning an edit
   // after it has been taken ActiveId away (#4714)
   ASSERT(g.DragDropActive || g.ActiveId == id || g.ActiveId == 0 ||
@@ -6017,7 +4337,7 @@ void Gui::UpdateHoveredWindowAndCaptureFlags() {
     g.HoveredWindow = g.HoveredWindowUnderMovingWindow = NULL;
 
   // Update io.WantCaptureMouse for the user application (true = dispatch mouse
-  // info to Dear Gui only, false = dispatch mouse to Dear Gui + underlying
+  // info to Gui only, false = dispatch mouse to Gui + underlying
   // app) Update io.WantCaptureMouseAllowPopupClose (experimental) to give a
   // chance for app to react to popup closure with a drag
   if (g.WantCaptureMouseNextFrame != -1) {
@@ -6034,7 +4354,7 @@ void Gui::UpdateHoveredWindowAndCaptureFlags() {
   }
 
   // Update io.WantCaptureKeyboard for the user application (true = dispatch
-  // keyboard info to Dear Gui only, false = dispatch keyboard info to Dear
+  // keyboard info to Gui only, false = dispatch keyboard info to
   // Gui + underlying app)
   io.WantCaptureKeyboard = (g.ActiveId != 0) || (modal_window != NULL);
   if (io.NavActive && (io.ConfigFlags & ConfigFlags_NavEnableKeyboard) &&
@@ -7041,9 +5361,9 @@ bool Gui::IsItemToggledSelection() {
 }
 
 // IMPORTANT: If you are trying to check whether your mouse should be dispatched
-// to Dear Gui or to your underlying app, you should not use this function!
+// to Gui or to your underlying app, you should not use this function!
 // Use the 'io.WantCaptureMouse' boolean for that! Refer to FAQ entry "How can I
-// tell whether to dispatch mouse/keyboard to Dear Gui or my application?" for
+// tell whether to dispatch mouse/keyboard to Gui or my application?" for
 // details.
 bool Gui::IsAnyItemHovered() {
   Context &g = *GGui;
@@ -8474,7 +6794,7 @@ Window *Gui::FindBlockingModal(Window *window) {
   return NULL;
 }
 
-// Push a new Dear Gui window to add widgets to.
+// Push a new Gui window to add widgets to.
 // - A default window called "Debug" is automatically stacked at the beginning
 // of every frame so you can use widgets without explicitly calling a Begin/End
 // pair.
@@ -9618,9 +7938,7 @@ bool Gui::Begin(const char *name, bool *p_open, WindowFlags flags) {
     // true -> hidden _should_ be all zero // FIXME: Not formally proven, hence
     // the assert.
     if (window->SkipItems && !window->Appearing)
-      ASSERT(window->Appearing ==
-             false); // Please report on GitHub if this triggers:
-                     // https://github.com/ocornut/imgui/issues/4177
+      ASSERT(window->Appearing == false);
   }
 
   // [DEBUG] io.ConfigDebugBeginReturnValue override return value to test
@@ -9958,7 +8276,6 @@ void Gui::PopItemFlag() {
 // everything disabled)
 // - Visually this is currently altering alpha, but it is expected that in a
 // future styling system this would work differently.
-// - Feedback welcome at https://github.com/ocornut/imgui/issues/211
 // - BeginDisabled(false) essentially does nothing useful but is provided to
 // facilitate use of boolean expressions. If you can avoid calling
 // BeginDisabled(False)/EndDisabled() best to avoid it.
@@ -10078,10 +8395,10 @@ bool Gui::IsWindowAbove(Window *potential_above, Window *potential_below) {
 
 // Is current window hovered and hoverable (e.g. not blocked by a popup/modal)?
 // See HoveredFlags_ for options. IMPORTANT: If you are trying to check
-// whether your mouse should be dispatched to Dear Gui or to your underlying
+// whether your mouse should be dispatched to Gui or to your underlying
 // app, you should not use this function! Use the 'io.WantCaptureMouse' boolean
 // for that! Refer to FAQ entry "How can I tell whether to dispatch
-// mouse/keyboard to Dear Gui or my application?" for details.
+// mouse/keyboard to Gui or my application?" for details.
 bool Gui::IsWindowHovered(HoveredFlags flags) {
   ASSERT((flags & ~HoveredFlags_AllowedMaskForIsWindowHovered) == 0 &&
          "Invalid flags for IsWindowHovered()!");
@@ -11239,7 +9556,7 @@ bool Gui::TestShortcutRouting(KeyChord key_chord, ID owner_id) {
   return routing_data->RoutingCurr == routing_id;
 }
 
-// Note that Dear Gui doesn't know the meaning/semantic of Key from
+// Note that Gui doesn't know the meaning/semantic of Key from
 // 0..511: they are legacy native keycodes. Consider transitioning from
 // 'IsKeyDown(MY_ENGINE_KEY_A)' (<1.87) to IsKeyDown(Key_A) (>= 1.87)
 bool Gui::IsKeyDown(Key key) { return IsKeyDown(key, KeyOwner_Any); }
@@ -11513,7 +9830,7 @@ void Gui::ResetMouseDragDelta(MouseButton button) {
 // Important: this is meant to be used by a platform backend, it is reset in
 // Gui::NewFrame(), updated during the frame, and locked in
 // EndFrame()/Render(). If you use software rendering by setting
-// io.MouseDrawCursor then Dear Gui will render those for you
+// io.MouseDrawCursor then Gui will render those for you
 MouseCursor Gui::GetMouseCursor() {
   Context &g = *GGui;
   return g.MouseCursor;
@@ -12348,14 +10665,14 @@ bool Gui::Shortcut(KeyChord key_chord, ID owner_id, InputFlags flags) {
 //-----------------------------------------------------------------------------
 
 // Helper function to verify ABI compatibility between caller code and compiled
-// version of Dear Gui. Verify that the type sizes are matching between the
+// version of Gui. Verify that the type sizes are matching between the
 // calling file's compilation unit and gui.cpp's compilation unit If this
 // triggers you have an issue:
 // - Most commonly: mismatched headers and compiled code version.
 // - Or: mismatched configuration #define, compilation settings, packing pragma
 // etc.
 //   The configuration settings mentioned in config.hpp must be set for all
-//   compilation units involved with Dear Gui, which is way it is required you
+//   compilation units involved with Gui, which is way it is required you
 //   put them in your imconfig file (and not just before including gui.hpp).
 //   Otherwise it is possible that different compilation units would see
 //   different structure layout
@@ -12397,8 +10714,7 @@ bool Gui::DebugCheckVersionAndDataLayout(const char *version, size_t sz_io,
 
 // Until 1.89 (VERSION_NUM < 18814) it was legal to use SetCursorPos() to extend
 // the boundary of a parent (e.g. window or table cell) This is causing issues
-// and ambiguity and we need to retire that. See
-// https://github.com/ocornut/imgui/issues/5548 for more details. [Scenario 1]
+// and ambiguity and we need to retire that.
 //  Previously this would make the window content size ~200x200:
 //    Begin(...) + SetCursorScreenPos(GetCursorScreenPos() + Vec2(200,200)) +
 //    End();  // NOT OK
@@ -12959,7 +11275,7 @@ bool Gui::ItemAdd(const Rect &bb, ID id, const Rect *nav_bb_arg,
     // [DEBUG] People keep stumbling on this problem and using "" as identifier
     // in the root of a window instead of "##something". Empty identifier are
     // valid and useful in a small amount of cases, but 99.9% of the time you
-    // want to use "##something". READ THE FAQ: https://dearimgui.com/faq
+    // want to use "##something".
     ASSERT(
         id != window->ID &&
         "Cannot have an empty ID at the root of a window. If you need an empty "
@@ -14052,7 +12368,7 @@ bool Gui::BeginPopup(const char *str_id, WindowFlags flags) {
 
 // If 'p_open' is specified for a modal popup window, the popup will have a
 // regular close button which will close the popup. Note that popup visibility
-// status is owned by Dear Gui (and manipulated with e.g. OpenPopup).
+// status is owned by Gui (and manipulated with e.g. OpenPopup).
 // - *p_open set back to false in BeginPopupModal() when popup is not open.
 // - if you set *p_open to false before calling BeginPopupModal(), it will close
 // the popup.
@@ -17458,7 +15774,7 @@ static bool Gui::UpdateTryMergeWindowIntoHostViewports(Window *window) {
   return UpdateTryMergeWindowIntoHostViewport(window, g.Viewports[0]);
 }
 
-// Translate Dear Gui windows when a Host Viewport has been moved
+// Translate Gui windows when a Host Viewport has been moved
 // (This additionally keeps windows at the same place when
 // ConfigFlags_ViewportsEnable is toggled!)
 void Gui::TranslateWindowsInViewport(ViewportP *viewport, const Vec2 &old_pos,
@@ -17577,7 +15893,7 @@ static void Gui::UpdateViewportsNewFrame() {
         focused_viewport->LastFocusedStampCount = ++g.ViewportFocusedStampCount;
       g.PlatformLastFocusedViewportId = focused_viewport->ID;
 
-      // Focus associated dear imgui window
+      // Focus associated gui window
       // - if focus didn't happen with a click within imgui boundaries, e.g.
       // Clicking platform title bar. (#6299)
       // - if focus didn't happen because we destroyed another window (#6462)
@@ -17678,7 +15994,7 @@ static void Gui::UpdateViewportsNewFrame() {
     // a lower alpha back.
     viewport->Alpha = 1.0f;
 
-    // Translate Dear Gui windows when a Host Viewport has been moved
+    // Translate Gui windows when a Host Viewport has been moved
     // (This additionally keeps windows at the same place when
     // ConfigFlags_ViewportsEnable is toggled!)
     const Vec2 viewport_delta_pos = viewport->Pos - viewport->LastPos;
@@ -18479,7 +16795,7 @@ void Gui::DestroyPlatformWindows() {
 //-----------------------------------------------------------------------------
 // Typical Docking call flow: (root level is generally public API):
 //-----------------------------------------------------------------------------
-// - NewFrame()                               new dear imgui frame
+// - NewFrame()                               new gui frame
 //    | DockContextNewFrameUpdateUndocking()  - process queued undocking
 //    requests | - DockContextProcessUndockWindow()    - process one window
 //    undocking request | - DockContextProcessUndockNode()      - process one
@@ -23109,7 +21425,7 @@ static const char *GetClipboardTextFn_DefaultImpl(void *user_data_ctx) {
 
 #else
 
-// Local Dear Gui-only clipboard implementation, if user hasn't defined better
+// Local Gui-only clipboard implementation, if user hasn't defined better
 // clipboard handlers.
 static const char *GetClipboardTextFn_DefaultImpl(void *user_data_ctx) {
   Context &g = *(Context *)user_data_ctx;
@@ -23444,14 +21760,14 @@ void Gui::ShowMetricsWindow(bool *p_open) {
   if (cfg->ShowIDStackTool)
     ShowIDStackToolWindow(&cfg->ShowIDStackTool);
 
-  if (!Begin("Dear Gui Metrics/Debugger", p_open) ||
+  if (!Begin("Gui Metrics/Debugger", p_open) ||
       GetCurrentWindow()->BeginCount > 1) {
     End();
     return;
   }
 
   // Basic info
-  Text("Dear Gui %s", GetVersion());
+  Text("Gui %s", GetVersion());
   Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate,
        io.Framerate);
   Text("%d vertices, %d indices (%d triangles)", io.MetricsRenderVertices,
@@ -23783,7 +22099,7 @@ void Gui::ShowMetricsWindow(bool *p_open) {
     bool open =
         TreeNode("Monitors", "Monitors (%d)", g.PlatformIO.Monitors.Size);
     SameLine();
-    MetricsHelpMarker("Dear Gui uses monitor data:\n- to query DPI settings "
+    MetricsHelpMarker("Gui uses monitor data:\n- to query DPI settings "
                       "on a per monitor basis\n- to position popup/tooltips so "
                       "they don't straddle monitors.");
     if (open) {
@@ -25058,8 +23374,7 @@ void Gui::ShowDebugLogWindow(bool *p_open) {
   Context &g = *GGui;
   if (!(g.NextWindowData.Flags & NextWindowDataFlags_HasSize))
     SetNextWindowSize(Vec2(0.0f, GetFontSize() * 12.0f), Cond_FirstUseEver);
-  if (!Begin("Dear Gui Debug Log", p_open) ||
-      GetCurrentWindow()->BeginCount > 1) {
+  if (!Begin("Gui Debug Log", p_open) || GetCurrentWindow()->BeginCount > 1) {
     End();
     return;
   }
@@ -25389,7 +23704,7 @@ void Gui::ShowIDStackToolWindow(bool *p_open) {
   Context &g = *GGui;
   if (!(g.NextWindowData.Flags & NextWindowDataFlags_HasSize))
     SetNextWindowSize(Vec2(0.0f, GetFontSize() * 8.0f), Cond_FirstUseEver);
-  if (!Begin("Dear Gui ID Stack Tool", p_open) ||
+  if (!Begin("Gui ID Stack Tool", p_open) ||
       GetCurrentWindow()->BeginCount > 1) {
     End();
     return;

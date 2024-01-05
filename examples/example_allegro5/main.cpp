@@ -1,11 +1,4 @@
-// Dear Gui: standalone example application for Allegro 5
-
-// Learn about Dear Gui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/
-// folder).
-// - Introduction, links and more at the top of gui.cpp
+// Gui: standalone example application for Allegro 5
 
 // On Windows, you can install Allegro5 using vcpkg:
 //   git clone https://github.com/Microsoft/vcpkg
@@ -30,13 +23,13 @@ int main(int, char **) {
   al_init_primitives_addon();
   al_set_new_display_flags(ALLEGRO_RESIZABLE);
   ALLEGRO_DISPLAY *display = al_create_display(1280, 720);
-  al_set_window_title(display, "Dear Gui Allegro 5 example");
+  al_set_window_title(display, "Gui Allegro 5 example");
   ALLEGRO_EVENT_QUEUE *queue = al_create_event_queue();
   al_register_event_source(queue, al_get_display_event_source(display));
   al_register_event_source(queue, al_get_keyboard_event_source());
   al_register_event_source(queue, al_get_mouse_event_source());
 
-  // Setup Dear Gui context
+  // Setup Gui context
   CHECKVERSION();
   Gui::CreateContext();
   IO &io = Gui::GetIO();
@@ -44,7 +37,7 @@ int main(int, char **) {
   io.ConfigFlags |= ConfigFlags_NavEnableKeyboard; // Enable Keyboard Controls
   io.ConfigFlags |= ConfigFlags_DockingEnable;     // Enable Docking
 
-  // Setup Dear Gui style
+  // Setup Gui style
   Gui::StyleColorsDark();
   // Gui::StyleColorsLight();
 
@@ -52,7 +45,7 @@ int main(int, char **) {
   Allegro5_Init(display);
 
   // Load Fonts
-  // - If no fonts are loaded, dear imgui will use the default font. You can
+  // - If no fonts are loaded, gui will use the default font. You can
   // also load multiple fonts and use Gui::PushFont()/PopFont() to select
   // them.
   // - AddFontFromFileTTF() will return the Font* so you can store it if you
@@ -86,12 +79,12 @@ int main(int, char **) {
   while (running) {
     // Poll and handle events (inputs, window resize, etc.)
     // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to
-    // tell if dear imgui wants to use your inputs.
+    // tell if gui wants to use your inputs.
     // - When io.WantCaptureMouse is true, do not dispatch mouse input data to
     // your main application, or clear/overwrite your copy of the mouse data.
     // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input
     // data to your main application, or clear/overwrite your copy of the
-    // keyboard data. Generally you may always pass all inputs to dear imgui,
+    // keyboard data. Generally you may always pass all inputs to gui,
     // and hide them from your application based on those two flags.
     ALLEGRO_EVENT ev;
     while (al_get_next_event(queue, &ev)) {
@@ -105,12 +98,12 @@ int main(int, char **) {
       }
     }
 
-    // Start the Dear Gui frame
+    // Start the Gui frame
     Allegro5_NewFrame();
     Gui::NewFrame();
 
     // 1. Show the big demo window (Most of the sample code is in
-    // Gui::ShowDemoWindow()! You can browse its code to learn more about Dear
+    // Gui::ShowDemoWindow()! You can browse its code to learn more about
     // Gui!).
     if (show_demo_window)
       Gui::ShowDemoWindow(&show_demo_window);

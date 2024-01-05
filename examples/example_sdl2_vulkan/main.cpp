@@ -1,11 +1,4 @@
-// Dear Gui: standalone example application for SDL2 + Vulkan
-
-// Learn about Dear Gui:
-// - FAQ                  https://dearimgui.com/faq
-// - Getting Started      https://dearimgui.com/getting-started
-// - Documentation        https://dearimgui.com/docs (same as your local docs/
-// folder).
-// - Introduction, links and more at the top of gui.cpp
+// Gui: standalone example application for SDL2 + Vulkan
 
 // Important note to the reader who wish to integrate vulkan.cpp/.h
 // in their own engine/app.
@@ -364,7 +357,7 @@ static void FrameRender(VulkanH_Window *wd, DrawData *draw_data) {
     vkCmdBeginRenderPass(fd->CommandBuffer, &info, VK_SUBPASS_CONTENTS_INLINE);
   }
 
-  // Record dear imgui primitives into command buffer
+  // Record gui primitives into command buffer
   Vulkan_RenderDrawData(draw_data, fd->CommandBuffer);
 
   // Submit command buffer
@@ -431,7 +424,7 @@ int main(int, char **) {
       (SDL_WindowFlags)(SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE |
                         SDL_WINDOW_ALLOW_HIGHDPI);
   SDL_Window *window =
-      SDL_CreateWindow("Dear Gui SDL2+Vulkan example", SDL_WINDOWPOS_CENTERED,
+      SDL_CreateWindow("Gui SDL2+Vulkan example", SDL_WINDOWPOS_CENTERED,
                        SDL_WINDOWPOS_CENTERED, 1280, 720, window_flags);
   if (window == nullptr) {
     printf("Error: SDL_CreateWindow(): %s\n", SDL_GetError());
@@ -459,7 +452,7 @@ int main(int, char **) {
   VulkanH_Window *wd = &g_MainWindowData;
   SetupVulkanWindow(wd, surface, w, h);
 
-  // Setup Dear Gui context
+  // Setup Gui context
   CHECKVERSION();
   Gui::CreateContext();
   IO &io = Gui::GetIO();
@@ -472,7 +465,7 @@ int main(int, char **) {
   // io.ConfigFlags |= ConfigFlags_ViewportsNoTaskBarIcons;
   // io.ConfigFlags |= ConfigFlags_ViewportsNoMerge;
 
-  // Setup Dear Gui style
+  // Setup Gui style
   Gui::StyleColorsDark();
   // Gui::StyleColorsLight();
 
@@ -503,7 +496,7 @@ int main(int, char **) {
   Vulkan_Init(&init_info, wd->RenderPass);
 
   // Load Fonts
-  // - If no fonts are loaded, dear imgui will use the default font. You can
+  // - If no fonts are loaded, gui will use the default font. You can
   // also load multiple fonts and use Gui::PushFont()/PopFont() to select
   // them.
   // - AddFontFromFileTTF() will return the Font* so you can store it if you
@@ -538,12 +531,12 @@ int main(int, char **) {
   while (!done) {
     // Poll and handle events (inputs, window resize, etc.)
     // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to
-    // tell if dear imgui wants to use your inputs.
+    // tell if gui wants to use your inputs.
     // - When io.WantCaptureMouse is true, do not dispatch mouse input data to
     // your main application, or clear/overwrite your copy of the mouse data.
     // - When io.WantCaptureKeyboard is true, do not dispatch keyboard input
     // data to your main application, or clear/overwrite your copy of the
-    // keyboard data. Generally you may always pass all inputs to dear imgui,
+    // keyboard data. Generally you may always pass all inputs to gui,
     // and hide them from your application based on those two flags.
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
@@ -570,13 +563,13 @@ int main(int, char **) {
       }
     }
 
-    // Start the Dear Gui frame
+    // Start the Gui frame
     Vulkan_NewFrame();
     SDL2_NewFrame();
     Gui::NewFrame();
 
     // 1. Show the big demo window (Most of the sample code is in
-    // Gui::ShowDemoWindow()! You can browse its code to learn more about Dear
+    // Gui::ShowDemoWindow()! You can browse its code to learn more about
     // Gui!).
     if (show_demo_window)
       Gui::ShowDemoWindow(&show_demo_window);

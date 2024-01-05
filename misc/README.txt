@@ -5,7 +5,7 @@ misc/cpp/
 
 misc/debuggers/
   Helper files for popular debuggers.
-  With the .natvis file, types like ImVector<> will be displayed nicely in Visual Studio debugger.
+  With the .natvis file, types like Vector<> will be displayed nicely in Visual Studio debugger.
 
 misc/fonts/
   Fonts loading/merging instructions (e.g. How to handle glyph ranges, how to merge icons fonts).
@@ -13,7 +13,7 @@ misc/fonts/
   Suggested fonts and links.
 
 misc/freetype/
-  Font atlas builder/rasterizer using FreeType instead of stb_truetype.
+  Font atlas builder/rasterizer using FreeType instead of truetype.
   Benefit from better FreeType rasterization, in particular for small fonts.
 
 misc/single_file/

@@ -11,13 +11,13 @@ WITH_EXTRA_WARNINGS ?= 0
 WITH_FREETYPE ?= 0
 
 EXE = example_null
-IMGUI_DIR = ../..
+DIR = ../..
 SOURCES = main.cpp
-SOURCES += $(IMGUI_DIR)/imgui.cpp $(IMGUI_DIR)/imgui_demo.cpp $(IMGUI_DIR)/imgui_draw.cpp $(IMGUI_DIR)/imgui_tables.cpp $(IMGUI_DIR)/imgui_widgets.cpp
+SOURCES += $(DIR)/gui.cpp $(DIR)/demo.cpp $(DIR)/draw.cpp $(DIR)/tables.cpp $(DIR)/widgets.cpp
 OBJS = $(addsuffix .o, $(basename $(notdir $(SOURCES))))
 UNAME_S := $(shell uname -s)
 
-CXXFLAGS += -std=c++11 -I$(IMGUI_DIR)
+CXXFLAGS += -std=c++11 -I$(DIR)
 CXXFLAGS += -g -Wall -Wformat
 LIBS =
 
@@ -26,10 +26,10 @@ ifeq ($(WITH_EXTRA_WARNINGS), 1)
 	CXXFLAGS += -Wno-zero-as-null-pointer-constant -Wno-double-promotion -Wno-variadic-macros
 endif
 
-# We use the WITH_FREETYPE flag on our CI setup to test compiling misc/freetype/imgui_freetype.cpp
-# (only supported on Linux, and note that the imgui_freetype code currently won't be executed)
+# We use the WITH_FREETYPE flag on our CI setup to test compiling misc/freetype/freetype.cpp
+# (only supported on Linux, and note that the freetype code currently won't be executed)
 ifeq ($(WITH_FREETYPE), 1)
-	SOURCES += $(IMGUI_DIR)/misc/freetype/imgui_freetype.cpp
+	SOURCES += $(DIR)/misc/freetype/freetype.cpp
 	CXXFLAGS += $(shell pkg-config --cflags freetype2)
 	LIBS += $(shell pkg-config --libs freetype2)
 endif
@@ -73,13 +73,13 @@ endif
 %.o:%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-%.o:$(IMGUI_DIR)/%.cpp
+%.o:$(DIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-%.o:$(IMGUI_DIR)/backends/%.cpp
+%.o:$(DIR)/backends/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-%.o:$(IMGUI_DIR)/misc/freetype/%.cpp
+%.o:$(DIR)/misc/freetype/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 all: $(EXE)

@@ -4,7 +4,7 @@
 #  cmake -g "Visual Studio 14 2015" ..
 
 cmake_minimum_required(VERSION 2.8)
-project(imgui_example_glfw_vulkan C CXX)
+project(example_glfw_vulkan C CXX)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE Debug CACHE STRING "" FORCE)
@@ -24,9 +24,9 @@ option(GLFW_DOCUMENT_INTERNALS "Include internals in documentation" OFF)
 add_subdirectory(${GLFW_DIR} binary_dir EXCLUDE_FROM_ALL)
 include_directories(${GLFW_DIR}/include)
 
-# Dear ImGui
-set(IMGUI_DIR ../../)
-include_directories(${IMGUI_DIR} ${IMGUI_DIR}/backends ..)
+# Dear Gui
+set(DIR ../../)
+include_directories(${DIR} ${DIR}/backends ..)
 
 # Libraries
 find_package(Vulkan REQUIRED)
@@ -40,6 +40,6 @@ include_directories(${GLFW_DIR}/deps)
 
 file(GLOB sources *.cpp)
 
-add_executable(example_glfw_vulkan ${sources} ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp ${IMGUI_DIR}/backends/imgui_impl_vulkan.cpp ${IMGUI_DIR}/imgui.cpp ${IMGUI_DIR}/imgui_draw.cpp ${IMGUI_DIR}/imgui_demo.cpp ${IMGUI_DIR}/imgui_tables.cpp ${IMGUI_DIR}/imgui_widgets.cpp)
+add_executable(example_glfw_vulkan ${sources} ${DIR}/backends/glfw.cpp ${DIR}/backends/vulkan.cpp ${DIR}/gui.cpp ${DIR}/draw.cpp ${DIR}/demo.cpp ${DIR}/tables.cpp ${DIR}/widgets.cpp)
 target_link_libraries(example_glfw_vulkan ${LIBRARIES})
-target_compile_definitions(example_glfw_vulkan PUBLIC -DImTextureID=ImU64)
+target_compile_definitions(example_glfw_vulkan PUBLIC -DTextureID=U64)

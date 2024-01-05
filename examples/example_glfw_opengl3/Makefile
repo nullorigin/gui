@@ -15,15 +15,15 @@
 #CXX = clang++
 
 EXE = example_glfw_opengl3
-IMGUI_DIR = ../..
+DIR = ../..
 SOURCES = main.cpp
-SOURCES += $(IMGUI_DIR)/imgui.cpp $(IMGUI_DIR)/imgui_demo.cpp $(IMGUI_DIR)/imgui_draw.cpp $(IMGUI_DIR)/imgui_tables.cpp $(IMGUI_DIR)/imgui_widgets.cpp
-SOURCES += $(IMGUI_DIR)/backends/imgui_impl_glfw.cpp $(IMGUI_DIR)/backends/imgui_impl_opengl3.cpp
+SOURCES += $(DIR)/gui.cpp $(DIR)/demo.cpp $(DIR)/draw.cpp $(DIR)/tables.cpp $(DIR)/widgets.cpp
+SOURCES += $(DIR)/backends/glfw.cpp $(DIR)/backends/opengl3.cpp
 OBJS = $(addsuffix .o, $(basename $(notdir $(SOURCES))))
 UNAME_S := $(shell uname -s)
 LINUX_GL_LIBS = -lGL
 
-CXXFLAGS = -std=c++11 -I$(IMGUI_DIR) -I$(IMGUI_DIR)/backends
+CXXFLAGS = -std=c++11 -I$(DIR) -I$(DIR)/backends
 CXXFLAGS += -g -Wall -Wformat
 LIBS =
 
@@ -32,7 +32,7 @@ LIBS =
 ##---------------------------------------------------------------------
 
 ## This assumes a GL ES library available in the system, e.g. libGLESv2.so
-# CXXFLAGS += -DIMGUI_IMPL_OPENGL_ES2
+# CXXFLAGS += -DOPENGL_ES2
 # LINUX_GL_LIBS = -lGLESv2
 
 ##---------------------------------------------------------------------
@@ -73,10 +73,10 @@ endif
 %.o:%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-%.o:$(IMGUI_DIR)/%.cpp
+%.o:$(DIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-%.o:$(IMGUI_DIR)/backends/%.cpp
+%.o:$(DIR)/backends/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 all: $(EXE)

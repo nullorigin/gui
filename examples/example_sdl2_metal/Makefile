@@ -7,17 +7,17 @@
 #CXX = clang++
 
 EXE = example_sdl2_metal
-IMGUI_DIR = ../..
+DIR = ../..
 SOURCES = main.mm
-SOURCES += $(IMGUI_DIR)/imgui.cpp $(IMGUI_DIR)/imgui_demo.cpp $(IMGUI_DIR)/imgui_draw.cpp $(IMGUI_DIR)/imgui_tables.cpp $(IMGUI_DIR)/imgui_widgets.cpp
-SOURCES += $(IMGUI_DIR)/backends/imgui_impl_sdl2.cpp $(IMGUI_DIR)/backends/imgui_impl_metal.mm
+SOURCES += $(DIR)/gui.cpp $(DIR)/demo.cpp $(DIR)/draw.cpp $(DIR)/tables.cpp $(DIR)/widgets.cpp
+SOURCES += $(DIR)/backends/sdl2.cpp $(DIR)/backends/metal.mm
 OBJS = $(addsuffix .o, $(basename $(notdir $(SOURCES))))
 
 LIBS = -framework Metal -framework MetalKit -framework Cocoa -framework IOKit -framework CoreVideo -framework QuartzCore
 LIBS += `sdl2-config --libs`
 LIBS += -L/usr/local/lib
 
-CXXFLAGS = -std=c++11 -I$(IMGUI_DIR) -I$(IMGUI_DIR)/backends -I/usr/local/include
+CXXFLAGS = -std=c++11 -I$(DIR) -I$(DIR)/backends -I/usr/local/include
 CXXFLAGS += `sdl2-config --cflags`
 CXXFLAGS += -Wall -Wformat
 CFLAGS = $(CXXFLAGS)
@@ -25,16 +25,16 @@ CFLAGS = $(CXXFLAGS)
 %.o:%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-%.o:$(IMGUI_DIR)/%.cpp
+%.o:$(DIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
-%.o:$(IMGUI_DIR)/backends/%.cpp
+%.o:$(DIR)/backends/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 %.o:%.mm
 	$(CXX) $(CXXFLAGS) -ObjC++ -fobjc-weak -fobjc-arc -c -o $@ $<
 
-%.o:$(IMGUI_DIR)/backends/%.mm
+%.o:$(DIR)/backends/%.mm
 	$(CXX) $(CXXFLAGS) -ObjC++ -fobjc-weak -fobjc-arc -c -o $@ $<
 
 all: $(EXE)

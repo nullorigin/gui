@@ -159,26 +159,26 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\imgui.cpp" />
-    <ClCompile Include="..\..\imgui_demo.cpp" />
-    <ClCompile Include="..\..\imgui_draw.cpp" />
-    <ClCompile Include="..\..\imgui_tables.cpp" />
-    <ClCompile Include="..\..\imgui_widgets.cpp" />
-    <ClCompile Include="..\..\backends\imgui_impl_glfw.cpp" />
-    <ClCompile Include="..\..\backends\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="..\..\gui.cpp" />
+    <ClCompile Include="..\..\demo.cpp" />
+    <ClCompile Include="..\..\draw.cpp" />
+    <ClCompile Include="..\..\tables.cpp" />
+    <ClCompile Include="..\..\widgets.cpp" />
+    <ClCompile Include="..\..\backends\glfw.cpp" />
+    <ClCompile Include="..\..\backends\opengl3.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\imconfig.h" />
-    <ClInclude Include="..\..\imgui.h" />
-    <ClInclude Include="..\..\imgui_internal.h" />
-    <ClInclude Include="..\..\backends\imgui_impl_glfw.h" />
-    <ClInclude Include="..\..\backends\imgui_impl_opengl3.h" />
-    <ClInclude Include="..\..\backends\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="..\..\config.hpp" />
+    <ClInclude Include="..\..\gui.hpp" />
+    <ClInclude Include="..\..\internal.hpp" />
+    <ClInclude Include="..\..\backends\glfw.hpp" />
+    <ClInclude Include="..\..\backends\opengl3.hpp" />
+    <ClInclude Include="..\..\backends\opengl3_loader.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\misc\debuggers\imgui.natstepfilter" />
-    <None Include="..\..\misc\debuggers\imgui.natvis" />
+    <None Include="..\..\misc\debuggers\gui.natvis" />
     <None Include="..\README.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

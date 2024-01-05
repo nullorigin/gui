@@ -1,8 +1,8 @@
 ## OSX artifacts
 .DS_Store
 
-## Dear ImGui artifacts
-imgui.ini
+## Dear Gui artifacts
+gui.ini
 
 ## General build artifacts
 *.o

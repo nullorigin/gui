@@ -10,51 +10,51 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\imgui.cpp">
+    <ClCompile Include="..\..\gui.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\imgui_demo.cpp">
+    <ClCompile Include="..\..\demo.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\imgui_draw.cpp">
+    <ClCompile Include="..\..\draw.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>sources</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\imgui_tables.cpp">
+    <ClCompile Include="..\..\tables.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\imgui_widgets.cpp">
+    <ClCompile Include="..\..\widgets.cpp">
       <Filter>imgui</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\backends\imgui_impl_sdl2.cpp">
+    <ClCompile Include="..\..\backends\sdl2.cpp">
       <Filter>sources</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\backends\imgui_impl_opengl2.cpp">
+    <ClCompile Include="..\..\backends\opengl2.cpp">
       <Filter>sources</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\imconfig.h">
+    <ClInclude Include="..\..\config.hpp">
       <Filter>imgui</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\imgui.h">
+    <ClInclude Include="..\..\gui.hpp">
       <Filter>imgui</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\imgui_internal.h">
+    <ClInclude Include="..\..\internal.hpp">
       <Filter>imgui</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\backends\imgui_impl_opengl2.h">
+    <ClInclude Include="..\..\backends\opengl2.hpp">
       <Filter>sources</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\backends\imgui_impl_sdl2.h">
+    <ClInclude Include="..\..\backends\sdl2.hpp">
       <Filter>sources</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.txt" />
-    <None Include="..\..\misc\debuggers\imgui.natvis">
+    <None Include="..\..\misc\debuggers\gui.natvis">
       <Filter>imgui</Filter>
     </None>
     <None Include="..\..\misc\debuggers\imgui.natstepfilter">

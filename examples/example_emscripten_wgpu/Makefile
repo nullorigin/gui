@@ -17,10 +17,10 @@ CC = emcc
 CXX = em++
 WEB_DIR = web
 EXE = $(WEB_DIR)/index.js
-IMGUI_DIR = ../..
+DIR = ../..
 SOURCES = main.cpp
-SOURCES += $(IMGUI_DIR)/imgui.cpp $(IMGUI_DIR)/imgui_demo.cpp $(IMGUI_DIR)/imgui_draw.cpp $(IMGUI_DIR)/imgui_tables.cpp $(IMGUI_DIR)/imgui_widgets.cpp
-SOURCES += $(IMGUI_DIR)/backends/imgui_impl_glfw.cpp $(IMGUI_DIR)/backends/imgui_impl_wgpu.cpp
+SOURCES += $(DIR)/gui.cpp $(DIR)/demo.cpp $(DIR)/draw.cpp $(DIR)/tables.cpp $(DIR)/widgets.cpp
+SOURCES += $(DIR)/backends/glfw.cpp $(DIR)/backends/wgpu.cpp
 OBJS = $(addsuffix .o, $(basename $(notdir $(SOURCES))))
 UNAME_S := $(shell uname -s)
 CPPFLAGS =
@@ -43,7 +43,7 @@ LDFLAGS += -s WASM=1 -s ALLOW_MEMORY_GROWTH=1 -s NO_EXIT_RUNTIME=0 -s ASSERTIONS
 USE_FILE_SYSTEM ?= 0
 ifeq ($(USE_FILE_SYSTEM), 0)
 LDFLAGS += -s NO_FILESYSTEM=1
-CPPFLAGS += -DIMGUI_DISABLE_FILE_FUNCTIONS
+CPPFLAGS += -DDISABLE_FILE_FUNCTIONS
 endif
 ifeq ($(USE_FILE_SYSTEM), 1)
 LDFLAGS += --no-heap-copy --preload-file ../../misc/fonts@/fonts
@@ -53,7 +53,7 @@ endif
 ## FINAL BUILD FLAGS
 ##---------------------------------------------------------------------
 
-CPPFLAGS += -I$(IMGUI_DIR) -I$(IMGUI_DIR)/backends
+CPPFLAGS += -I$(DIR) -I$(DIR)/backends
 #CPPFLAGS += -g
 CPPFLAGS += -Wall -Wformat -Os $(EMS)
 #LDFLAGS += --shell-file shell_minimal.html
@@ -66,10 +66,10 @@ LDFLAGS += $(EMS)
 %.o:%.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
-%.o:$(IMGUI_DIR)/%.cpp
+%.o:$(DIR)/%.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
-%.o:$(IMGUI_DIR)/backends/%.cpp
+%.o:$(DIR)/backends/%.cpp
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 all: $(EXE)

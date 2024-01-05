@@ -18,14 +18,14 @@ Thank you!
 
 _(you may also go to Demo>About Window, and click "Config/Build Information" to obtain a bunch of detailed information that you can paste here)_
 
-**Version/Branch of Dear ImGui:**
+**Version/Branch of Dear Gui:**
 
 Version: XXX
 Branch: XXX _(master/viewport/docking/etc.)_
 
 **Back-end/Renderer/Compiler/OS**
 
-Back-ends: imgui_impl_XXX.cpp + imgui_impl_XXX.cpp _(or specify if using a custom engine/back-end)_
+Back-ends: XXX.cpp + XXX.cpp _(or specify if using a custom engine/back-end)_
 Compiler: XXX _(if the question is related to building or platform specific features)_
 Operating System: XXX
 
@@ -40,7 +40,7 @@ XXX _(you can drag files here)_
 **Standalone, minimal, complete and verifiable example:** _(see https://github.com/ocornut/imgui/issues/2261)_
 ```
 // Here's some code anyone can copy and paste to reproduce your issue
-ImGui::Begin("Example Bug");
+Gui::Begin("Example Bug");
 MoreCodeToExplainMyIssue();
-ImGui::End();
+Gui::End();
 ```

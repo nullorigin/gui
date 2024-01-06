@@ -17,11 +17,12 @@
 #ifndef DISABLE
 #include "../../internal.hpp" // Min,Max,FontAtlasBuild*,
 #include "freetype.hpp"
-#include FT_FREETYPE_H  // <freetype/freetype.h>
-#include FT_GLYPH_H     // <freetype/ftglyph.h>
-#include FT_MODULE_H    // <freetype/ftmodapi.h>
-#include FT_SYNTHESIS_H // <freetype/ftsynth.h>
-#include <ft2build.h>
+#include <freetype2/freetype/freetype.h>
+#include <freetype2/freetype/ftimage.h>
+#include <freetype2/freetype/ftoutln.h>
+#include <freetype2/freetype/ftsizes.h>
+#include <freetype2/freetype/fttypes.h>
+#include <freetype2/ft2build.h>
 #include <stdint.h>
 
 #ifdef ENABLE_FREETYPE_LUNASVG

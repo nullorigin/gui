@@ -6380,11 +6380,11 @@ struct Viewport {
   Vec2 WorkSize;  // Work Area: Size of the viewport minus task bars, menu
                   // bars, status bars (<= Size)
   float DpiScale; // 1.0f = 96 DPI = No extra scale.
-  ID ParentViewportId; // (Advanced) 0: no parent. Instruct the platform
-                       // backend to setup a parent/child relationship
-                       // between platform windows.
-  DrawData *DrawData;  // The DrawData corresponding to this viewport. Valid
-                       // after Render() and until the next call to NewFrame().
+  ::ID ParentViewportId; // (Advanced) 0: no parent. Instruct the platform
+                         // backend to setup a parent/child relationship
+                         // between platform windows.
+  DrawData *DrawData;    // The DrawData corresponding to this viewport. Valid
+                      // after Render() and until the next call to NewFrame().
 
   // Platform/Backend Dependent Data
   // Our design separate the Renderer and Platform backends to facilitate

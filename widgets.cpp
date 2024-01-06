@@ -19,8 +19,6 @@
 // [SECTION] Widgets: BeginTabItem, EndTabItem, etc.
 // [SECTION] Widgets: Columns, BeginColumns, EndColumns, etc.
 
-* /
-
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
 #define _CRT_SECURE_NO_WARNINGS
 #endif
@@ -125,12 +123,12 @@
                                         // is deprecated
 #endif
 
-    //-------------------------------------------------------------------------
-    // Data
-    //-------------------------------------------------------------------------
+//-------------------------------------------------------------------------
+// Data
+//-------------------------------------------------------------------------
 
-    // Widgets
-    static const float DRAGDROP_HOLD_TO_OPEN_TIMER =
+// Widgets
+static const float DRAGDROP_HOLD_TO_OPEN_TIMER =
     0.70f; // Time for drag-hold to activate items accepting the
            // ButtonFlags_PressedOnDragDropHold button behavior.
 static const float DRAG_MOUSE_THRESHOLD_FACTOR =
@@ -6209,15 +6207,15 @@ bool Gui::InputTextEx(const char *label, const char *hint, char *buf,
 void Gui::DebugNodeInputTextState(InputTextState *state) {
 #ifndef DISABLE_DEBUG_TOOLS
   Context &g = *GGui;
-  Stb::TexteditState *state = &state->Stb;
-  Stb::StbUndoState *undo_state = &state->undostate;
+  Stb::TexteditState *stb_state = &state->Stb;
+  Stb::StbUndoState *undo_state = &stb_state->undostate;
   Text("ID: 0x%08X, ActiveID: 0x%08X", state->ID, g.ActiveId);
   DebugLocateItemOnHover(state->ID);
   Text("CurLenW: %d, CurLenA: %d, Cursor: %d, Selection: %d..%d",
-       state->CurLenW, state->CurLenA, state->cursor, state->select_start,
-       state->select_end);
-  Text("has_preferred_x: %d (%.2f)", state->has_preferred_x,
-       state->preferred_x);
+       state->CurLenW, state->CurLenA, stb_state->cursor,
+       stb_state->select_start, stb_state->select_end);
+  Text("has_preferred_x: %d (%.2f)", stb_state->has_preferred_x,
+       stb_state->preferred_x);
   Text("undo_point: %d, redo_point: %d, undo_char_point: %d, redo_char_point: "
        "%d",
        undo_state->undo_point, undo_state->redo_point,

@@ -21,13 +21,10 @@
 // [SECTION] Example App: Simple overlay / ShowExampleAppSimpleOverlay()
 // [SECTION] Example App: Fullscreen window / ShowExampleAppFullscreen()
 // [SECTION] Example App: Manipulating window titles /
-ShowExampleAppWindowTitles()
-    // [SECTION] Example App: Custom Rendering using DrawList API /
-    ShowExampleAppCustomRendering()
-    // [SECTION] Example App: Docking, DockSpace / ShowExampleAppDockSpace()
-    // [SECTION] Example App: Documents Handling / ShowExampleAppDocuments()
-
-    * /
+// ShowExampleAppWindowTitles() [SECTION] Example App: Custom Rendering using
+// DrawList API / ShowExampleAppCustomRendering() [SECTION] Example App:
+// Docking, DockSpace / ShowExampleAppDockSpace() [SECTION] Example App:
+// Documents Handling / ShowExampleAppDocuments()
 
 #if defined(_MSC_VER) && !defined(_CRT_SECURE_NO_WARNINGS)
 #define _CRT_SECURE_NO_WARNINGS
@@ -182,8 +179,8 @@ ShowExampleAppWindowTitles()
 
 #if !defined(DISABLE_DEMO_WINDOWS)
 
-    // Forward Declarations
-    static void ShowExampleAppMainMenuBar();
+// Forward Declarations
+static void ShowExampleAppMainMenuBar();
 static void ShowExampleAppConsole(bool *p_open);
 static void ShowExampleAppCustomRendering(bool *p_open);
 static void ShowExampleAppDockSpace(bool *p_open);
@@ -8381,7 +8378,7 @@ struct ExampleAppConsole {
     char buf[1024];
     va_list args;
     va_start(args, fmt);
-    vsnprintf(buf, ARRAYSIZE(buf), fmt, args);
+    ::vsnprintf(buf, ARRAYSIZE(buf), fmt, args);
     buf[ARRAYSIZE(buf) - 1] = 0;
     va_end(args);
     Items.push_back(Strdup(buf));
@@ -10290,8 +10287,7 @@ void ShowExampleAppDocuments(bool *p_open) {
 // End of Demo code
 #else
 
-    void Gui::ShowAboutWindow(bool *) {
-}
+void Gui::ShowAboutWindow(bool *) {}
 void Gui::ShowDemoWindow(bool *) {}
 void Gui::ShowUserGuide() {}
 void Gui::ShowStyleEditor(Style *) {}

@@ -26,8 +26,6 @@
 // [SECTION] FontAtlas internal API
 // [SECTION] Test Engine specific hooks (test_engine)
 
-* /
-
 #pragma once
 #ifndef DISABLE
 
@@ -128,11 +126,11 @@
 #define ENABLE_TRUETYPE
 #endif
 
-    //-----------------------------------------------------------------------------
-    // [SECTION] Forward declarations
-    //-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+// [SECTION] Forward declarations
+//-----------------------------------------------------------------------------
 
-    struct BitVector;      // Store 1-bit per value
+struct BitVector;          // Store 1-bit per value
 struct Rect;               // An axis-aligned rectangle (2 points)
 struct DrawDataBuilder;    // Helper to build a DrawData instance
 struct DrawListSharedData; // Data shared between all DrawList instances
@@ -900,8 +898,8 @@ struct API Rect {
     Max.y += dy;
   }
   void ClipWith(const Rect &r) {
-    Min = Max(Min, r.Min);
-    Max = Min(Max, r.Max);
+    Min = ::Max(Min, r.Min);
+    Max = ::Min(Max, r.Max);
   } // Simple version, may lead to an inverted rectangle, which is fine for
     // Contains/Overlaps test but not for display.
   void ClipWithFull(const Rect &r) {
@@ -1851,9 +1849,9 @@ struct PopupData {
   ID PopupId;     // Set on OpenPopup()
   Window *Window; // Resolved on BeginPopup() - may stay unresolved if user
                   // never calls OpenPopup()
-  Window *BackupNavWindow; // Set on OpenPopup(), a NavWindow that will be
-                           // restored on popup close
-  int ParentNavLayer;      // Resolved on BeginPopup(). Actually a NavLayer type
+  ::Window *BackupNavWindow; // Set on OpenPopup(), a NavWindow that will be
+                             // restored on popup close
+  int ParentNavLayer; // Resolved on BeginPopup(). Actually a NavLayer type
                       // (declared down below), initialized to -1 which is not
                       // part of an enum, but serves well-enough as "not any of
                       // layers" value
@@ -1959,13 +1957,13 @@ struct LastItemData {
   ItemFlags InFlags;           // See ItemFlags_
   ItemStatusFlags StatusFlags; // See ItemStatusFlags_
   Rect Rect;                   // Full rectangle
-  Rect NavRect;                // Navigation scoring rectangle (not displayed)
+  ::Rect NavRect;              // Navigation scoring rectangle (not displayed)
   // Rarely used fields are not explicitly cleared, only valid when the
   // corresponding ItemStatusFlags is set.
-  Rect DisplayRect; // Display rectangle (ONLY VALID IF
-                    // ItemStatusFlags_HasDisplayRect is set)
-  Rect ClipRect;    // Clip rectangle at the time of submitting item (ONLY VALID
-                    // IF ItemStatusFlags_HasClipRect is set)
+  ::Rect DisplayRect; // Display rectangle (ONLY VALID IF
+                      // ItemStatusFlags_HasDisplayRect is set)
+  ::Rect ClipRect; // Clip rectangle at the time of submitting item (ONLY VALID
+                   // IF ItemStatusFlags_HasClipRect is set)
 
   LastItemData() { memset(this, 0, sizeof(*this)); }
 };
@@ -2321,7 +2319,7 @@ struct ListClipperData {
   Vector<ListClipperRange> Ranges;
 
   ListClipperData() { memset(this, 0, sizeof(*this)); }
-  void Reset(ListClipper *clipper) {
+  void Reset(::ListClipper *clipper) {
     ListClipper = clipper;
     StepNo = ItemsFrozen = 0;
     Ranges.resize(0);
@@ -2438,12 +2436,12 @@ enum NavLayer {
 };
 
 struct NavItemData {
-  Window *Window;  // Init,Move    // Best candidate window
-                   // (result->ItemWindow->RootWindowForNav == request->Window)
-  ID ID;           // Init,Move    // Best candidate item ID
-  ID FocusScopeId; // Init,Move    // Best candidate focus scope ID
-  Rect RectRel;    // Init,Move    // Best candidate bounding box in window
-                   // relative space
+  Window *Window; // Init,Move    // Best candidate window
+                  // (result->ItemWindow->RootWindowForNav == request->Window)
+  ID ID;          // Init,Move    // Best candidate item ID
+  ::ID FocusScopeId; // Init,Move    // Best candidate focus scope ID
+  Rect RectRel;      // Init,Move    // Best candidate bounding box in window
+                     // relative space
   ItemFlags InFlags; // ????,Move    // Best candidate item flags
   SelectionUserData SelectionUserData; // I+Mov    // Best candidate
                                        // SetNextItemSelectionData() value.
@@ -2722,13 +2720,13 @@ struct API DockNode {
                         // DockNodeFlags_KeepAliveOnly
   int LastFrameActive;  // Last frame number the node was updated.
   int LastFrameFocused; // Last frame number the node was focused.
-  ID LastFocusedNodeId; // [Root node only] Which of our child docking node
-                        // (any ancestor in the hierarchy) was last focused.
-  ID SelectedTabId;     // [Leaf node only] Which of our tab/window is selected.
-  ID WantCloseTabId;    // [Leaf node only] Set when closing a specific
-                        // tab/window.
-  ID RefViewportId;     // Reference viewport ID from visible window when
-                        // HostWindow == NULL.
+  ::ID LastFocusedNodeId; // [Root node only] Which of our child docking node
+                          // (any ancestor in the hierarchy) was last focused.
+  ::ID SelectedTabId;  // [Leaf node only] Which of our tab/window is selected.
+  ::ID WantCloseTabId; // [Leaf node only] Set when closing a specific
+                       // tab/window.
+  ::ID RefViewportId;  // Reference viewport ID from visible window when
+                       // HostWindow == NULL.
   DataAuthority AuthorityForPos : 3;
   DataAuthority AuthorityForSize : 3;
   DataAuthority AuthorityForViewport : 3;
@@ -2748,7 +2746,7 @@ struct API DockNode {
   bool WantHiddenTabBarUpdate : 1;
   bool WantHiddenTabBarToggle : 1;
 
-  DockNode(ID id);
+  DockNode(::ID id);
   ~DockNode();
   bool IsRootNode() const { return ParentNode == NULL; }
   bool IsDockSpace() const {
@@ -2770,7 +2768,7 @@ struct API DockNode {
   bool IsLeafNode() const { return ChildNodes[0] == NULL; }
   bool IsEmpty() const { return ChildNodes[0] == NULL && Windows.Size == 0; }
   Rect Rect() const {
-    return Rect(Pos.x, Pos.y, Pos.x + Size.x, Pos.y + Size.y);
+    return ::Rect(Pos.x, Pos.y, Pos.x + Size.x, Pos.y + Size.y);
   }
 
   void SetLocalFlags(DockNodeFlags flags) {
@@ -2828,7 +2826,7 @@ struct ViewportP : public Viewport {
                              // this viewport was focused (by comparing this
                              // value between two viewport we have an implicit
                              // viewport z-order we use as fallback)
-  ID LastNameHash;
+  ::ID LastNameHash;
   Vec2 LastPos;
   float Alpha; // Window opacity (when dragging dockable windows/viewports we
                // make them transparent)
@@ -2844,7 +2842,7 @@ struct ViewportP : public Viewport {
                               // draw lists. We use them to draw software
                               // mouser cursor when io.MouseDrawCursor is set
                               // and to draw most debug overlays.
-  DrawData DrawDataP;
+  ::DrawData DrawDataP;
   DrawDataBuilder
       DrawDataBuilder; // Temporary data while building final DrawData
   Vec2 LastPlatformPos;
@@ -2931,10 +2929,10 @@ struct WindowSettings {
               // Whereas runtime ones are absolute positions.
   Vec2ih Size;
   Vec2ih ViewportPos;
-  ID ViewportId;
-  ID DockId;  // ID of last known DockNode (even if the DockNode is invisible
-              // because it has only 1 active window), or 0 if none.
-  ID ClassId; // ID of window class if specified
+  ::ID ViewportId;
+  ::ID DockId;  // ID of last known DockNode (even if the DockNode is invisible
+                // because it has only 1 active window), or 0 if none.
+  ::ID ClassId; // ID of window class if specified
   short DockOrder; // Order of the last time the window was visible within its
                    // DockNode. This is used to reorder windows that are
                    // reappearing on the same frame. Same value between windows
@@ -3287,7 +3285,7 @@ struct Context {
                                // inherited by Begin()
   Vector<StyleMod> StyleVarStack; // Stack for PushStyleVar()/PopStyleVar() -
                                   // inherited by Begin()
-  Vector<Font *>
+  Vector<::Font *>
       FontStack; // Stack for PushFont()/PopFont() - inherited by Begin()
   Vector<ID>
       FocusScopeStack; // Stack for PushFocusScope()/PopFocusScope() - inherited
@@ -3526,7 +3524,7 @@ struct Context {
   // Widget state
   InputTextState InputTextState;
   InputTextDeactivatedState InputTextDeactivatedState;
-  Font InputTextPasswordFont;
+  ::Font InputTextPasswordFont;
   ID TempInputId; // Temporary text input when CTRL+clicking on a slider, etc.
   ColorEditFlags ColorEditOptions; // Store user options for color edit widgets
   ID ColorEditCurrentID;   // Set temporarily while inside of the parent-most
@@ -3570,9 +3568,9 @@ struct Context {
   TypingSelectState TypingSelectState;  // State for GetTypingSelectRequest()
 
   // Platform support
-  PlatformImeData PlatformImeData;     // Data updated by current frame
-  PlatformImeData PlatformImeDataPrev; // Previous frame data (when changing we
-                                       // will call io.SetPlatformImeDataFn
+  PlatformImeData PlatformImeData;       // Data updated by current frame
+  ::PlatformImeData PlatformImeDataPrev; // Previous frame data (when changing
+                                         // we will call io.SetPlatformImeDataFn
   ID PlatformImeViewport;
 
   // Extensions
@@ -3915,7 +3913,7 @@ struct API WindowTempData {
   OldColumns *CurrentColumns; // Current columns set
   int CurrentTableIdx;        // Current table index (into g.Tables)
   LayoutType LayoutType;
-  LayoutType
+  ::LayoutType
       ParentLayoutType; // Layout type of parent window at the time of Begin()
 
   // Local parameters stacks
@@ -3943,8 +3941,8 @@ struct API Window {
   WindowClass WindowClass; // Advanced users only. Set with SetNextWindowClass()
   ViewportP *Viewport;     // Always set in Begin(). Inactive windows may have a
                            // NULL value here if their viewport was discarded.
-  ID ViewportId; // We backup the viewport id (since the viewport may disappear
-                 // or never be created if the window is inactive)
+  ::ID ViewportId;         // We backup the viewport id (since the viewport may
+                   // disappear or never be created if the window is inactive)
   Vec2 ViewportPos; // We backup the viewport position (since the viewport may
                     // disappear or never be created if the window is inactive)
   int ViewportAllowPlatformMonitorExtend; // Reset to -1 every frame (index is
@@ -3983,10 +3981,10 @@ struct API Window {
                        // regular decoration sizes).
   int NameBufLen;      // Size of buffer storing Name. May be larger than
                        // strlen(Name)!
-  ID MoveId;           // == window->GetID("#MOVE")
-  ID TabId;            // == window->GetID("#TAB")
-  ID ChildId; // ID of corresponding item in parent window (for navigation
-              // to return from child window to parent window)
+  ::ID MoveId;         // == window->GetID("#MOVE")
+  ::ID TabId;          // == window->GetID("#TAB")
+  ::ID ChildId; // ID of corresponding item in parent window (for navigation
+                // to return from child window to parent window)
   Vec2 Scroll;
   Vec2 ScrollMax;
   Vec2 ScrollTarget; // target scroll position. stored as cursor position with
@@ -4031,7 +4029,7 @@ struct API Window {
                                  // order related issues.
   short FocusOrder; // Order within WindowsFocusOrder[], altered when windows
                     // are focused.
-  ID PopupId;       // ID in the popup stack when this window is used as a
+  ::ID PopupId;     // ID in the popup stack when this window is used as a
                     // popup/menu (because we use generic Name/ID for recycling)
   S8 AutoFitFramesX, AutoFitFramesY;
   bool AutoFitOnlyGrows;
@@ -4058,12 +4056,12 @@ struct API Window {
                           // when positioning from top-left corner; Vec2(0.5f,
                           // 0.5f) for centering; Vec2(1, 1) for bottom right.
 
-  Vector<ID> IDStack; // ID stack. ID are hashes seeded with the value at
-                      // the top of the stack. (In theory this should be
-                      // in the TempData structure)
-  WindowTempData DC;  // Temporary per-window data, reset at the beginning
-                      // of the frame. This used to be called
-                      // DrawContext, hence the "DC" variable name.
+  Vector<::ID> IDStack; // ID stack. ID are hashes seeded with the value at
+                        // the top of the stack. (In theory this should be
+                        // in the TempData structure)
+  WindowTempData DC;    // Temporary per-window data, reset at the beginning
+                        // of the frame. This used to be called
+                        // DrawContext, hence the "DC" variable name.
 
   // The best way to understand what those rectangles are is to use the
   // 'Metrics->Tools->Show Windows Rectangles' viewer. The main 'OuterRect',
@@ -4108,7 +4106,7 @@ struct API Window {
 
   DrawList *DrawList; // == &DrawListInst (for backward compatibility reason
                       // with code using internal.hpp we keep this a pointer)
-  DrawList DrawListInst;
+  ::DrawList DrawListInst;
   Window *ParentWindow; // If we are a child _or_ popup _or_ docked window,
                         // this is pointing to our parent. Otherwise NULL.
   Window *ParentWindowInBeginStack;
@@ -4130,14 +4128,14 @@ struct API Window {
                               // child window we came from. (This could probably
                               // be made implicit if we kept g.Windows sorted by
                               // last focused including child window.)
-  ID NavLastIds[NavLayer_COUNT];   // Last known NavId for this window,
+  ::ID NavLastIds[NavLayer_COUNT]; // Last known NavId for this window,
                                    // per layer (0/1)
   Rect NavRectRel[NavLayer_COUNT]; // Reference rectangle, in window
                                    // relative space
   Vec2 NavPreferredScoringPosRel
-      [NavLayer_COUNT];   // Preferred X/Y position updated when moving on a
-                          // given axis, reset to FLT_MAX.
-  ID NavRootFocusScopeId; // Focus Scope ID at the time of Begin()
+      [NavLayer_COUNT];     // Preferred X/Y position updated when moving on a
+                            // given axis, reset to FLT_MAX.
+  ::ID NavRootFocusScopeId; // Focus Scope ID at the time of Begin()
 
   int MemoryDrawListIdxCapacity; // Backup of last idx/vtx count, so when waking
                                  // up the window we can preallocate and avoid
@@ -4160,12 +4158,12 @@ struct API Window {
                    // reappearing on the same frame. Same value between windows
                    // that were active and windows that were none are possible.
   WindowDockStyle DockStyle;
-  DockNode *DockNode;       // Which node are we docked into. Important: Prefer
-                            // testing DockIsActive in many cases as this will
-                            // still be set when the dock node is hidden.
-  DockNode *DockNodeAsHost; // Which node are we owning (for parent windows)
-  ID DockId; // Backup of last valid DockNode->ID, so single window remember
-             // their dock node id even when they are not bound any more
+  DockNode *DockNode; // Which node are we docked into. Important: Prefer
+                      // testing DockIsActive in many cases as this will
+                      // still be set when the dock node is hidden.
+  ::DockNode *DockNodeAsHost; // Which node are we owning (for parent windows)
+  ::ID DockId; // Backup of last valid DockNode->ID, so single window remember
+               // their dock node id even when they are not bound any more
   ItemStatusFlags DockTabItemStatusFlags;
   Rect DockTabItemRect;
 
@@ -4173,14 +4171,14 @@ public:
   Window(Context *context, const char *name);
   ~Window();
 
-  ID GetID(const char *str, const char *str_end = NULL);
-  ID GetID(const void *ptr);
-  ID GetID(int n);
-  ID GetIDFromRectangle(const Rect &r_abs);
+  ::ID GetID(const char *str, const char *str_end = NULL);
+  ::ID GetID(const void *ptr);
+  ::ID GetID(int n);
+  ::ID GetIDFromRectangle(const Rect &r_abs);
 
   // We don't use g.FontSize because the window may be != g.CurrentWindow.
   Rect Rect() const {
-    return Rect(Pos.x, Pos.y, Pos.x + Size.x, Pos.y + Size.y);
+    return ::Rect(Pos.x, Pos.y, Pos.x + Size.x, Pos.y + Size.y);
   }
   float CalcFontSize() const {
     Context &g = *Ctx;
@@ -4195,8 +4193,8 @@ public:
                ? 0.0f
                : CalcFontSize() + g.Style.FramePadding.y * 2.0f;
   }
-  Rect TitleBarRect() const {
-    return Rect(Pos, Vec2(Pos.x + SizeFull.x, Pos.y + TitleBarHeight()));
+  ::Rect TitleBarRect() const {
+    return ::Rect(Pos, Vec2(Pos.x + SizeFull.x, Pos.y + TitleBarHeight()));
   }
   float MenuBarHeight() const {
     Context &g = *Ctx;
@@ -4204,9 +4202,9 @@ public:
                                                g.Style.FramePadding.y * 2.0f
                                          : 0.0f;
   }
-  Rect MenuBarRect() const {
+  ::Rect MenuBarRect() const {
     float y1 = Pos.y + TitleBarHeight();
-    return Rect(Pos.x, y1, Pos.x + SizeFull.x, y1 + MenuBarHeight());
+    return ::Rect(Pos.x, y1, Pos.x + SizeFull.x, y1 + MenuBarHeight());
   }
 };
 
@@ -4274,12 +4272,12 @@ struct TabItem {
 struct API TabBar {
   Vector<TabItem> Tabs;
   TabBarFlags Flags;
-  ID ID;                // Zero for tab-bars used by docking
-  ID SelectedTabId;     // Selected tab/window
-  ID NextSelectedTabId; // Next selected tab/window. Will also trigger a
-                        // scrolling animation
-  ID VisibleTabId;      // Can occasionally be != SelectedTabId (e.g. when
-                        // previewing contents for CTRL+TAB preview)
+  ID ID;                  // Zero for tab-bars used by docking
+  ::ID SelectedTabId;     // Selected tab/window
+  ::ID NextSelectedTabId; // Next selected tab/window. Will also trigger a
+                          // scrolling animation
+  ::ID VisibleTabId;      // Can occasionally be != SelectedTabId (e.g. when
+                          // previewing contents for CTRL+TAB preview)
   int CurrFrameVisible;
   int PrevFrameVisible;
   Rect BarRect;
@@ -4297,7 +4295,7 @@ struct API TabBar {
   float ScrollingRectMaxX;
   float SeparatorMinX;
   float SeparatorMaxX;
-  ID ReorderRequestTabId;
+  ::ID ReorderRequestTabId;
   S16 ReorderRequestOffset;
   S8 BeginCount;
   bool WantLayout;

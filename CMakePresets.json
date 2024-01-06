@@ -1,0 +1,39 @@
+{
+    "version": 2,
+    "configurePresets": [
+        {
+            "name": "default",
+            "displayName": "Clang 17",
+            "description": "Sets Ninja generator, build and install directory",
+            "generator": "Unix Makefiles",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/out/install/${presetName}",
+                "CMAKE_CXX_COMPILER": "/usr/lib/llvm/17/bin/clang++",
+                "CMAKE_MAKE_PROGRAM": "/usr/bin/make"
+            },
+            "environment": {
+                "CC": "/usr/lib/llvm/17/bin/clang",
+                "CXX": "/usr/lib/llvm/17/bin/clang++",
+                "AR": "/usr/lib/llvm/17/bin/llvm-ar",
+                "RANLIB": "/usr/lib/llvm/17/bin/llvm-ranlib",
+                "LD": "/usr/lib/llvm/17/bin/lld.ld",
+                "LLVM": "1"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "default",
+            "displayName": "Clang-17",
+            "configurePreset": "default",
+            "inherits": "linux-clang",
+            "inheritConfigureEnvironment": true,
+            "configuration": "Debug",
+            "targets": [
+                "Gui"
+            ]
+        }
+    ]
+}

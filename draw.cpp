@@ -2846,7 +2846,7 @@ bool FontAtlas::Build() {
   //   up static data, store your own instance of FontBuilderIO somewhere and
   //   point to it instead of pointing directly to return value of the
   //   GetBuilderXXX functions.
-  const FontBuilderIO *builder_io = FontBuilderIO;
+  const ::FontBuilderIO *builder_io = FontBuilderIO;
   if (builder_io == NULL) {
 #ifdef ENABLE_FREETYPE
     builder_io = FreeType::GetBuilderForFreeType();

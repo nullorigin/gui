@@ -999,7 +999,7 @@ void IO::AddMouseWheelEvent(float wheel_x, float wheel_y) {
 // Mouse events. This is so that duplicate events (e.g. Windows sending
 // extraneous WM_MOUSEMOVE) gets filtered and are not leading to actual source
 // changes.
-void IO::AddMouseSourceEvent(MouseSource source) {
+void IO::AddMouseSourceEvent(::MouseSource source) {
   ASSERT(Ctx != NULL);
   Context &g = *Ctx;
   g.InputEventsNextMouseSource = source;
@@ -3410,7 +3410,7 @@ Window::Window(Context *ctx, const char *name) : DrawListInst(NULL) {
   DrawList->_OwnerName = Name;
   NavPreferredScoringPosRel[0] = NavPreferredScoringPosRel[1] =
       Vec2(FLT_MAX, FLT_MAX);
-  PLACEMENT_NEW(&WindowClass) WindowClass();
+  PLACEMENT_NEW(&WindowClass)::WindowClass();
 }
 
 Window::~Window() {
@@ -3420,8 +3420,8 @@ Window::~Window() {
 }
 
 ID Window::GetID(const char *str, const char *str_end) {
-  ID seed = IDStack.back();
-  ID id = HashStr(str, str_end ? (str_end - str) : 0, seed);
+  ::ID seed = IDStack.back();
+  ::ID id = HashStr(str, str_end ? (str_end - str) : 0, seed);
   Context &g = *Ctx;
   if (g.DebugHookIdInfo == id)
     Gui::DebugHookIdInfo(id, DataType_String, str, str_end);
@@ -3429,8 +3429,8 @@ ID Window::GetID(const char *str, const char *str_end) {
 }
 
 ID Window::GetID(const void *ptr) {
-  ID seed = IDStack.back();
-  ID id = HashData(&ptr, sizeof(void *), seed);
+  ::ID seed = IDStack.back();
+  ::ID id = HashData(&ptr, sizeof(void *), seed);
   Context &g = *Ctx;
   if (g.DebugHookIdInfo == id)
     Gui::DebugHookIdInfo(id, DataType_Pointer, ptr, NULL);
@@ -3438,8 +3438,8 @@ ID Window::GetID(const void *ptr) {
 }
 
 ID Window::GetID(int n) {
-  ID seed = IDStack.back();
-  ID id = HashData(&n, sizeof(n), seed);
+  ::ID seed = IDStack.back();
+  ::ID id = HashData(&n, sizeof(n), seed);
   Context &g = *Ctx;
   if (g.DebugHookIdInfo == id)
     Gui::DebugHookIdInfo(id, DataType_S32, (void *)(intptr_t)n, NULL);
@@ -3448,10 +3448,10 @@ ID Window::GetID(int n) {
 
 // This is only used in rare/specific situations to manufacture an ID out of
 // nowhere.
-ID Window::GetIDFromRectangle(const Rect &r_abs) {
-  ID seed = IDStack.back();
-  Rect r_rel = Gui::WindowRectAbsToRel(this, r_abs);
-  ID id = HashData(&r_rel, sizeof(r_rel), seed);
+ID Window::GetIDFromRectangle(const ::Rect &r_abs) {
+  ::ID seed = IDStack.back();
+  ::Rect r_rel = Gui::WindowRectAbsToRel(this, r_abs);
+  ::ID id = HashData(&r_rel, sizeof(r_rel), seed);
   return id;
 }
 
@@ -16902,9 +16902,9 @@ struct DockPreviewData {
 // bytes)
 struct DockNodeSettings {
   ID ID;
-  ID ParentNodeId;
-  ID ParentWindowId;
-  ID SelectedTabId;
+  ::ID ParentNodeId;
+  ::ID ParentWindowId;
+  ::ID SelectedTabId;
   signed char SplitAxis;
   char Depth;
   DockNodeFlags Flags; // NB: We save individual flags one by one in ascii
@@ -17754,7 +17754,7 @@ bool Gui::DockContextCalcDropPosForDocking(
 // - DockNodePreviewDockRender()
 //-----------------------------------------------------------------------------
 
-DockNode::DockNode(ID id) {
+DockNode::DockNode(::ID id) {
   ID = id;
   SharedFlags = LocalFlags = LocalFlagsInWindows = MergedFlags =
       DockNodeFlags_None;
@@ -20629,7 +20629,7 @@ void Gui::DockBuilderCopyDockSpace(
   struct DockRemainingWindowTask {
     Window *Window;
     ID DockId;
-    DockRemainingWindowTask(Window *window, ID dock_id) {
+    DockRemainingWindowTask(::Window *window, ID dock_id) {
       Window = window;
       DockId = dock_id;
     }

@@ -295,7 +295,7 @@ void DX9_RenderDrawData(DrawData *draw_data) {
 
 bool DX9_Init(IDirect3DDevice9 *device) {
   IO &io = Gui::GetIO();
-  ASSERT(io.BackendRendererUserData == nullptr &&
+  assert(io.BackendRendererUserData == nullptr &&
          "Already initialized a renderer backend!");
 
   // Setup backend capabilities flags
@@ -321,7 +321,7 @@ bool DX9_Init(IDirect3DDevice9 *device) {
 
 void DX9_Shutdown() {
   DX9_Data *bd = DX9_GetBackendData();
-  ASSERT(bd != nullptr &&
+  assert(bd != nullptr &&
          "No renderer backend to shutdown, or already shutdown?");
   IO &io = Gui::GetIO();
 
@@ -419,7 +419,7 @@ void DX9_InvalidateDeviceObjects() {
 
 void DX9_NewFrame() {
   DX9_Data *bd = DX9_GetBackendData();
-  ASSERT(bd != nullptr && "Did you call DX9_Init()?");
+  assert(bd != nullptr && "Did you call DX9_Init()?");
 
   if (!bd->FontTexture)
     DX9_CreateDeviceObjects();
@@ -443,7 +443,7 @@ struct DX9_ViewportData {
     SwapChain = nullptr;
     ZeroMemory(&d3dpp, sizeof(D3DPRESENT_PARAMETERS));
   }
-  ~DX9_ViewportData() { ASSERT(SwapChain == nullptr); }
+  ~DX9_ViewportData() { assert(SwapChain == nullptr); }
 };
 
 static void DX9_CreateWindow(Viewport *viewport) {
@@ -457,7 +457,7 @@ static void DX9_CreateWindow(Viewport *viewport) {
   // contain the HWND.
   HWND hwnd = viewport->PlatformHandleRaw ? (HWND)viewport->PlatformHandleRaw
                                           : (HWND)viewport->PlatformHandle;
-  ASSERT(hwnd != 0);
+  assert(hwnd != 0);
 
   ZeroMemory(&vd->d3dpp, sizeof(D3DPRESENT_PARAMETERS));
   vd->d3dpp.Windowed = TRUE;
@@ -474,8 +474,8 @@ static void DX9_CreateWindow(Viewport *viewport) {
   HRESULT hr =
       bd->pd3dDevice->CreateAdditionalSwapChain(&vd->d3dpp, &vd->SwapChain);
   UNUSED(hr);
-  ASSERT(hr == D3D_OK);
-  ASSERT(vd->SwapChain != nullptr);
+  assert(hr == D3D_OK);
+  assert(vd->SwapChain != nullptr);
 }
 
 static void DX9_DestroyWindow(Viewport *viewport) {
@@ -502,7 +502,7 @@ static void DX9_SetWindowSize(Viewport *viewport, Vec2 size) {
     HRESULT hr =
         bd->pd3dDevice->CreateAdditionalSwapChain(&vd->d3dpp, &vd->SwapChain);
     UNUSED(hr);
-    ASSERT(hr == D3D_OK);
+    assert(hr == D3D_OK);
   }
 }
 
@@ -543,7 +543,7 @@ static void DX9_SwapBuffers(Viewport *viewport, void *) {
   HRESULT hr = vd->SwapChain->Present(nullptr, nullptr, vd->d3dpp.hDeviceWindow,
                                       nullptr, 0);
   // Let main application handle D3DERR_DEVICELOST by resetting the device.
-  ASSERT(SUCCEEDED(hr) || hr == D3DERR_DEVICELOST);
+  assert(SUCCEEDED(hr) || hr == D3DERR_DEVICELOST);
 }
 
 static void DX9_InitPlatformInterface() {

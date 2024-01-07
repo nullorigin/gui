@@ -168,12 +168,8 @@ namespace NAMESPACE {
 #ifndef DISABLE_RECT_PACK_IMPLEMENTATION // in case the user already have an
                                          // implementation in another
                                          // compilation unit
-#define STBRP_STATIC
-#define STBRP_ASSERT(x)                                                        \
-  do {                                                                         \
-    ASSERT(x);                                                                 \
-  } while (0)
-#define STBRP_SORT Qsort
+#define STATIC
+#define SORT Qsort
 #define RECT_PACK_IMPLEMENTATION
 #endif
 #ifdef RECT_PACK_FILENAME
@@ -190,19 +186,15 @@ namespace NAMESPACE {
 #ifndef DISABLE_TRUETYPE_IMPLEMENTATION // in case the user already have an
                                         // implementation in another
                                         // compilation unit
-#define STBTT_malloc(x, u) ((void)(u), ALLOC(x))
-#define STBTT_free(x, u) ((void)(u), FREE(x))
-#define STBTT_assert(x)                                                        \
-  do {                                                                         \
-    ASSERT(x);                                                                 \
-  } while (0)
-#define STBTT_fmod(x, y) Fmod(x, y)
-#define STBTT_sqrt(x) Sqrt(x)
-#define STBTT_pow(x, y) Pow(x, y)
-#define STBTT_fabs(x) Fabs(x)
-#define STBTT_ifloor(x) ((int)Floor(x))
-#define STBTT_iceil(x) ((int)Ceil(x))
-#define STBTT_STATIC
+#define malloc(x, u) ((void)(u), ALLOC(x))
+#define free(x, u) ((void)(u), FREE(x))
+#define fmod(x, y) Fmod(x, y)
+#define sqrt(x) Sqrt(x)
+#define pow(x, y) Pow(x, y)
+#define fabs(x) Fabs(x)
+#define ifloor(x) ((int)Floor(x))
+#define iceil(x) ((int)Ceil(x))
+#define STATIC
 #define TRUETYPE_IMPLEMENTATION
 #else
 #define extern extern
@@ -454,7 +446,7 @@ void DrawListSharedData::SetCircleTessellationMaxError(float max_error) {
   if (CircleSegmentMaxError == max_error)
     return;
 
-  ASSERT(max_error > 0.0f);
+  assert(max_error > 0.0f);
   CircleSegmentMaxError = max_error;
   for (int i = 0; i < ARRAYSIZE(CircleSegmentCounts); i++) {
     const float radius = (float)i;
@@ -472,9 +464,9 @@ void DrawListSharedData::SetCircleTessellationMaxError(float max_error) {
 void DrawList::_ResetForNewFrame() {
   // Verify that the DrawCmd fields we want to memcmp() are contiguous in
   // memory.
-  STATIC_ASSERT(offsetof(DrawCmd, ClipRect) == 0);
-  STATIC_ASSERT(offsetof(DrawCmd, TextureId) == sizeof(Vec4));
-  STATIC_ASSERT(offsetof(DrawCmd, VtxOffset) ==
+  STATIC_assert(offsetof(DrawCmd, ClipRect) == 0);
+  STATIC_assert(offsetof(DrawCmd, TextureId) == sizeof(Vec4));
+  STATIC_assert(offsetof(DrawCmd, VtxOffset) ==
                 sizeof(Vec4) + sizeof(TextureID));
   if (_Splitter._Count > 1)
     _Splitter.Merge(this);
@@ -526,7 +518,7 @@ void DrawList::AddDrawCmd() {
   draw_cmd.VtxOffset = _CmdHeader.VtxOffset;
   draw_cmd.IdxOffset = IdxBuffer.Size;
 
-  ASSERT(draw_cmd.ClipRect.x <= draw_cmd.ClipRect.z &&
+  assert(draw_cmd.ClipRect.x <= draw_cmd.ClipRect.z &&
          draw_cmd.ClipRect.y <= draw_cmd.ClipRect.w);
   CmdBuffer.push_back(draw_cmd);
 }
@@ -547,7 +539,7 @@ void DrawList::_PopUnusedDrawCmd() {
 void DrawList::AddCallback(DrawCallback callback, void *callback_data) {
   ASSERT_PARANOID(CmdBuffer.Size > 0);
   DrawCmd *curr_cmd = &CmdBuffer.Data[CmdBuffer.Size - 1];
-  ASSERT(curr_cmd->UserCallback == NULL);
+  assert(curr_cmd->UserCallback == NULL);
   if (curr_cmd->ElemCount != 0) {
     AddDrawCmd();
     curr_cmd = &CmdBuffer.Data[CmdBuffer.Size - 1];
@@ -596,7 +588,7 @@ void DrawList::_OnChangedClipRect() {
     AddDrawCmd();
     return;
   }
-  ASSERT(curr_cmd->UserCallback == NULL);
+  assert(curr_cmd->UserCallback == NULL);
 
   // Try to merge with previous command if it matches, else use current command
   DrawCmd *prev_cmd = curr_cmd - 1;
@@ -620,7 +612,7 @@ void DrawList::_OnChangedTextureID() {
     AddDrawCmd();
     return;
   }
-  ASSERT(curr_cmd->UserCallback == NULL);
+  assert(curr_cmd->UserCallback == NULL);
 
   // Try to merge with previous command if it matches, else use current command
   DrawCmd *prev_cmd = curr_cmd - 1;
@@ -641,12 +633,12 @@ void DrawList::_OnChangedVtxOffset() {
   _VtxCurrentIdx = 0;
   ASSERT_PARANOID(CmdBuffer.Size > 0);
   DrawCmd *curr_cmd = &CmdBuffer.Data[CmdBuffer.Size - 1];
-  // ASSERT(curr_cmd->VtxOffset != _CmdHeader.VtxOffset); // See #3349
+  // assert(curr_cmd->VtxOffset != _CmdHeader.VtxOffset); // See #3349
   if (curr_cmd->ElemCount != 0) {
     AddDrawCmd();
     return;
   }
-  ASSERT(curr_cmd->UserCallback == NULL);
+  assert(curr_cmd->UserCallback == NULL);
   curr_cmd->VtxOffset = _CmdHeader.VtxOffset;
 }
 
@@ -1593,7 +1585,7 @@ void DrawList::PathBezierCubicCurveTo(const Vec2 &p2, const Vec2 &p3,
                                       const Vec2 &p4, int num_segments) {
   Vec2 p1 = _Path.back();
   if (num_segments == 0) {
-    ASSERT(_Data->CurveTessellationTol > 0.0f);
+    assert(_Data->CurveTessellationTol > 0.0f);
     PathBezierCubicCurveToCasteljau(&_Path, p1.x, p1.y, p2.x, p2.y, p3.x, p3.y,
                                     p4.x, p4.y, _Data->CurveTessellationTol,
                                     0); // Auto-tessellated
@@ -1608,7 +1600,7 @@ void DrawList::PathBezierQuadraticCurveTo(const Vec2 &p2, const Vec2 &p3,
                                           int num_segments) {
   Vec2 p1 = _Path.back();
   if (num_segments == 0) {
-    ASSERT(_Data->CurveTessellationTol > 0.0f);
+    assert(_Data->CurveTessellationTol > 0.0f);
     PathBezierQuadraticCurveToCasteljau(&_Path, p1.x, p1.y, p2.x, p2.y, p3.x,
                                         p3.y, _Data->CurveTessellationTol,
                                         0); // Auto-tessellated
@@ -1621,7 +1613,7 @@ void DrawList::PathBezierQuadraticCurveTo(const Vec2 &p2, const Vec2 &p3,
 
 static inline int FixRectCornerFlags(int flags) {
   /*
-  STATIC_ASSERT(DrawFlags_RoundCornersTopLeft == (1 << 4));
+  STATIC_assert(DrawFlags_RoundCornersTopLeft == (1 << 4));
 #ifndef DISABLE_OBSOLETE_FUNCTIONS
   // Obsoleted in 1.82 (from February 2021). This code was stripped/simplified
 and mostly commented in 1.90 (from September 2023)
@@ -1639,7 +1631,7 @@ with DrawFlags_RoundCornersNone or use 'float rounding = 0.0f' #endif
   // 0x01) is an invalid flag for AddRect(), AddRectFilled(), PathRect() etc.
   // anyway. See details in 1.82 Changelog as well as 2021/03/12 and 2023/09/08
   // entries in "API BREAKING CHANGES" section.
-  ASSERT((flags & 0x0F) == 0 &&
+  assert((flags & 0x0F) == 0 &&
          "Misuse of legacy hardcoded DrawCornerFlags values!");
 
   if ((flags & DrawFlags_RoundCornersMask_) == 0)
@@ -1965,7 +1957,7 @@ void DrawList::AddText(const Font *font, float font_size, const Vec2 &pos,
   if (font_size == 0.0f)
     font_size = _Data->FontSize;
 
-  ASSERT(font->ContainerAtlas->TexID ==
+  assert(font->ContainerAtlas->TexID ==
          _CmdHeader.TextureId); // Use high-level Gui::PushFont() or low-level
                                 // DrawList::PushTextureId() to change font.
 
@@ -2072,7 +2064,7 @@ void DrawListSplitter::ClearFreeMemory() {
 
 void DrawListSplitter::Split(DrawList *draw_list, int channels_count) {
   UNUSED(draw_list);
-  ASSERT(_Current == 0 && _Count <= 1 &&
+  assert(_Current == 0 && _Count <= 1 &&
          "Nested channel splitting is not supported. Please use separate "
          "instances of DrawListSplitter.");
   int old_channels_count = _Channels.Size;
@@ -2193,7 +2185,7 @@ void DrawListSplitter::Merge(DrawList *draw_list) {
 }
 
 void DrawListSplitter::SetCurrentChannel(DrawList *draw_list, int idx) {
-  ASSERT(idx >= 0 && idx < _Count);
+  assert(idx >= 0 && idx < _Count);
   if (_Current == idx)
     return;
 
@@ -2256,14 +2248,14 @@ void Gui::AddDrawListToDrawDataEx(DrawData *draw_data,
   // Draw list sanity check. Detect mismatch between PrimReserve() calls and
   // incrementing _VtxCurrentIdx, _VtxWritePtr etc. May trigger for you if you
   // are using PrimXXX functions incorrectly.
-  ASSERT(draw_list->VtxBuffer.Size == 0 ||
+  assert(draw_list->VtxBuffer.Size == 0 ||
          draw_list->_VtxWritePtr ==
              draw_list->VtxBuffer.Data + draw_list->VtxBuffer.Size);
-  ASSERT(draw_list->IdxBuffer.Size == 0 ||
+  assert(draw_list->IdxBuffer.Size == 0 ||
          draw_list->_IdxWritePtr ==
              draw_list->IdxBuffer.Data + draw_list->IdxBuffer.Size);
   if (!(draw_list->Flags & DrawListFlags_AllowVtxOffset))
-    ASSERT((int)draw_list->_VtxCurrentIdx == draw_list->VtxBuffer.Size);
+    assert((int)draw_list->_VtxCurrentIdx == draw_list->VtxBuffer.Size);
 
   // Check that draw_list doesn't use more vertices than indexable (default
   // DrawIdx = unsigned short = 2 bytes = 64K vertices per DrawList = per
@@ -2293,7 +2285,7 @@ void Gui::AddDrawListToDrawDataEx(DrawData *draw_data,
   // is to call BeginChild()/EndChild() before reaching
   //   the 64K limit to split your draw commands in multiple draw lists.
   if (sizeof(DrawIdx) == 2)
-    ASSERT(draw_list->_VtxCurrentIdx < (1 << 16) &&
+    assert(draw_list->_VtxCurrentIdx < (1 << 16) &&
            "Too many vertices in DrawList using 16-bit indices. Read "
            "comment above");
 
@@ -2305,7 +2297,7 @@ void Gui::AddDrawListToDrawDataEx(DrawData *draw_data,
 }
 
 void DrawData::AddDrawList(DrawList *draw_list) {
-  ASSERT(CmdLists.Size == CmdListsCount);
+  assert(CmdLists.Size == CmdListsCount);
   draw_list->_PopUnusedDrawCmd();
   Gui::AddDrawListToDrawDataEx(this, &CmdLists, draw_list);
 }
@@ -2506,13 +2498,13 @@ FontAtlas::FontAtlas() {
 }
 
 FontAtlas::~FontAtlas() {
-  ASSERT(!Locked && "Cannot modify a locked FontAtlas between NewFrame() "
+  assert(!Locked && "Cannot modify a locked FontAtlas between NewFrame() "
                     "and EndFrame/Render()!");
   Clear();
 }
 
 void FontAtlas::ClearInputData() {
-  ASSERT(!Locked && "Cannot modify a locked FontAtlas between NewFrame() "
+  assert(!Locked && "Cannot modify a locked FontAtlas between NewFrame() "
                     "and EndFrame/Render()!");
   for (FontConfig &font_cfg : ConfigData)
     if (font_cfg.FontData && font_cfg.FontDataOwnedByAtlas) {
@@ -2535,7 +2527,7 @@ void FontAtlas::ClearInputData() {
 }
 
 void FontAtlas::ClearTexData() {
-  ASSERT(!Locked && "Cannot modify a locked FontAtlas between NewFrame() "
+  assert(!Locked && "Cannot modify a locked FontAtlas between NewFrame() "
                     "and EndFrame/Render()!");
   if (TexPixelsAlpha8)
     FREE(TexPixelsAlpha8);
@@ -2548,7 +2540,7 @@ void FontAtlas::ClearTexData() {
 }
 
 void FontAtlas::ClearFonts() {
-  ASSERT(!Locked && "Cannot modify a locked FontAtlas between NewFrame() "
+  assert(!Locked && "Cannot modify a locked FontAtlas between NewFrame() "
                     "and EndFrame/Render()!");
   Fonts.clear_delete();
   TexReady = false;
@@ -2603,16 +2595,16 @@ void FontAtlas::GetTexDataAsRGBA32(unsigned char **out_pixels, int *out_width,
 }
 
 Font *FontAtlas::AddFont(const FontConfig *font_cfg) {
-  ASSERT(!Locked && "Cannot modify a locked FontAtlas between NewFrame() "
+  assert(!Locked && "Cannot modify a locked FontAtlas between NewFrame() "
                     "and EndFrame/Render()!");
-  ASSERT(font_cfg->FontData != NULL && font_cfg->FontDataSize > 0);
-  ASSERT(font_cfg->SizePixels > 0.0f);
+  assert(font_cfg->FontData != NULL && font_cfg->FontDataSize > 0);
+  assert(font_cfg->SizePixels > 0.0f);
 
   // Create new font
   if (!font_cfg->MergeMode)
     Fonts.push_back(NEW(Font));
   else
-    ASSERT(
+    assert(
         !Fonts.empty() &&
         "Cannot use MergeMode for the first font"); // When using MergeMode make
                                                     // sure that a font has
@@ -2695,7 +2687,7 @@ Font *FontAtlas::AddFontDefault(const FontConfig *font_cfg_template) {
 Font *FontAtlas::AddFontFromFileTTF(const char *filename, float size_pixels,
                                     const FontConfig *font_cfg_template,
                                     const Wchar *glyph_ranges) {
-  ASSERT(!Locked && "Cannot modify a locked FontAtlas between NewFrame() "
+  assert(!Locked && "Cannot modify a locked FontAtlas between NewFrame() "
                     "and EndFrame/Render()!");
   size_t data_size = 0;
   void *data = FileLoadToMemory(filename, "rb", &data_size, 0);
@@ -2724,11 +2716,11 @@ Font *FontAtlas::AddFontFromMemoryTTF(void *font_data, int font_data_size,
                                       float size_pixels,
                                       const FontConfig *font_cfg_template,
                                       const Wchar *glyph_ranges) {
-  ASSERT(!Locked && "Cannot modify a locked FontAtlas between NewFrame() "
+  assert(!Locked && "Cannot modify a locked FontAtlas between NewFrame() "
                     "and EndFrame/Render()!");
   FontConfig font_cfg = font_cfg_template ? *font_cfg_template : FontConfig();
-  ASSERT(font_cfg.FontData == NULL);
-  ASSERT(font_data_size > 100 &&
+  assert(font_cfg.FontData == NULL);
+  assert(font_data_size > 100 &&
          "Incorrect value for font_data_size!"); // Heuristic to prevent
                                                  // accidentally passing a wrong
                                                  // value to font_data_size.
@@ -2751,7 +2743,7 @@ Font *FontAtlas::AddFontFromMemoryCompressedTTF(
              (unsigned int)compressed_ttf_size);
 
   FontConfig font_cfg = font_cfg_template ? *font_cfg_template : FontConfig();
-  ASSERT(font_cfg.FontData == NULL);
+  assert(font_cfg.FontData == NULL);
   font_cfg.FontDataOwnedByAtlas = true;
   return AddFontFromMemoryTTF(buf_decompressed_data, (int)buf_decompressed_size,
                               size_pixels, &font_cfg, glyph_ranges);
@@ -2772,8 +2764,8 @@ Font *FontAtlas::AddFontFromMemoryCompressedBase85TTF(
 }
 
 int FontAtlas::AddCustomRectRegular(int width, int height) {
-  ASSERT(width > 0 && width <= 0xFFFF);
-  ASSERT(height > 0 && height <= 0xFFFF);
+  assert(width > 0 && width <= 0xFFFF);
+  assert(height > 0 && height <= 0xFFFF);
   FontAtlasCustomRect r;
   r.Width = (unsigned short)width;
   r.Height = (unsigned short)height;
@@ -2785,11 +2777,11 @@ int FontAtlas::AddCustomRectFontGlyph(Font *font, Wchar id, int width,
                                       int height, float advance_x,
                                       const Vec2 &offset) {
 #ifdef USE_WCHAR32
-  ASSERT(id <= UNICODE_CODEPOINT_MAX);
+  assert(id <= UNICODE_CODEPOINT_MAX);
 #endif
-  ASSERT(font != NULL);
-  ASSERT(width > 0 && width <= 0xFFFF);
-  ASSERT(height > 0 && height <= 0xFFFF);
+  assert(font != NULL);
+  assert(width > 0 && width <= 0xFFFF);
+  assert(height > 0 && height <= 0xFFFF);
   FontAtlasCustomRect r;
   r.Width = (unsigned short)width;
   r.Height = (unsigned short)height;
@@ -2803,9 +2795,9 @@ int FontAtlas::AddCustomRectFontGlyph(Font *font, Wchar id, int width,
 
 void FontAtlas::CalcCustomRectUV(const FontAtlasCustomRect *rect,
                                  Vec2 *out_uv_min, Vec2 *out_uv_max) const {
-  ASSERT(TexWidth > 0 && TexHeight > 0); // Font atlas needs to be built before
+  assert(TexWidth > 0 && TexHeight > 0); // Font atlas needs to be built before
                                          // we can calculate UV coordinates
-  ASSERT(rect->IsPacked()); // Make sure the rectangle has been packed
+  assert(rect->IsPacked()); // Make sure the rectangle has been packed
   *out_uv_min =
       Vec2((float)rect->X * TexUvScale.x, (float)rect->Y * TexUvScale.y);
   *out_uv_max = Vec2((float)(rect->X + rect->Width) * TexUvScale.x,
@@ -2820,7 +2812,7 @@ bool FontAtlas::GetMouseCursorTexData(int cursor_type, Vec2 *out_offset,
   if (Flags & FontAtlasFlags_NoMouseCursors)
     return false;
 
-  ASSERT(PackIdMouseCursors != -1);
+  assert(PackIdMouseCursors != -1);
   FontAtlasCustomRect *r = GetCustomRectByIndex(PackIdMouseCursors);
   Vec2 pos = FONT_ATLAS_DEFAULT_TEX_CURSOR_DATA[cursor_type][0] +
              Vec2((float)r->X, (float)r->Y);
@@ -2836,7 +2828,7 @@ bool FontAtlas::GetMouseCursorTexData(int cursor_type, Vec2 *out_offset,
 }
 
 bool FontAtlas::Build() {
-  ASSERT(!Locked && "Cannot modify a locked FontAtlas between NewFrame() "
+  assert(!Locked && "Cannot modify a locked FontAtlas between NewFrame() "
                     "and EndFrame/Render()!");
 
   // Default font is none are specified
@@ -2858,7 +2850,7 @@ bool FontAtlas::Build() {
 #elif defined(ENABLE_TRUETYPE)
     builder_io = FontAtlasGetBuilderForStbTruetype();
 #else
-    ASSERT(0); // Invalid Build function
+    assert(0); // Invalid Build function
 #endif
   }
 
@@ -2892,8 +2884,8 @@ struct FontBuildSrcData {
   tt_fontinfo FontInfo;
   tt_pack_range PackRange; // Hold the list of codepoints to pack
                            // (essentially points to Codepoints.Data)
-  stbrp_rect *Rects; // Rectangle to pack. We first fill in their size and the
-                     // packer will give us their position.
+  rect *Rects; // Rectangle to pack. We first fill in their size and the
+               // packer will give us their position.
   tt_packedchar *PackedChars; // Output glyphs
   const Wchar *SrcRanges;     // Ranges as requested by user (user is allowed to
                               // request too much, e.g. 0x0020..0xFFFF)
@@ -2919,7 +2911,7 @@ struct FontBuildDstData {
 
 static void UnpackBitVectorToFlatIndexList(const BitVector *in,
                                            Vector<int> *out) {
-  ASSERT(sizeof(in->Storage.Data[0]) == sizeof(int));
+  assert(sizeof(in->Storage.Data[0]) == sizeof(int));
   const unsigned int *it_begin = in->Storage.begin();
   const unsigned int *it_end = in->Storage.end();
   for (const unsigned int *it = it_begin; it < it_end; it++)
@@ -2930,7 +2922,7 @@ static void UnpackBitVectorToFlatIndexList(const BitVector *in,
 }
 
 static bool FontAtlasBuildWithStbTruetype(FontAtlas *atlas) {
-  ASSERT(atlas->ConfigData.Size > 0);
+  assert(atlas->ConfigData.Size > 0);
 
   FontAtlasBuildInit(atlas);
 
@@ -2953,7 +2945,7 @@ static bool FontAtlasBuildWithStbTruetype(FontAtlas *atlas) {
   for (int src_i = 0; src_i < atlas->ConfigData.Size; src_i++) {
     FontBuildSrcData &src_tmp = src_tmp_array[src_i];
     FontConfig &cfg = atlas->ConfigData[src_i];
-    ASSERT(cfg.DstFont &&
+    assert(cfg.DstFont &&
            (!cfg.DstFont->IsLoaded() || cfg.DstFont->ContainerAtlas == atlas));
 
     // Find index from cfg.DstFont (we allow the user to set cfg.DstFont. Also
@@ -2964,7 +2956,7 @@ static bool FontAtlasBuildWithStbTruetype(FontAtlas *atlas) {
       if (cfg.DstFont == atlas->Fonts[output_i])
         src_tmp.DstIndex = output_i;
     if (src_tmp.DstIndex == -1) {
-      ASSERT(src_tmp.DstIndex !=
+      assert(src_tmp.DstIndex !=
              -1); // cfg.DstFont not pointing within atlas->Fonts[] array?
       return false;
     }
@@ -2972,11 +2964,11 @@ static bool FontAtlasBuildWithStbTruetype(FontAtlas *atlas) {
     // data is correct
     const int font_offset =
         tt_GetFontOffsetForIndex((unsigned char *)cfg.FontData, cfg.FontNo);
-    ASSERT(font_offset >= 0 &&
+    assert(font_offset >= 0 &&
            "FontData is incorrect, or FontNo cannot be found.");
     if (!tt_InitFont(&src_tmp.FontInfo, (unsigned char *)cfg.FontData,
                      font_offset)) {
-      ASSERT(0 && "tt_InitFont(): failed to parse FontData. It is "
+      assert(0 && "tt_InitFont(): failed to parse FontData. It is "
                   "correct and complete? Check FontDataSize.");
       return false;
     }
@@ -2990,7 +2982,7 @@ static bool FontAtlasBuildWithStbTruetype(FontAtlas *atlas) {
       // Check for valid range. This may also help detect *some* dangling
       // pointers, because a common user error is to setup
       // FontConfig::GlyphRanges with a pointer to data that isn't persistent.
-      ASSERT(src_range[0] <= src_range[1]);
+      assert(src_range[0] <= src_range[1]);
       src_tmp.GlyphsHighest = Max(src_tmp.GlyphsHighest, (int)src_range[1]);
     }
     dst_tmp.SrcCount++;
@@ -3037,7 +3029,7 @@ static bool FontAtlasBuildWithStbTruetype(FontAtlas *atlas) {
     src_tmp.GlyphsList.reserve(src_tmp.GlyphsCount);
     UnpackBitVectorToFlatIndexList(&src_tmp.GlyphsSet, &src_tmp.GlyphsList);
     src_tmp.GlyphsSet.Clear();
-    ASSERT(src_tmp.GlyphsList.Size == src_tmp.GlyphsCount);
+    assert(src_tmp.GlyphsList.Size == src_tmp.GlyphsCount);
   }
   for (int dst_i = 0; dst_i < dst_tmp_array.Size; dst_i++)
     dst_tmp_array[dst_i].GlyphsSet.Clear();
@@ -3046,7 +3038,7 @@ static bool FontAtlasBuildWithStbTruetype(FontAtlas *atlas) {
   // Allocate packing character data and flag packed characters buffer as
   // non-packed (x0=y0=x1=y1=0) (We technically don't need to zero-clear
   // buf_rects, but let's do it for the sake of sanity)
-  Vector<stbrp_rect> buf_rects;
+  Vector<rect> buf_rects;
   Vector<tt_packedchar> buf_packedchars;
   buf_rects.resize(total_glyphs_count);
   buf_packedchars.resize(total_glyphs_count);
@@ -3090,14 +3082,14 @@ static bool FontAtlasBuildWithStbTruetype(FontAtlas *atlas) {
       int x0, y0, x1, y1;
       const int glyph_index_in_font =
           tt_FindGlyphIndex(&src_tmp.FontInfo, src_tmp.GlyphsList[glyph_i]);
-      ASSERT(glyph_index_in_font != 0);
+      assert(glyph_index_in_font != 0);
       tt_GetGlyphBitmapBoxSubpixel(
           &src_tmp.FontInfo, glyph_index_in_font, scale * cfg.OversampleH,
           scale * cfg.OversampleV, 0, 0, &x0, &y0, &x1, &y1);
       src_tmp.Rects[glyph_i].w =
-          (stbrp_coord)(x1 - x0 + padding + cfg.OversampleH - 1);
+          (coord)(x1 - x0 + padding + cfg.OversampleH - 1);
       src_tmp.Rects[glyph_i].h =
-          (stbrp_coord)(y1 - y0 + padding + cfg.OversampleV - 1);
+          (coord)(y1 - y0 + padding + cfg.OversampleV - 1);
       total_surface += src_tmp.Rects[glyph_i].w * src_tmp.Rects[glyph_i].h;
     }
   }
@@ -3133,8 +3125,7 @@ static bool FontAtlasBuildWithStbTruetype(FontAtlas *atlas) {
     if (src_tmp.GlyphsCount == 0)
       continue;
 
-    stbrp_pack_rects((stbrp_context *)spc.pack_info, src_tmp.Rects,
-                     src_tmp.GlyphsCount);
+    pack_rects((context *)spc.pack_info, src_tmp.Rects, src_tmp.GlyphsCount);
 
     // Extend texture height and mark missing glyphs as non-packed so we won't
     // render them.
@@ -3172,7 +3163,7 @@ static bool FontAtlasBuildWithStbTruetype(FontAtlas *atlas) {
       unsigned char multiply_table[256];
       FontAtlasBuildMultiplyCalcLookupTable(multiply_table,
                                             cfg.RasterizerMultiply);
-      stbrp_rect *r = &src_tmp.Rects[0];
+      rect *r = &src_tmp.Rects[0];
       for (int glyph_i = 0; glyph_i < src_tmp.GlyphsCount; glyph_i++, r++)
         if (r->was_packed)
           FontAtlasBuildMultiplyRectAlpha8(multiply_table,
@@ -3260,41 +3251,40 @@ void FontAtlasBuildSetupFont(FontAtlas *atlas, Font *font,
   if (!font_config->MergeMode) {
     font->ClearOutputData();
     font->FontSize = font_config->SizePixels;
-    ASSERT(font->ConfigData == font_config);
+    assert(font->ConfigData == font_config);
     font->ContainerAtlas = atlas;
     font->Ascent = ascent;
     font->Descent = descent;
   }
 }
 
-void FontAtlasBuildPackCustomRects(FontAtlas *atlas,
-                                   void *stbrp_context_opaque) {
-  stbrp_context *pack_context = (stbrp_context *)stbrp_context_opaque;
-  ASSERT(pack_context != NULL);
+void FontAtlasBuildPackCustomRects(FontAtlas *atlas, void *context_opaque) {
+  context *pack_context = (context *)context_opaque;
+  assert(pack_context != NULL);
 
   Vector<FontAtlasCustomRect> &user_rects = atlas->CustomRects;
-  ASSERT(user_rects.Size >= 1); // We expect at least the default custom rects
+  assert(user_rects.Size >= 1); // We expect at least the default custom rects
                                 // to be registered, else something went wrong.
 #ifdef __GNUC__
   if (user_rects.Size < 1) {
     __builtin_unreachable();
-  } // Workaround for GCC bug if ASSERT() is defined to conditionally throw
+  } // Workaround for GCC bug if assert() is defined to conditionally throw
     // (see #5343)
 #endif
 
-  Vector<stbrp_rect> pack_rects;
+  Vector<rect> pack_rects;
   pack_rects.resize(user_rects.Size);
   memset(pack_rects.Data, 0, (size_t)pack_rects.size_in_bytes());
   for (int i = 0; i < user_rects.Size; i++) {
     pack_rects[i].w = user_rects[i].Width;
     pack_rects[i].h = user_rects[i].Height;
   }
-  stbrp_pack_rects(pack_context, &pack_rects[0], pack_rects.Size);
+  ::pack_rects(pack_context, &pack_rects[0], pack_rects.Size);
   for (int i = 0; i < pack_rects.Size; i++)
     if (pack_rects[i].was_packed) {
       user_rects[i].X = (unsigned short)pack_rects[i].x;
       user_rects[i].Y = (unsigned short)pack_rects[i].y;
-      ASSERT(pack_rects[i].w == user_rects[i].Width &&
+      assert(pack_rects[i].w == user_rects[i].Width &&
              pack_rects[i].h == user_rects[i].Height);
       atlas->TexHeight =
           Max(atlas->TexHeight, pack_rects[i].y + pack_rects[i].h);
@@ -3304,8 +3294,8 @@ void FontAtlasBuildPackCustomRects(FontAtlas *atlas,
 void FontAtlasBuildRender8bppRectFromString(
     FontAtlas *atlas, int x, int y, int w, int h, const char *in_str,
     char in_marker_char, unsigned char in_marker_pixel_value) {
-  ASSERT(x >= 0 && x + w <= atlas->TexWidth);
-  ASSERT(y >= 0 && y + h <= atlas->TexHeight);
+  assert(x >= 0 && x + w <= atlas->TexWidth);
+  assert(y >= 0 && y + h <= atlas->TexHeight);
   unsigned char *out_pixel = atlas->TexPixelsAlpha8 + x + (y * atlas->TexWidth);
   for (int off_y = 0; off_y < h;
        off_y++, out_pixel += atlas->TexWidth, in_str += w)
@@ -3317,8 +3307,8 @@ void FontAtlasBuildRender8bppRectFromString(
 void FontAtlasBuildRender32bppRectFromString(
     FontAtlas *atlas, int x, int y, int w, int h, const char *in_str,
     char in_marker_char, unsigned int in_marker_pixel_value) {
-  ASSERT(x >= 0 && x + w <= atlas->TexWidth);
-  ASSERT(y >= 0 && y + h <= atlas->TexHeight);
+  assert(x >= 0 && x + w <= atlas->TexWidth);
+  assert(y >= 0 && y + h <= atlas->TexHeight);
   unsigned int *out_pixel = atlas->TexPixelsRGBA32 + x + (y * atlas->TexWidth);
   for (int off_y = 0; off_y < h;
        off_y++, out_pixel += atlas->TexWidth, in_str += w)
@@ -3331,12 +3321,12 @@ void FontAtlasBuildRender32bppRectFromString(
 static void FontAtlasBuildRenderDefaultTexData(FontAtlas *atlas) {
   FontAtlasCustomRect *r =
       atlas->GetCustomRectByIndex(atlas->PackIdMouseCursors);
-  ASSERT(r->IsPacked());
+  assert(r->IsPacked());
 
   const int w = atlas->TexWidth;
   if (!(atlas->Flags & FontAtlasFlags_NoMouseCursors)) {
     // Render/copy pixels
-    ASSERT(r->Width == FONT_ATLAS_DEFAULT_TEX_DATA_W * 2 + 1 &&
+    assert(r->Width == FONT_ATLAS_DEFAULT_TEX_DATA_W * 2 + 1 &&
            r->Height == FONT_ATLAS_DEFAULT_TEX_DATA_H);
     const int x_for_white = r->X;
     const int x_for_black = r->X + FONT_ATLAS_DEFAULT_TEX_DATA_W + 1;
@@ -3361,7 +3351,7 @@ static void FontAtlasBuildRenderDefaultTexData(FontAtlas *atlas) {
     }
   } else {
     // Render 4 white pixels
-    ASSERT(r->Width == 2 && r->Height == 2);
+    assert(r->Width == 2 && r->Height == 2);
     const int offset = (int)r->X + (int)r->Y * w;
     if (atlas->TexPixelsAlpha8 != NULL) {
       atlas->TexPixelsAlpha8[offset] = atlas->TexPixelsAlpha8[offset + 1] =
@@ -3384,7 +3374,7 @@ static void FontAtlasBuildRenderLinesTexData(FontAtlas *atlas) {
   // This generates a triangular shape in the texture, with the various line
   // widths stacked on top of each other to allow interpolation between them
   FontAtlasCustomRect *r = atlas->GetCustomRectByIndex(atlas->PackIdLines);
-  ASSERT(r->IsPacked());
+  assert(r->IsPacked());
   for (unsigned int n = 0; n < DRAWLIST_TEX_LINES_WIDTH_MAX + 1;
        n++) // +1 because of the zero-width row
   {
@@ -3396,7 +3386,7 @@ static void FontAtlasBuildRenderLinesTexData(FontAtlas *atlas) {
     unsigned int pad_right = r->Width - (pad_left + line_width);
 
     // Write each slice
-    ASSERT(pad_left + line_width + pad_right == r->Width &&
+    assert(pad_left + line_width + pad_right == r->Width &&
            y < r->Height); // Make sure we're inside the texture bounds
                            // before we start writing pixels
     if (atlas->TexPixelsAlpha8 != NULL) {
@@ -3471,7 +3461,7 @@ void FontAtlasBuildInit(FontAtlas *atlas) {
 // This is called/shared by both the truetype and the FreeType builder.
 void FontAtlasBuildFinish(FontAtlas *atlas) {
   // Render into our custom data blocks
-  ASSERT(atlas->TexPixelsAlpha8 != NULL || atlas->TexPixelsRGBA32 != NULL);
+  assert(atlas->TexPixelsAlpha8 != NULL || atlas->TexPixelsRGBA32 != NULL);
   FontAtlasBuildRenderDefaultTexData(atlas);
   FontAtlasBuildRenderLinesTexData(atlas);
 
@@ -3483,7 +3473,7 @@ void FontAtlasBuildFinish(FontAtlas *atlas) {
 
     // Will ignore FontConfig settings: GlyphMinAdvanceX, GlyphMinAdvanceY,
     // GlyphExtraSpacing, PixelSnapH
-    ASSERT(r->Font->ContainerAtlas == atlas);
+    assert(r->Font->ContainerAtlas == atlas);
     Vec2 uv0, uv1;
     atlas->CalcCustomRectUV(r, &uv0, &uv1);
     r->Font->AddGlyph(NULL, (Wchar)r->GlyphID, r->GlyphOffset.x,
@@ -4101,8 +4091,8 @@ void Font::BuildLookupTable() {
     max_codepoint = Max(max_codepoint, (int)Glyphs[i].Codepoint);
 
   // Build lookup table
-  ASSERT(Glyphs.Size > 0 && "Font has not loaded glyph!");
-  ASSERT(Glyphs.Size < 0xFFFF); // -1 is reserved
+  assert(Glyphs.Size > 0 && "Font has not loaded glyph!");
+  assert(Glyphs.Size < 0xFFFF); // -1 is reserved
   IndexAdvanceX.clear();
   IndexLookup.clear();
   DirtyLookupTables = false;
@@ -4199,7 +4189,7 @@ void Font::SetGlyphVisible(Wchar c, bool visible) {
 }
 
 void Font::GrowIndex(int new_size) {
-  ASSERT(IndexAdvanceX.Size == IndexLookup.Size);
+  assert(IndexAdvanceX.Size == IndexLookup.Size);
   if (new_size <= IndexLookup.Size)
     return;
   IndexAdvanceX.resize(new_size, -1.0f);
@@ -4261,7 +4251,7 @@ void Font::AddGlyph(const FontConfig *cfg, Wchar codepoint, float x0, float y0,
 }
 
 void Font::AddRemapChar(Wchar dst, Wchar src, bool overwrite_dst) {
-  ASSERT(IndexLookup.Size >
+  assert(IndexLookup.Size >
          0); // Currently this can only be called AFTER the font has been built,
              // aka after calling FontAtlas::GetTexDataAs*() function.
   unsigned int index_size = (unsigned int)IndexLookup.Size;
@@ -4338,7 +4328,7 @@ const char *Font::CalcWordWrapPositionA(float scale, const char *text,
   bool inside_word = true;
 
   const char *s = text;
-  ASSERT(text_end != NULL);
+  assert(text_end != NULL);
   while (s < text_end) {
     unsigned int c = (unsigned int)*s;
     const char *next_s;
@@ -4759,7 +4749,7 @@ void Gui::RenderArrow(DrawList *draw_list, Vec2 pos, unsigned int col, int dir,
     break;
   case Dir_None:
   case Dir_COUNT:
-    ASSERT(0);
+    assert(0);
     break;
   }
   draw_list->AddTriangleFilled(center + a, center + b, center + c, col);
@@ -5044,7 +5034,7 @@ static const unsigned char *_barrier_in_b;
 static unsigned char *_dout;
 static void _match(const unsigned char *data, unsigned int length) {
   // INVERSE of memmove... write each byte before copying the next...
-  ASSERT(_dout + length <= _barrier_out_e);
+  assert(_dout + length <= _barrier_out_e);
   if (_dout + length > _barrier_out_e) {
     _dout += length;
     return;
@@ -5058,7 +5048,7 @@ static void _match(const unsigned char *data, unsigned int length) {
 }
 
 static void _lit(const unsigned char *data, unsigned int length) {
-  ASSERT(_dout + length <= _barrier_out_e);
+  assert(_dout + length <= _barrier_out_e);
   if (_dout + length > _barrier_out_e) {
     _dout += length;
     return;
@@ -5149,18 +5139,18 @@ static unsigned int decompress(unsigned char *output, const unsigned char *i,
     i = decompress_token(i);
     if (i == old_i) {
       if (*i == 0x05 && i[1] == 0xfa) {
-        ASSERT(_dout == output + olen);
+        assert(_dout == output + olen);
         if (_dout != output + olen)
           return 0;
         if (adler32(1, output, olen) != (unsigned int)_in4(2))
           return 0;
         return olen;
       } else {
-        ASSERT(0); /* NOTREACHED */
+        assert(0); /* NOTREACHED */
         return 0;
       }
     }
-    ASSERT(_dout <= output + olen);
+    assert(_dout <= output + olen);
     if (_dout > output + olen)
       return 0;
   }

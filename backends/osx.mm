@@ -594,7 +594,7 @@ bool OSX_Init(NSView *view) {
 
 void OSX_Shutdown() {
   OSX_Data *bd = OSX_GetBackendData();
-  ASSERT(bd != nullptr &&
+  assert(bd != nullptr &&
          "No platform backend to shutdown, or already shutdown?");
 
   bd->Observer = nullptr;
@@ -971,7 +971,7 @@ struct ViewportDataOSX {
   bool WindowOwned;
 
   ViewportDataOSX() { WindowOwned = false; }
-  ~ViewportDataOSX() { ASSERT(Window == nil); }
+  ~ViewportDataOSX() { assert(Window == nil); }
 };
 
 @interface OSX_Window : NSWindow
@@ -1051,7 +1051,7 @@ static void OSX_DestroyWindow(Viewport *viewport) {
 
 static void OSX_ShowWindow(Viewport *viewport) {
   ViewportDataOSX *data = (ViewportDataOSX *)viewport->PlatformUserData;
-  ASSERT(data->Window != 0);
+  assert(data->Window != 0);
 
   if (viewport->Flags & ViewportFlags_NoFocusOnAppearing)
     [data->Window orderFront:nil];
@@ -1063,7 +1063,7 @@ static void OSX_ShowWindow(Viewport *viewport) {
 
 static Vec2 OSX_GetWindowPos(Viewport *viewport) {
   ViewportDataOSX *data = (ViewportDataOSX *)viewport->PlatformUserData;
-  ASSERT(data->Window != 0);
+  assert(data->Window != 0);
 
   NSWindow *window = data->Window;
   NSScreen *screen = window.screen;
@@ -1075,7 +1075,7 @@ static Vec2 OSX_GetWindowPos(Viewport *viewport) {
 
 static void OSX_SetWindowPos(Viewport *viewport, Vec2 pos) {
   ViewportDataOSX *data = (ViewportDataOSX *)viewport->PlatformUserData;
-  ASSERT(data->Window != 0);
+  assert(data->Window != 0);
 
   NSWindow *window = data->Window;
   NSSize size = window.frame.size;
@@ -1087,7 +1087,7 @@ static void OSX_SetWindowPos(Viewport *viewport, Vec2 pos) {
 
 static Vec2 OSX_GetWindowSize(Viewport *viewport) {
   ViewportDataOSX *data = (ViewportDataOSX *)viewport->PlatformUserData;
-  ASSERT(data->Window != 0);
+  assert(data->Window != 0);
 
   NSWindow *window = data->Window;
   NSSize size = window.contentLayoutRect.size;
@@ -1096,7 +1096,7 @@ static Vec2 OSX_GetWindowSize(Viewport *viewport) {
 
 static void OSX_SetWindowSize(Viewport *viewport, Vec2 size) {
   ViewportDataOSX *data = (ViewportDataOSX *)viewport->PlatformUserData;
-  ASSERT(data->Window != 0);
+  assert(data->Window != 0);
 
   NSWindow *window = data->Window;
   NSRect rect = window.frame;
@@ -1109,42 +1109,42 @@ static void OSX_SetWindowSize(Viewport *viewport, Vec2 size) {
 static void OSX_SetWindowFocus(Viewport *viewport) {
   OSX_Data *bd = OSX_GetBackendData();
   ViewportDataOSX *data = (ViewportDataOSX *)viewport->PlatformUserData;
-  ASSERT(data->Window != 0);
+  assert(data->Window != 0);
   [data->Window makeKeyAndOrderFront:bd->Window];
 }
 
 static bool OSX_GetWindowFocus(Viewport *viewport) {
   ViewportDataOSX *data = (ViewportDataOSX *)viewport->PlatformUserData;
-  ASSERT(data->Window != 0);
+  assert(data->Window != 0);
 
   return data->Window.isKeyWindow;
 }
 
 static bool OSX_GetWindowMinimized(Viewport *viewport) {
   ViewportDataOSX *data = (ViewportDataOSX *)viewport->PlatformUserData;
-  ASSERT(data->Window != 0);
+  assert(data->Window != 0);
 
   return data->Window.isMiniaturized;
 }
 
 static void OSX_SetWindowTitle(Viewport *viewport, const char *title) {
   ViewportDataOSX *data = (ViewportDataOSX *)viewport->PlatformUserData;
-  ASSERT(data->Window != 0);
+  assert(data->Window != 0);
 
   data->Window.title = [NSString stringWithUTF8String:title];
 }
 
 static void OSX_SetWindowAlpha(Viewport *viewport, float alpha) {
   ViewportDataOSX *data = (ViewportDataOSX *)viewport->PlatformUserData;
-  ASSERT(data->Window != 0);
-  ASSERT(alpha >= 0.0f && alpha <= 1.0f);
+  assert(data->Window != 0);
+  assert(alpha >= 0.0f && alpha <= 1.0f);
 
   data->Window.alphaValue = alpha;
 }
 
 static float OSX_GetWindowDpiScale(Viewport *viewport) {
   ViewportDataOSX *data = (ViewportDataOSX *)viewport->PlatformUserData;
-  ASSERT(data->Window != 0);
+  assert(data->Window != 0);
 
   return data->Window.backingScaleFactor;
 }

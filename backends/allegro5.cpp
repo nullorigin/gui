@@ -512,7 +512,7 @@ static Key Allegro5_KeyCodeToKey(int key_code) {
 
 bool Allegro5_Init(ALLEGRO_DISPLAY *display) {
   IO &io = Gui::GetIO();
-  ASSERT(io.BackendPlatformUserData == nullptr &&
+  assert(io.BackendPlatformUserData == nullptr &&
          "Already initialized a platform backend!");
 
   // Setup backend capabilities flags
@@ -548,7 +548,7 @@ bool Allegro5_Init(ALLEGRO_DISPLAY *display) {
 
 void Allegro5_Shutdown() {
   Allegro5_Data *bd = Allegro5_GetBackendData();
-  ASSERT(bd != nullptr &&
+  assert(bd != nullptr &&
          "No platform backend to shutdown, or already shutdown?");
   IO &io = Gui::GetIO();
 
@@ -692,7 +692,7 @@ static void Allegro5_UpdateMouseCursor() {
 
 void Allegro5_NewFrame() {
   Allegro5_Data *bd = Allegro5_GetBackendData();
-  ASSERT(bd != nullptr && "Did you call Allegro5_Init()?");
+  assert(bd != nullptr && "Did you call Allegro5_Init()?");
 
   if (!bd->Texture)
     Allegro5_CreateDeviceObjects();

@@ -728,7 +728,7 @@ void WGPU_InvalidateDeviceObjects() {
 bool WGPU_Init(WGPUDevice device, int num_frames_in_flight,
                WGPUTextureFormat rt_format, WGPUTextureFormat depth_format) {
   IO &io = Gui::GetIO();
-  ASSERT(io.BackendRendererUserData == nullptr &&
+  assert(io.BackendRendererUserData == nullptr &&
          "Already initialized a renderer backend!");
 
   // Setup backend capabilities flags
@@ -773,7 +773,7 @@ bool WGPU_Init(WGPUDevice device, int num_frames_in_flight,
 
 void WGPU_Shutdown() {
   WGPU_Data *bd = WGPU_GetBackendData();
-  ASSERT(bd != nullptr &&
+  assert(bd != nullptr &&
          "No renderer backend to shutdown, or already shutdown?");
   IO &io = Gui::GetIO();
 

@@ -494,7 +494,7 @@ static int Glfw_TranslateUntranslatedKey(int key, int scancode) {
         GLFW_KEY_LEFT_BRACKET, GLFW_KEY_RIGHT_BRACKET, GLFW_KEY_BACKSLASH,
         GLFW_KEY_COMMA,        GLFW_KEY_SEMICOLON,     GLFW_KEY_APOSTROPHE,
         GLFW_KEY_PERIOD,       GLFW_KEY_SLASH,         0};
-    ASSERT(ARRAYSIZE(char_names) == ARRAYSIZE(char_keys));
+    assert(ARRAYSIZE(char_names) == ARRAYSIZE(char_keys));
     if (key_name[0] >= '0' && key_name[0] <= '9') {
       key = GLFW_KEY_0 + (key_name[0] - '0');
     } else if (key_name[0] >= 'A' && key_name[0] <= 'Z') {
@@ -631,8 +631,8 @@ static LRESULT CALLBACK Glfw_WndProc(HWND hWnd, UINT msg, WPARAM wParam,
 
 void Glfw_InstallCallbacks(GLFWwindow *window) {
   Glfw_Data *bd = Glfw_GetBackendData();
-  ASSERT(bd->InstalledCallbacks == false && "Callbacks already installed!");
-  ASSERT(bd->Window == window);
+  assert(bd->InstalledCallbacks == false && "Callbacks already installed!");
+  assert(bd->Window == window);
 
   bd->PrevUserCallbackWindowFocus =
       glfwSetWindowFocusCallback(window, Glfw_WindowFocusCallback);
@@ -652,8 +652,8 @@ void Glfw_InstallCallbacks(GLFWwindow *window) {
 
 void Glfw_RestoreCallbacks(GLFWwindow *window) {
   Glfw_Data *bd = Glfw_GetBackendData();
-  ASSERT(bd->InstalledCallbacks == true && "Callbacks not installed!");
-  ASSERT(bd->Window == window);
+  assert(bd->InstalledCallbacks == true && "Callbacks not installed!");
+  assert(bd->Window == window);
 
   glfwSetWindowFocusCallback(window, bd->PrevUserCallbackWindowFocus);
   glfwSetCursorEnterCallback(window, bd->PrevUserCallbackCursorEnter);
@@ -689,7 +689,7 @@ void Glfw_SetCallbacksChainForAllWindows(bool chain_for_all_windows) {
 static bool Glfw_Init(GLFWwindow *window, bool install_callbacks,
                       GlfwClientApi client_api) {
   IO &io = Gui::GetIO();
-  ASSERT(io.BackendPlatformUserData == nullptr &&
+  assert(io.BackendPlatformUserData == nullptr &&
          "Already initialized a platform backend!");
   // printf("GLFW_VERSION: %d.%d.%d (%d)", GLFW_VERSION_MAJOR,
   // GLFW_VERSION_MINOR, GLFW_VERSION_REVISION, GLFW_VERSION_COMBINED);
@@ -802,7 +802,7 @@ static bool Glfw_Init(GLFWwindow *window, bool install_callbacks,
 #ifdef _WIN32
   bd->PrevWndProc = (WNDPROC)::GetWindowLongPtrW(
       (HWND)main_viewport->PlatformHandleRaw, GWLP_WNDPROC);
-  ASSERT(bd->PrevWndProc != nullptr);
+  assert(bd->PrevWndProc != nullptr);
   ::SetWindowLongPtrW((HWND)main_viewport->PlatformHandleRaw, GWLP_WNDPROC,
                       (LONG_PTR)Glfw_WndProc);
 #endif
@@ -825,7 +825,7 @@ bool Glfw_InitForOther(GLFWwindow *window, bool install_callbacks) {
 
 void Glfw_Shutdown() {
   Glfw_Data *bd = Glfw_GetBackendData();
-  ASSERT(bd != nullptr &&
+  assert(bd != nullptr &&
          "No platform backend to shutdown, or already shutdown?");
   IO &io = Gui::GetIO();
 
@@ -1105,7 +1105,7 @@ static void Glfw_UpdateMonitors() {
 void Glfw_NewFrame() {
   IO &io = Gui::GetIO();
   Glfw_Data *bd = Glfw_GetBackendData();
-  ASSERT(bd != nullptr && "Did you call Glfw_InitForXXX()?");
+  assert(bd != nullptr && "Did you call Glfw_InitForXXX()?");
 
   // Setup display size (every frame to accommodate for window resizing)
   int w, h;
@@ -1164,9 +1164,9 @@ static EM_BOOL Emscripten_FullscreenChangeCallback(
 // first element that matches the query. STRING MUST PERSIST FOR THE APPLICATION
 // DURATION. PLEASE USE A STRING LITERAL OR ENSURE POINTER WILL STAY VALID.
 void Glfw_InstallEmscriptenCanvasResizeCallback(const char *canvas_selector) {
-  ASSERT(canvas_selector != nullptr);
+  assert(canvas_selector != nullptr);
   Glfw_Data *bd = Glfw_GetBackendData();
-  ASSERT(bd != nullptr && "Did you call Glfw_InitForXXX()?");
+  assert(bd != nullptr && "Did you call Glfw_InitForXXX()?");
 
   bd->CanvasSelector = canvas_selector;
   emscripten_set_resize_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, bd, false,
@@ -1203,7 +1203,7 @@ struct Glfw_ViewportData {
     memset(this, 0, sizeof(*this));
     IgnoreWindowSizeEventFrame = IgnoreWindowPosEventFrame = -1;
   }
-  ~Glfw_ViewportData() { ASSERT(Window == nullptr); }
+  ~Glfw_ViewportData() { assert(Window == nullptr); }
 };
 
 static void Glfw_WindowCloseCallback(GLFWwindow *window) {
@@ -1478,7 +1478,7 @@ static int Glfw_CreateVkSurface(Viewport *viewport,
   Glfw_Data *bd = Glfw_GetBackendData();
   Glfw_ViewportData *vd = (Glfw_ViewportData *)viewport->PlatformUserData;
   UNUSED(bd);
-  ASSERT(bd->ClientApi == GlfwClientApi_Vulkan);
+  assert(bd->ClientApi == GlfwClientApi_Vulkan);
   VkResult err =
       glfwCreateWindowSurface((VkInstance)vk_instance, vd->Window,
                               (const VkAllocationCallbacks *)vk_allocator,

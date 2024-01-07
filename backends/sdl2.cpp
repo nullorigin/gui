@@ -526,7 +526,7 @@ bool SDL2_ProcessEvent(const SDL_Event *event) {
 static bool SDL2_Init(SDL_Window *window, SDL_Renderer *renderer,
                       void *sdl_gl_context) {
   IO &io = Gui::GetIO();
-  ASSERT(io.BackendPlatformUserData == nullptr &&
+  assert(io.BackendPlatformUserData == nullptr &&
          "Already initialized a platform backend!");
 
   // Check and store if we are on a SDL backend that supports global mouse
@@ -658,7 +658,7 @@ bool SDL2_InitForOpenGL(SDL_Window *window, void *sdl_gl_context) {
 
 bool SDL2_InitForVulkan(SDL_Window *window) {
 #if !SDL_HAS_VULKAN
-  ASSERT(0 && "Unsupported");
+  assert(0 && "Unsupported");
 #endif
   if (!SDL2_Init(window, nullptr, nullptr))
     return false;
@@ -669,7 +669,7 @@ bool SDL2_InitForVulkan(SDL_Window *window) {
 
 bool SDL2_InitForD3D(SDL_Window *window) {
 #if !defined(_WIN32)
-  ASSERT(0 && "Unsupported");
+  assert(0 && "Unsupported");
 #endif
   return SDL2_Init(window, nullptr, nullptr);
 }
@@ -688,7 +688,7 @@ bool SDL2_InitForOther(SDL_Window *window) {
 
 void SDL2_Shutdown() {
   SDL2_Data *bd = SDL2_GetBackendData();
-  ASSERT(bd != nullptr &&
+  assert(bd != nullptr &&
          "No platform backend to shutdown, or already shutdown?");
   IO &io = Gui::GetIO();
 
@@ -923,7 +923,7 @@ static void SDL2_UpdateMonitors() {
 
 void SDL2_NewFrame() {
   SDL2_Data *bd = SDL2_GetBackendData();
-  ASSERT(bd != nullptr && "Did you call SDL2_Init()?");
+  assert(bd != nullptr && "Did you call SDL2_Init()?");
   IO &io = Gui::GetIO();
 
   // Setup display size (every frame to accommodate for window resizing)
@@ -1003,7 +1003,7 @@ struct SDL2_ViewportData {
     WindowOwned = false;
     GLContext = nullptr;
   }
-  ~SDL2_ViewportData() { ASSERT(Window == nullptr && GLContext == nullptr); }
+  ~SDL2_ViewportData() { assert(Window == nullptr && GLContext == nullptr); }
 };
 
 static void SDL2_CreateWindow(Viewport *viewport) {

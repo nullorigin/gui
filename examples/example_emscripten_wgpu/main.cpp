@@ -101,7 +101,7 @@ int main(int, char **) {
   // io.Fonts->AddFontFromFileTTF("fonts/Cousine-Regular.ttf", 15.0f);
   // io.Fonts->AddFontFromFileTTF("fonts/ProggyTiny.ttf", 10.0f);
   // Font* font = io.Fonts->AddFontFromFileTTF("fonts/ArialUni.ttf", 18.0f,
-  // nullptr, io.Fonts->GetGlyphRangesJapanese()); ASSERT(font != nullptr);
+  // nullptr, io.Fonts->GetGlyphRangesJapanese()); assert(font != nullptr);
 #endif
 
   // This function will directly return and exit the main function.

@@ -103,7 +103,7 @@ int main(int, char **) {
   // io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf", 15.0f);
   // Font* font =
   // io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f,
-  // nullptr, io.Fonts->GetGlyphRangesJapanese()); ASSERT(font != nullptr);
+  // nullptr, io.Fonts->GetGlyphRangesJapanese()); assert(font != nullptr);
 
   // Our state
   bool show_demo_window = true;
@@ -274,7 +274,7 @@ void ResetDevice() {
   DX9_InvalidateDeviceObjects();
   HRESULT hr = g_pd3dDevice->Reset(&g_d3dpp);
   if (hr == D3DERR_INVALIDCALL)
-    ASSERT(0);
+    assert(0);
   DX9_CreateDeviceObjects();
 }
 

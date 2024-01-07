@@ -62,9 +62,6 @@
 // Helper Macros
 #ifndef ASSERT
 #include <assert.h>
-#define ASSERT(_EXPR)                                                          \
-  assert(_EXPR) // You can override the default assert handler by editing
-                // config.hpp
 #endif
 #define ARRAYSIZE(_ARR)                                                        \
   ((int)(sizeof(_ARR) / sizeof(*(_ARR)))) // Size of a static C-style array.
@@ -284,11 +281,11 @@ struct Vec2 {
   constexpr Vec2() : x(0.0f), y(0.0f) {}
   constexpr Vec2(float _x, float _y) : x(_x), y(_y) {}
   float &operator[](size_t idx) {
-    ASSERT(idx == 0 || idx == 1);
+    assert(idx == 0 || idx == 1);
     return ((float *)(void *)(char *)this)[idx];
   } // We very rarely use this [] operator, so the assert overhead is fine.
   float operator[](size_t idx) const {
-    ASSERT(idx == 0 || idx == 1);
+    assert(idx == 0 || idx == 1);
     return ((const float *)(const void *)(const char *)this)[idx];
   }
 #ifdef VEC2_CLASS_EXTRA
@@ -3731,11 +3728,11 @@ template <typename T> struct Vector {
   inline int max_size() const { return 0x7FFFFFFF / (int)sizeof(T); }
   inline int capacity() const { return Capacity; }
   inline T &operator[](int i) {
-    ASSERT(i >= 0 && i < Size);
+    assert(i >= 0 && i < Size);
     return Data[i];
   }
   inline const T &operator[](int i) const {
-    ASSERT(i >= 0 && i < Size);
+    assert(i >= 0 && i < Size);
     return Data[i];
   }
 
@@ -3744,19 +3741,19 @@ template <typename T> struct Vector {
   inline T *end() { return Data + Size; }
   inline const T *end() const { return Data + Size; }
   inline T &front() {
-    ASSERT(Size > 0);
+    assert(Size > 0);
     return Data[0];
   }
   inline const T &front() const {
-    ASSERT(Size > 0);
+    assert(Size > 0);
     return Data[0];
   }
   inline T &back() {
-    ASSERT(Size > 0);
+    assert(Size > 0);
     return Data[Size - 1];
   }
   inline const T &back() const {
-    ASSERT(Size > 0);
+    assert(Size > 0);
     return Data[Size - 1];
   }
   inline void swap(Vector<T> &rhs) {
@@ -3789,7 +3786,7 @@ template <typename T> struct Vector {
     Size = new_size;
   }
   inline void shrink(int new_size) {
-    ASSERT(new_size <= Size);
+    assert(new_size <= Size);
     Size = new_size;
   } // Resize a vector to a smaller size, guaranteed not to cause a reallocation
   inline void reserve(int new_capacity) {
@@ -3822,7 +3819,7 @@ template <typename T> struct Vector {
     Size++;
   }
   inline void pop_back() {
-    ASSERT(Size > 0);
+    assert(Size > 0);
     Size--;
   }
   inline void push_front(const T &v) {
@@ -3832,7 +3829,7 @@ template <typename T> struct Vector {
       insert(Data, v);
   }
   inline T *erase(const T *it) {
-    ASSERT(it >= Data && it < Data + Size);
+    assert(it >= Data && it < Data + Size);
     const ptrdiff_t off = it - Data;
     memmove(Data + off, Data + off + 1,
             ((size_t)Size - (size_t)off - 1) * sizeof(T));
@@ -3840,7 +3837,7 @@ template <typename T> struct Vector {
     return Data + off;
   }
   inline T *erase(const T *it, const T *it_last) {
-    ASSERT(it >= Data && it < Data + Size && it_last >= it &&
+    assert(it >= Data && it < Data + Size && it_last >= it &&
            it_last <= Data + Size);
     const ptrdiff_t count = it_last - it;
     const ptrdiff_t off = it - Data;
@@ -3850,7 +3847,7 @@ template <typename T> struct Vector {
     return Data + off;
   }
   inline T *erase_unsorted(const T *it) {
-    ASSERT(it >= Data && it < Data + Size);
+    assert(it >= Data && it < Data + Size);
     const ptrdiff_t off = it - Data;
     if (it < Data + Size - 1)
       memcpy(Data + off, Data + Size - 1, sizeof(T));
@@ -3858,7 +3855,7 @@ template <typename T> struct Vector {
     return Data + off;
   }
   inline T *insert(const T *it, const T &v) {
-    ASSERT(it >= Data && it <= Data + Size);
+    assert(it >= Data && it <= Data + Size);
     const ptrdiff_t off = it - Data;
     if (Size == Capacity)
       reserve(_grow_capacity(Size + 1));
@@ -3922,7 +3919,7 @@ template <typename T> struct Vector {
     return false;
   }
   inline int index_from_ptr(const T *it) const {
-    ASSERT(it >= Data && it < Data + Size);
+    assert(it >= Data && it < Data + Size);
     const ptrdiff_t off = it - Data;
     return (int)off;
   }
@@ -4860,7 +4857,7 @@ struct TextBuffer {
 
   TextBuffer() {}
   inline char operator[](int i) const {
-    ASSERT(Buf.Data != NULL);
+    assert(Buf.Data != NULL);
     return Buf.Data[i];
   }
   const char *begin() const { return Buf.Data ? &Buf.front() : EmptyString; }
@@ -6017,7 +6014,7 @@ struct FontAtlas {
                                  float advance_x,
                                  const Vec2 &offset = Vec2(0, 0));
   FontAtlasCustomRect *GetCustomRectByIndex(int index) {
-    ASSERT(index >= 0);
+    assert(index >= 0);
     return &CustomRects[index];
   }
 
@@ -6321,7 +6318,7 @@ struct Viewport {
                               // pressing ALT-F4)
 
   Viewport() { memset(this, 0, sizeof(*this)); }
-  ~Viewport() { ASSERT(PlatformUserData == NULL && RendererUserData == NULL); }
+  ~Viewport() { assert(PlatformUserData == NULL && RendererUserData == NULL); }
 
   // Helpers
   Vec2 GetCenter() const {
@@ -6588,7 +6585,7 @@ API Key GetKeyIndex(Key key); // map Key_* values into legacy
                               // native key index. == io.KeyMap[key]
 #else
 static inline Key GetKeyIndex(Key key) {
-  ASSERT(key >= Key_NamedKey_BEGIN && key < Key_NamedKey_END &&
+  assert(key >= Key_NamedKey_BEGIN && key < Key_NamedKey_END &&
          "Key and native_index was merged together and native_index is "
          "disabled by DISABLE_OBSOLETE_KEYIO. Please switch to Key.");
   return key;
@@ -6769,7 +6766,7 @@ static inline void CaptureMouseFromApp(bool want_capture_mouse = true) {
 // IsItemHoveredRect()                   { return
 // IsItemHovered(HoveredFlags_RectOnly); }               // OBSOLETED
 // in 1.51 (between Jun 2017 and Aug 2017) static inline bool
-// IsPosHoveringAnyWindow(const Vec2&) { ASSERT(0); return false; } //
+// IsPosHoveringAnyWindow(const Vec2&) { assert(0); return false; } //
 // OBSOLETED in 1.51 (between Jun 2017 and Aug 2017): This was misleading and
 // partly broken. You probably want to use the io.WantCaptureMouse flag instead.
 // static inline bool  IsMouseHoveringAnyWindow()            { return

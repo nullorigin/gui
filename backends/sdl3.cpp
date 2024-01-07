@@ -525,7 +525,7 @@ static void SDL3_SetupPlatformHandles(Viewport *viewport, SDL_Window *window) {
 static bool SDL3_Init(SDL_Window *window, SDL_Renderer *renderer,
                       void *sdl_gl_context) {
   IO &io = Gui::GetIO();
-  ASSERT(io.BackendPlatformUserData == nullptr &&
+  assert(io.BackendPlatformUserData == nullptr &&
          "Already initialized a platform backend!");
   UNUSED(sdl_gl_context); // Unused in this branch
 
@@ -647,7 +647,7 @@ bool SDL3_InitForVulkan(SDL_Window *window) {
 
 bool SDL3_InitForD3D(SDL_Window *window) {
 #if !defined(_WIN32)
-  ASSERT(0 && "Unsupported");
+  assert(0 && "Unsupported");
 #endif
   return SDL3_Init(window, nullptr, nullptr);
 }
@@ -666,7 +666,7 @@ bool SDL3_InitForOther(SDL_Window *window) {
 
 void SDL3_Shutdown() {
   SDL3_Data *bd = SDL3_GetBackendData();
-  ASSERT(bd != nullptr &&
+  assert(bd != nullptr &&
          "No platform backend to shutdown, or already shutdown?");
   IO &io = Gui::GetIO();
 
@@ -891,7 +891,7 @@ static void SDL3_UpdateMonitors() {
 
 void SDL3_NewFrame() {
   SDL3_Data *bd = SDL3_GetBackendData();
-  ASSERT(bd != nullptr && "Did you call SDL3_Init()?");
+  assert(bd != nullptr && "Did you call SDL3_Init()?");
   IO &io = Gui::GetIO();
 
   // Setup display size (every frame to accommodate for window resizing)
@@ -968,7 +968,7 @@ struct SDL3_ViewportData {
     WindowOwned = false;
     GLContext = nullptr;
   }
-  ~SDL3_ViewportData() { ASSERT(Window == nullptr && GLContext == nullptr); }
+  ~SDL3_ViewportData() { assert(Window == nullptr && GLContext == nullptr); }
 };
 
 static void SDL3_CreateWindow(Viewport *viewport) {

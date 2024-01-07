@@ -53,9 +53,9 @@ static SDLRenderer2_Data *SDLRenderer2_GetBackendData() {
 // Functions
 bool SDLRenderer2_Init(SDL_Renderer *renderer) {
   IO &io = Gui::GetIO();
-  ASSERT(io.BackendRendererUserData == nullptr &&
+  assert(io.BackendRendererUserData == nullptr &&
          "Already initialized a renderer backend!");
-  ASSERT(renderer != nullptr && "SDL_Renderer not initialized!");
+  assert(renderer != nullptr && "SDL_Renderer not initialized!");
 
   // Setup backend capabilities flags
   SDLRenderer2_Data *bd = NEW(SDLRenderer2_Data)();
@@ -73,7 +73,7 @@ bool SDLRenderer2_Init(SDL_Renderer *renderer) {
 
 void SDLRenderer2_Shutdown() {
   SDLRenderer2_Data *bd = SDLRenderer2_GetBackendData();
-  ASSERT(bd != nullptr &&
+  assert(bd != nullptr &&
          "No renderer backend to shutdown, or already shutdown?");
   IO &io = Gui::GetIO();
 
@@ -97,7 +97,7 @@ static void SDLRenderer2_SetupRenderState() {
 
 void SDLRenderer2_NewFrame() {
   SDLRenderer2_Data *bd = SDLRenderer2_GetBackendData();
-  ASSERT(bd != nullptr && "Did you call SDLRenderer2_Init()?");
+  assert(bd != nullptr && "Did you call SDLRenderer2_Init()?");
 
   if (!bd->FontTexture)
     SDLRenderer2_CreateDeviceObjects();

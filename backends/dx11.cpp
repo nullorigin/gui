@@ -374,7 +374,7 @@ static void DX11_CreateFontsTexture() {
     subResource.SysMemPitch = desc.Width * 4;
     subResource.SysMemSlicePitch = 0;
     bd->pd3dDevice->CreateTexture2D(&desc, &subResource, &pTexture);
-    ASSERT(pTexture != nullptr);
+    assert(pTexture != nullptr);
 
     // Create texture view
     D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
@@ -636,7 +636,7 @@ void DX11_InvalidateDeviceObjects() {
 
 bool DX11_Init(ID3D11Device *device, ID3D11DeviceContext *device_context) {
   IO &io = Gui::GetIO();
-  ASSERT(io.BackendRendererUserData == nullptr &&
+  assert(io.BackendRendererUserData == nullptr &&
          "Already initialized a renderer backend!");
 
   // Setup backend capabilities flags
@@ -678,7 +678,7 @@ bool DX11_Init(ID3D11Device *device, ID3D11DeviceContext *device_context) {
 
 void DX11_Shutdown() {
   DX11_Data *bd = DX11_GetBackendData();
-  ASSERT(bd != nullptr &&
+  assert(bd != nullptr &&
          "No renderer backend to shutdown, or already shutdown?");
   IO &io = Gui::GetIO();
 
@@ -702,7 +702,7 @@ void DX11_Shutdown() {
 
 void DX11_NewFrame() {
   DX11_Data *bd = DX11_GetBackendData();
-  ASSERT(bd != nullptr && "Did you call DX11_Init()?");
+  assert(bd != nullptr && "Did you call DX11_Init()?");
 
   if (!bd->pFontSampler)
     DX11_CreateDeviceObjects();
@@ -726,7 +726,7 @@ struct DX11_ViewportData {
     SwapChain = nullptr;
     RTView = nullptr;
   }
-  ~DX11_ViewportData() { ASSERT(SwapChain == nullptr && RTView == nullptr); }
+  ~DX11_ViewportData() { assert(SwapChain == nullptr && RTView == nullptr); }
 };
 
 static void DX11_CreateWindow(Viewport *viewport) {
@@ -740,7 +740,7 @@ static void DX11_CreateWindow(Viewport *viewport) {
   // contain the HWND.
   HWND hwnd = viewport->PlatformHandleRaw ? (HWND)viewport->PlatformHandleRaw
                                           : (HWND)viewport->PlatformHandle;
-  ASSERT(hwnd != 0);
+  assert(hwnd != 0);
 
   // Create swap chain
   DXGI_SWAP_CHAIN_DESC sd;
@@ -757,7 +757,7 @@ static void DX11_CreateWindow(Viewport *viewport) {
   sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
   sd.Flags = 0;
 
-  ASSERT(vd->SwapChain == nullptr && vd->RTView == nullptr);
+  assert(vd->SwapChain == nullptr && vd->RTView == nullptr);
   bd->pFactory->CreateSwapChain(bd->pd3dDevice, &sd, &vd->SwapChain);
 
   // Create the render target

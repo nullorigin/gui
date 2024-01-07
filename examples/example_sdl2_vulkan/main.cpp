@@ -80,7 +80,7 @@ static VkPhysicalDevice SetupVulkan_SelectPhysicalDevice() {
   uint32_t gpu_count;
   VkResult err = vkEnumeratePhysicalDevices(g_Instance, &gpu_count, nullptr);
   check_vk_result(err);
-  ASSERT(gpu_count > 0);
+  assert(gpu_count > 0);
 
   Vector<VkPhysicalDevice> gpus;
   gpus.resize(gpu_count);
@@ -154,7 +154,7 @@ static void SetupVulkan(Vector<const char *> instance_extensions) {
     auto vkCreateDebugReportCallbackEXT =
         (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(
             g_Instance, "vkCreateDebugReportCallbackEXT");
-    ASSERT(vkCreateDebugReportCallbackEXT != nullptr);
+    assert(vkCreateDebugReportCallbackEXT != nullptr);
     VkDebugReportCallbackCreateInfoEXT debug_report_ci = {};
     debug_report_ci.sType =
         VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
@@ -185,7 +185,7 @@ static void SetupVulkan(Vector<const char *> instance_extensions) {
         break;
       }
     free(queues);
-    ASSERT(g_QueueFamily != (uint32_t)-1);
+    assert(g_QueueFamily != (uint32_t)-1);
   }
 
   // Create Logical Device (with 1 queue)
@@ -285,7 +285,7 @@ static void SetupVulkanWindow(VulkanH_Window *wd, VkSurfaceKHR surface,
   // printf("[vulkan] Selected PresentMode = %d\n", wd->PresentMode);
 
   // Create SwapChain, RenderPass, Framebuffer, etc.
-  ASSERT(g_MinImageCount >= 2);
+  assert(g_MinImageCount >= 2);
   VulkanH_CreateOrResizeWindow(g_Instance, g_PhysicalDevice, g_Device, wd,
                                g_QueueFamily, g_Allocator, width, height,
                                g_MinImageCount);
@@ -519,7 +519,7 @@ int main(int, char **) {
   // io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf", 15.0f);
   // Font* font =
   // io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f,
-  // nullptr, io.Fonts->GetGlyphRangesJapanese()); ASSERT(font != nullptr);
+  // nullptr, io.Fonts->GetGlyphRangesJapanese()); assert(font != nullptr);
 
   // Our state
   bool show_demo_window = true;

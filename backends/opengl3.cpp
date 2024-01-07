@@ -227,7 +227,7 @@ struct OpenGL3_VtxAttribState {
 // Functions
 bool OpenGL3_Init(const char *glsl_version) {
   IO &io = Gui::GetIO();
-  ASSERT(io.BackendRendererUserData == nullptr &&
+  assert(io.BackendRendererUserData == nullptr &&
          "Already initialized a renderer backend!");
 
   // Initialize our loader
@@ -319,7 +319,7 @@ bool OpenGL3_Init(const char *glsl_version) {
     glsl_version = "#version 130";
 #endif
   }
-  ASSERT((int)strlen(glsl_version) + 2 < ARRAYSIZE(bd->GlslVersionString));
+  assert((int)strlen(glsl_version) + 2 < ARRAYSIZE(bd->GlslVersionString));
   strcpy(bd->GlslVersionString, glsl_version);
   strcat(bd->GlslVersionString, "\n");
 
@@ -349,7 +349,7 @@ bool OpenGL3_Init(const char *glsl_version) {
 
 void OpenGL3_Shutdown() {
   OpenGL3_Data *bd = OpenGL3_GetBackendData();
-  ASSERT(bd != nullptr &&
+  assert(bd != nullptr &&
          "No renderer backend to shutdown, or already shutdown?");
   IO &io = Gui::GetIO();
 
@@ -364,7 +364,7 @@ void OpenGL3_Shutdown() {
 
 void OpenGL3_NewFrame() {
   OpenGL3_Data *bd = OpenGL3_GetBackendData();
-  ASSERT(bd != nullptr && "Did you call OpenGL3_Init()?");
+  assert(bd != nullptr && "Did you call OpenGL3_Init()?");
 
   if (!bd->ShaderHandle)
     OpenGL3_CreateDeviceObjects();

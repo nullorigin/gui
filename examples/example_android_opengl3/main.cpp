@@ -188,19 +188,19 @@ void Init(struct android_app *app) {
   // Font* font;
   // font_data_size = GetAssetData("segoeui.ttf", &font_data);
   // font = io.Fonts->AddFontFromMemoryTTF(font_data, font_data_size, 16.0f);
-  // ASSERT(font != nullptr);
+  // assert(font != nullptr);
   // font_data_size = GetAssetData("DroidSans.ttf", &font_data);
   // font = io.Fonts->AddFontFromMemoryTTF(font_data, font_data_size, 16.0f);
-  // ASSERT(font != nullptr);
+  // assert(font != nullptr);
   // font_data_size = GetAssetData("Roboto-Medium.ttf", &font_data);
   // font = io.Fonts->AddFontFromMemoryTTF(font_data, font_data_size, 16.0f);
-  // ASSERT(font != nullptr);
+  // assert(font != nullptr);
   // font_data_size = GetAssetData("Cousine-Regular.ttf", &font_data);
   // font = io.Fonts->AddFontFromMemoryTTF(font_data, font_data_size, 15.0f);
-  // ASSERT(font != nullptr);
+  // assert(font != nullptr);
   // font_data_size = GetAssetData("ArialUni.ttf", &font_data);
   // font = io.Fonts->AddFontFromMemoryTTF(font_data, font_data_size, 18.0f,
-  // nullptr, io.Fonts->GetGlyphRangesJapanese()); ASSERT(font != nullptr);
+  // nullptr, io.Fonts->GetGlyphRangesJapanese()); assert(font != nullptr);
 
   // Arbitrary scale-up
   // FIXME: Put some effort into DPI awareness
@@ -414,7 +414,7 @@ static int GetAssetData(const char *filename, void **outData) {
     *outData = ALLOC(num_bytes);
     int64_t num_bytes_read = AAsset_read(asset_descriptor, *outData, num_bytes);
     AAsset_close(asset_descriptor);
-    ASSERT(num_bytes_read == num_bytes);
+    assert(num_bytes_read == num_bytes);
   }
   return num_bytes;
 }

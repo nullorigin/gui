@@ -26,7 +26,7 @@ static int InputTextCallback(InputTextCallbackData *data) {
     // If for some reason we refuse the new length (BufTextLen) and/or capacity
     // (BufSize) we need to set them back to what we want.
     std::string *str = user_data->Str;
-    ASSERT(data->Buf == str->c_str());
+    assert(data->Buf == str->c_str());
     str->resize(data->BufTextLen);
     data->Buf = (char *)str->c_str();
   } else if (user_data->ChainCallback) {
@@ -39,7 +39,7 @@ static int InputTextCallback(InputTextCallbackData *data) {
 
 bool Gui::InputText(const char *label, std::string *str, int flags,
                     InputTextCallback callback, void *user_data) {
-  ASSERT((flags & InputTextFlags_CallbackResize) == 0);
+  assert((flags & InputTextFlags_CallbackResize) == 0);
   flags |= InputTextFlags_CallbackResize;
 
   InputTextCallback_UserData cb_user_data;
@@ -53,7 +53,7 @@ bool Gui::InputText(const char *label, std::string *str, int flags,
 bool Gui::InputTextMultiline(const char *label, std::string *str,
                              const Vec2 &size, int flags,
                              InputTextCallback callback, void *user_data) {
-  ASSERT((flags & InputTextFlags_CallbackResize) == 0);
+  assert((flags & InputTextFlags_CallbackResize) == 0);
   flags |= InputTextFlags_CallbackResize;
 
   InputTextCallback_UserData cb_user_data;
@@ -67,7 +67,7 @@ bool Gui::InputTextMultiline(const char *label, std::string *str,
 bool Gui::InputTextWithHint(const char *label, const char *hint,
                             std::string *str, int flags,
                             InputTextCallback callback, void *user_data) {
-  ASSERT((flags & InputTextFlags_CallbackResize) == 0);
+  assert((flags & InputTextFlags_CallbackResize) == 0);
   flags |= InputTextFlags_CallbackResize;
 
   InputTextCallback_UserData cb_user_data;

@@ -518,7 +518,7 @@ void Vulkan_RenderDrawData(DrawData *draw_data, VkCommandBuffer command_buffer,
   // gets its own storage.
   Vulkan_ViewportData *viewport_renderer_data =
       (Vulkan_ViewportData *)draw_data->OwnerViewport->RendererUserData;
-  ASSERT(viewport_renderer_data != nullptr);
+  assert(viewport_renderer_data != nullptr);
   VulkanH_WindowRenderBuffers *wrb = &viewport_renderer_data->RenderBuffers;
   if (wrb->FrameRenderBuffers == nullptr) {
     wrb->Index = 0;
@@ -528,7 +528,7 @@ void Vulkan_RenderDrawData(DrawData *draw_data, VkCommandBuffer command_buffer,
     memset(wrb->FrameRenderBuffers, 0,
            sizeof(VulkanH_FrameRenderBuffers) * wrb->Count);
   }
-  ASSERT(wrb->Count == v->ImageCount);
+  assert(wrb->Count == v->ImageCount);
   wrb->Index = (wrb->Index + 1) % wrb->Count;
   VulkanH_FrameRenderBuffers *rb = &wrb->FrameRenderBuffers[wrb->Index];
 
@@ -643,7 +643,7 @@ void Vulkan_RenderDrawData(DrawData *draw_data, VkCommandBuffer command_buffer,
           // We don't support texture switches if TextureID hasn't been
           // redefined to be 64-bit. Do a flaky check that other textures
           // haven't been used.
-          ASSERT(pcmd->TextureId == (TextureID)bd->FontDescriptorSet);
+          assert(pcmd->TextureId == (TextureID)bd->FontDescriptorSet);
           desc_set[0] = bd->FontDescriptorSet;
         }
         vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
@@ -1198,7 +1198,7 @@ bool Vulkan_LoadFunctions(PFN_vkVoidFunction (*loader_func)(
 }
 
 bool Vulkan_Init(Vulkan_InitInfo *info, VkRenderPass render_pass) {
-  ASSERT(g_FunctionsLoaded &&
+  assert(g_FunctionsLoaded &&
          "Need to call Vulkan_LoadFunctions() if "
          "VULKAN_NO_PROTOTYPES or VK_NO_PROTOTYPES are set!");
 
@@ -1212,16 +1212,16 @@ bool Vulkan_Init(Vulkan_InitInfo *info, VkRenderPass render_pass) {
         reinterpret_cast<PFN_vkCmdEndRenderingKHR>(
             vkGetInstanceProcAddr(info->Instance, "vkCmdEndRenderingKHR"));
 #endif
-    ASSERT(VulkanFuncs_vkCmdBeginRenderingKHR != nullptr);
-    ASSERT(VulkanFuncs_vkCmdEndRenderingKHR != nullptr);
+    assert(VulkanFuncs_vkCmdBeginRenderingKHR != nullptr);
+    assert(VulkanFuncs_vkCmdEndRenderingKHR != nullptr);
 #else
-    ASSERT(0 && "Can't use dynamic rendering when neither VK_VERSION_1_3 or "
+    assert(0 && "Can't use dynamic rendering when neither VK_VERSION_1_3 or "
                 "VK_KHR_dynamic_rendering is defined.");
 #endif
   }
 
   IO &io = Gui::GetIO();
-  ASSERT(io.BackendRendererUserData == nullptr &&
+  assert(io.BackendRendererUserData == nullptr &&
          "Already initialized a renderer backend!");
 
   // Setup backend capabilities flags
@@ -1236,15 +1236,15 @@ bool Vulkan_Init(Vulkan_InitInfo *info, VkRenderPass render_pass) {
       BackendFlags_RendererHasViewports; // We can create multi-viewports
                                          // on the Renderer side (optional)
 
-  ASSERT(info->Instance != VK_NULL_HANDLE);
-  ASSERT(info->PhysicalDevice != VK_NULL_HANDLE);
-  ASSERT(info->Device != VK_NULL_HANDLE);
-  ASSERT(info->Queue != VK_NULL_HANDLE);
-  ASSERT(info->DescriptorPool != VK_NULL_HANDLE);
-  ASSERT(info->MinImageCount >= 2);
-  ASSERT(info->ImageCount >= info->MinImageCount);
+  assert(info->Instance != VK_NULL_HANDLE);
+  assert(info->PhysicalDevice != VK_NULL_HANDLE);
+  assert(info->Device != VK_NULL_HANDLE);
+  assert(info->Queue != VK_NULL_HANDLE);
+  assert(info->DescriptorPool != VK_NULL_HANDLE);
+  assert(info->MinImageCount >= 2);
+  assert(info->ImageCount >= info->MinImageCount);
   if (info->UseDynamicRendering == false)
-    ASSERT(render_pass != VK_NULL_HANDLE);
+    assert(render_pass != VK_NULL_HANDLE);
 
   bd->VulkanInitInfo = *info;
   bd->RenderPass = render_pass;
@@ -1265,7 +1265,7 @@ bool Vulkan_Init(Vulkan_InitInfo *info, VkRenderPass render_pass) {
 
 void Vulkan_Shutdown() {
   Vulkan_Data *bd = Vulkan_GetBackendData();
-  ASSERT(bd != nullptr &&
+  assert(bd != nullptr &&
          "No renderer backend to shutdown, or already shutdown?");
   IO &io = Gui::GetIO();
 
@@ -1292,7 +1292,7 @@ void Vulkan_Shutdown() {
 
 void Vulkan_NewFrame() {
   Vulkan_Data *bd = Vulkan_GetBackendData();
-  ASSERT(bd != nullptr && "Did you call Vulkan_Init()?");
+  assert(bd != nullptr && "Did you call Vulkan_Init()?");
 
   if (!bd->FontDescriptorSet)
     Vulkan_CreateFontsTexture();
@@ -1300,11 +1300,11 @@ void Vulkan_NewFrame() {
 
 void Vulkan_SetMinImageCount(uint32_t min_image_count) {
   Vulkan_Data *bd = Vulkan_GetBackendData();
-  ASSERT(min_image_count >= 2);
+  assert(min_image_count >= 2);
   if (bd->VulkanInitInfo.MinImageCount == min_image_count)
     return;
 
-  ASSERT(0); // FIXME-VIEWPORT: Unsupported. Need to recreate all swap chains!
+  assert(0); // FIXME-VIEWPORT: Unsupported. Need to recreate all swap chains!
   Vulkan_InitInfo *v = &bd->VulkanInitInfo;
   VkResult err = vkDeviceWaitIdle(v->Device);
   check_vk_result(err);
@@ -1380,11 +1380,11 @@ VkSurfaceFormatKHR VulkanH_SelectSurfaceFormat(
     VkPhysicalDevice physical_device, VkSurfaceKHR surface,
     const VkFormat *request_formats, int request_formats_count,
     VkColorSpaceKHR request_color_space) {
-  ASSERT(g_FunctionsLoaded &&
+  assert(g_FunctionsLoaded &&
          "Need to call Vulkan_LoadFunctions() if "
          "VULKAN_NO_PROTOTYPES or VK_NO_PROTOTYPES are set!");
-  ASSERT(request_formats != nullptr);
-  ASSERT(request_formats_count > 0);
+  assert(request_formats != nullptr);
+  assert(request_formats_count > 0);
 
   // Per Spec Format and View Format are expected to be the same unless
   // VK_IMAGE_CREATE_MUTABLE_BIT was set at image creation Assuming that the
@@ -1430,11 +1430,11 @@ VkSurfaceFormatKHR VulkanH_SelectSurfaceFormat(
 VkPresentModeKHR VulkanH_SelectPresentMode(
     VkPhysicalDevice physical_device, VkSurfaceKHR surface,
     const VkPresentModeKHR *request_modes, int request_modes_count) {
-  ASSERT(g_FunctionsLoaded &&
+  assert(g_FunctionsLoaded &&
          "Need to call Vulkan_LoadFunctions() if "
          "VULKAN_NO_PROTOTYPES or VK_NO_PROTOTYPES are set!");
-  ASSERT(request_modes != nullptr);
-  ASSERT(request_modes_count > 0);
+  assert(request_modes != nullptr);
+  assert(request_modes_count > 0);
 
   // Request a certain mode and confirm that it is available. If not use
   // VK_PRESENT_MODE_FIFO_KHR which is mandatory
@@ -1460,7 +1460,7 @@ VkPresentModeKHR VulkanH_SelectPresentMode(
 void VulkanH_CreateWindowCommandBuffers(
     VkPhysicalDevice physical_device, VkDevice device, VulkanH_Window *wd,
     uint32_t queue_family, const VkAllocationCallbacks *allocator) {
-  ASSERT(physical_device != VK_NULL_HANDLE && device != VK_NULL_HANDLE);
+  assert(physical_device != VK_NULL_HANDLE && device != VK_NULL_HANDLE);
   (void)physical_device;
   (void)allocator;
 
@@ -1514,7 +1514,7 @@ int VulkanH_GetMinImageCountFromPresentMode(VkPresentModeKHR present_mode) {
     return 2;
   if (present_mode == VK_PRESENT_MODE_IMMEDIATE_KHR)
     return 1;
-  ASSERT(0);
+  assert(0);
   return 1;
 }
 
@@ -1590,13 +1590,13 @@ void VulkanH_CreateWindowSwapChain(VkPhysicalDevice physical_device,
                                   nullptr);
     check_vk_result(err);
     VkImage backbuffers[16] = {};
-    ASSERT(wd->ImageCount >= min_image_count);
-    ASSERT(wd->ImageCount < ARRAYSIZE(backbuffers));
+    assert(wd->ImageCount >= min_image_count);
+    assert(wd->ImageCount < ARRAYSIZE(backbuffers));
     err = vkGetSwapchainImagesKHR(device, wd->Swapchain, &wd->ImageCount,
                                   backbuffers);
     check_vk_result(err);
 
-    ASSERT(wd->Frames == nullptr);
+    assert(wd->Frames == nullptr);
     wd->Frames = (VulkanH_Frame *)ALLOC(sizeof(VulkanH_Frame) * wd->ImageCount);
     wd->FrameSemaphores = (VulkanH_FrameSemaphores *)ALLOC(
         sizeof(VulkanH_FrameSemaphores) * wd->ImageCount);
@@ -1702,7 +1702,7 @@ void VulkanH_CreateOrResizeWindow(VkInstance instance,
                                   const VkAllocationCallbacks *allocator,
                                   int width, int height,
                                   uint32_t min_image_count) {
-  ASSERT(g_FunctionsLoaded &&
+  assert(g_FunctionsLoaded &&
          "Need to call Vulkan_LoadFunctions() if "
          "VULKAN_NO_PROTOTYPES or VK_NO_PROTOTYPES are set!");
   (void)instance;
@@ -1831,7 +1831,7 @@ static void Vulkan_CreateWindow(Viewport *viewport) {
   vkGetPhysicalDeviceSurfaceSupportKHR(v->PhysicalDevice, v->QueueFamily,
                                        wd->Surface, &res);
   if (res != VK_TRUE) {
-    ASSERT(0); // Error: no WSI support on physical device
+    assert(0); // Error: no WSI support on physical device
     return;
   }
 
@@ -2084,7 +2084,7 @@ static void Vulkan_SwapBuffers(Viewport *viewport, void *) {
 void Vulkan_InitPlatformInterface() {
   PlatformIO &platform_io = Gui::GetPlatformIO();
   if (Gui::GetIO().ConfigFlags & ConfigFlags_ViewportsEnable)
-    ASSERT(platform_io.Platform_CreateVkSurface != nullptr &&
+    assert(platform_io.Platform_CreateVkSurface != nullptr &&
            "Platform needs to setup the CreateVkSurface handler.");
   platform_io.Renderer_CreateWindow = Vulkan_CreateWindow;
   platform_io.Renderer_DestroyWindow = Vulkan_DestroyWindow;

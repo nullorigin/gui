@@ -452,9 +452,9 @@ bool Gui::BeginTableEx(const char *name, int id, int columns_count, int flags,
     return false;
 
   // Sanity checks
-  ASSERT(columns_count > 0 && columns_count < TABLE_MAX_COLUMNS);
+  assert(columns_count > 0 && columns_count < TABLE_MAX_COLUMNS);
   if (flags & TableFlags_ScrollX)
-    ASSERT(inner_width >= 0.0f);
+    assert(inner_width >= 0.0f);
 
   // If an outer size is specified ahead we will be able to early out when not
   // visible. Exact clipping criteria may evolve.
@@ -511,7 +511,7 @@ bool Gui::BeginTableEx(const char *name, int id, int columns_count, int flags,
   int instance_id;
   table->InstanceCurrent = (signed short)instance_no;
   if (instance_no > 0) {
-    ASSERT(table->ColumnsCount == columns_count &&
+    assert(table->ColumnsCount == columns_count &&
            "BeginTable(): Cannot change columns count mid-frame while "
            "preserving same unsigned int");
     if (table->InstanceDataExtra.Size < instance_no)
@@ -565,7 +565,7 @@ bool Gui::BeginTableEx(const char *name, int id, int columns_count, int flags,
     table->WorkRect = table->InnerWindow->WorkRect;
     table->OuterRect = table->InnerWindow->Rect();
     table->InnerRect = table->InnerWindow->InnerRect;
-    ASSERT(table->InnerWindow->WindowPadding.x == 0.0f &&
+    assert(table->InnerWindow->WindowPadding.x == 0.0f &&
            table->InnerWindow->WindowPadding.y == 0.0f &&
            table->InnerWindow->WindowBorderSize == 0.0f);
 
@@ -872,8 +872,8 @@ void Gui::TableBeginApplyRequests(Table *table) {
       //    ... C [D] E  --->  ... [D] E  C   (Column name/index)
       //    ... 2  3  4        ...  2  3  4   (Display order)
       const int reorder_dir = table->ReorderColumnDir;
-      ASSERT(reorder_dir == -1 || reorder_dir == +1);
-      ASSERT(table->Flags & TableFlags_Reorderable);
+      assert(reorder_dir == -1 || reorder_dir == +1);
+      assert(table->Flags & TableFlags_Reorderable);
       TableColumn *src_column = &table->Columns[table->ReorderColumn];
       TableColumn *dst_column =
           &table->Columns[(reorder_dir == -1) ? src_column->PrevEnabledColumn
@@ -886,7 +886,7 @@ void Gui::TableBeginApplyRequests(Table *table) {
            order_n != dst_order + reorder_dir; order_n += reorder_dir)
         table->Columns[table->DisplayOrderToIndex[order_n]].DisplayOrder -=
             (TableColumnIdx)reorder_dir;
-      ASSERT(dst_column->DisplayOrder == dst_order - reorder_dir);
+      assert(dst_column->DisplayOrder == dst_order - reorder_dir);
 
       // Display order is stored in both columns->IndexDisplayOrder and
       // table->DisplayOrder[]. Rebuild later from the former.
@@ -923,7 +923,7 @@ static void TableSetupColumnFlags(Table *table, TableColumn *column,
     else
       flags |= TableColumnFlags_WidthStretch;
   } else {
-    ASSERT(IsPowerOfTwo(flags &
+    assert(IsPowerOfTwo(flags &
                         TableColumnFlags_WidthMask_)); // Check that only 1 of
                                                        // each set is used.
   }
@@ -946,7 +946,7 @@ static void TableSetupColumnFlags(Table *table, TableColumn *column,
   // Alignment
   // if ((flags & TableColumnFlags_AlignMask_) == 0)
   //    flags |= TableColumnFlags_AlignCenter;
-  // ASSERT(IsPowerOfTwo(flags & TableColumnFlags_AlignMask_)); //
+  // assert(IsPowerOfTwo(flags & TableColumnFlags_AlignMask_)); //
   // Check that only 1 of each set is used.
 
   // Preserve status flags
@@ -1002,7 +1002,7 @@ static void TableSetupColumnFlags(Table *table, TableColumn *column,
 // _WidthAuto columns?
 void Gui::TableUpdateLayout(Table *table) {
   Context &g = *GGui;
-  ASSERT(table->IsLayoutLocked == false);
+  assert(table->IsLayoutLocked == false);
 
   const int table_sizing_policy = (table->Flags & TableFlags_SizingMask_);
   table->IsDefaultDisplayOrder = true;
@@ -1084,7 +1084,7 @@ void Gui::TableUpdateLayout(Table *table) {
     BitArraySetBit(table->EnabledMaskByIndex, column_n);
     BitArraySetBit(table->EnabledMaskByDisplayOrder, column->DisplayOrder);
     prev_visible_column_idx = column_n;
-    ASSERT(column->IndexWithinEnabledSet <= column->DisplayOrder);
+    assert(column->IndexWithinEnabledSet <= column->DisplayOrder);
 
     // Calculate ideal/auto column width (that's the width required for all
     // contents to be visible without clipping) Combine width from regular rows
@@ -1116,7 +1116,7 @@ void Gui::TableUpdateLayout(Table *table) {
       !(table->Flags & TableFlags_SortTristate))
     table->IsSortSpecsDirty = true;
   table->RightMostEnabledColumn = (TableColumnIdx)prev_visible_column_idx;
-  ASSERT(table->LeftMostEnabledColumn >= 0 &&
+  assert(table->LeftMostEnabledColumn >= 0 &&
          table->RightMostEnabledColumn >= 0);
 
   // [Part 2] Disable child window clipping while fitting columns. This is not
@@ -1427,7 +1427,7 @@ void Gui::TableUpdateLayout(Table *table) {
     // cleared it above in Part 2)
     column->IsSkipItems = !column->IsEnabled || table->HostSkipItems;
     if (column->IsSkipItems)
-      ASSERT(!is_visible);
+      assert(!is_visible);
     if (column->IsRequestOutput && !column->IsSkipItems)
       has_at_least_one_column_requesting_output = true;
 
@@ -1597,7 +1597,7 @@ void Gui::TableUpdateLayout(Table *table) {
 // feedback noise.
 void Gui::TableUpdateBorders(Table *table) {
   Context &g = *GGui;
-  ASSERT(table->Flags & TableFlags_Resizable);
+  assert(table->Flags & TableFlags_Resizable);
 
   // At this point OuterRect height may be zero or under actual final height, so
   // we rely on temporal coherency and use the final height from last frame.
@@ -1674,12 +1674,12 @@ void Gui::TableUpdateBorders(Table *table) {
 void Gui::EndTable() {
   Context &g = *GGui;
   Table *table = g.CurrentTable;
-  ASSERT(table != NULL && "Only call EndTable() if BeginTable() returns true!");
+  assert(table != NULL && "Only call EndTable() if BeginTable() returns true!");
 
   // This assert would be very useful to catch a common error... unfortunately
   // it would probably trigger in some cases, and for consistency user may
   // sometimes output empty tables (and still benefit from e.g. outer border)
-  // ASSERT(table->IsLayoutLocked && "Table unused: never called
+  // assert(table->IsLayoutLocked && "Table unused: never called
   // TableNextRow(), is that the intent?");
 
   // If the user never got to call TableNextRow() or TableNextColumn(), we call
@@ -1692,8 +1692,8 @@ void Gui::EndTable() {
   Window *inner_window = table->InnerWindow;
   Window *outer_window = table->OuterWindow;
   TableTempData *temp_data = table->TempData;
-  ASSERT(inner_window == g.CurrentWindow);
-  ASSERT(outer_window == inner_window ||
+  assert(inner_window == g.CurrentWindow);
+  assert(outer_window == inner_window ||
          outer_window == inner_window->ParentWindow);
 
   if (table->IsInsideRow)
@@ -1712,7 +1712,7 @@ void Gui::EndTable() {
   inner_window->DC.CurrLineSize = temp_data->HostBackupCurrLineSize;
   inner_window->DC.CursorMaxPos = temp_data->HostBackupCursorMaxPos;
   const float inner_content_max_y = table->RowPosY2;
-  ASSERT(table->RowPosY2 == inner_window->DC.CursorPos.y);
+  assert(table->RowPosY2 == inner_window->DC.CursorPos.y);
   if (inner_window != outer_window)
     inner_window->DC.CursorMaxPos.y = inner_content_max_y;
   else if (!(flags & TableFlags_NoHostExtendY))
@@ -1882,7 +1882,7 @@ void Gui::EndTable() {
     // FIXME-TABLE: Could we remove this section?
     // ColumnsAutoFitWidth may be one frame ahead here since for Fixed+NoResize
     // is calculated from latest contents
-    ASSERT((table->Flags & TableFlags_ScrollX) == 0);
+    assert((table->Flags & TableFlags_ScrollX) == 0);
     outer_window->DC.CursorMaxPos.x =
         Max(backup_outer_max_pos.x,
             table->OuterRect.Min.x + table->ColumnsAutoFitWidth);
@@ -1926,8 +1926,8 @@ void Gui::EndTable() {
   table->IsInitializing = false;
 
   // Clear or restore current table, if any
-  ASSERT(g.CurrentWindow == outer_window && g.CurrentTable == table);
-  ASSERT(g.TablesTempDataStacked > 0);
+  assert(g.CurrentWindow == outer_window && g.CurrentTable == table);
+  assert(g.TablesTempDataStacked > 0);
   temp_data = (--g.TablesTempDataStacked > 0)
                   ? &g.TablesTempData[g.TablesTempDataStacked - 1]
                   : NULL;
@@ -1948,11 +1948,11 @@ void Gui::TableSetupColumn(const char *label, int flags,
                            float init_width_or_weight, int user_id) {
   Context &g = *GGui;
   Table *table = g.CurrentTable;
-  ASSERT(table != NULL &&
+  assert(table != NULL &&
          "Need to call TableSetupColumn() after BeginTable()!");
-  ASSERT(table->IsLayoutLocked == false &&
+  assert(table->IsLayoutLocked == false &&
          "Need to call call TableSetupColumn() before first row!");
-  ASSERT((flags & TableColumnFlags_StatusMask_) == 0 &&
+  assert((flags & TableColumnFlags_StatusMask_) == 0 &&
          "Illegal to pass StatusMask values to TableSetupColumn()");
   if (table->DeclColumnsCount >= table->ColumnsCount) {
     ASSERT_USER_ERROR(table->DeclColumnsCount < table->ColumnsCount,
@@ -1969,7 +1969,7 @@ void Gui::TableSetupColumn(const char *label, int flags,
   if (table->IsDefaultSizingPolicy &&
       (flags & TableColumnFlags_WidthMask_) == 0 &&
       (flags & TableFlags_ScrollX) == 0)
-    ASSERT(init_width_or_weight <= 0.0f &&
+    assert(init_width_or_weight <= 0.0f &&
            "Can only specify width/weight if sizing policy is set "
            "explicitly in either Table or Column.");
 
@@ -2033,12 +2033,12 @@ void Gui::TableSetupColumn(const char *label, int flags,
 void Gui::TableSetupScrollFreeze(int columns, int rows) {
   Context &g = *GGui;
   Table *table = g.CurrentTable;
-  ASSERT(table != NULL &&
+  assert(table != NULL &&
          "Need to call TableSetupColumn() after BeginTable()!");
-  ASSERT(table->IsLayoutLocked == false &&
+  assert(table->IsLayoutLocked == false &&
          "Need to call TableSetupColumn() before first row!");
-  ASSERT(columns >= 0 && columns < TABLE_MAX_COLUMNS);
-  ASSERT(rows >= 0 && rows < 128); // Arbitrary limit
+  assert(columns >= 0 && columns < TABLE_MAX_COLUMNS);
+  assert(rows >= 0 && rows < 128); // Arbitrary limit
 
   table->FreezeColumnsRequest =
       (table->Flags & TableFlags_ScrollX)
@@ -2125,13 +2125,13 @@ const char *Gui::TableGetColumnName(const Table *table, int column_n) {
 void Gui::TableSetColumnEnabled(int column_n, bool enabled) {
   Context &g = *GGui;
   Table *table = g.CurrentTable;
-  ASSERT(table != NULL);
+  assert(table != NULL);
   if (!table)
     return;
-  ASSERT(table->Flags & TableFlags_Hideable); // See comments above
+  assert(table->Flags & TableFlags_Hideable); // See comments above
   if (column_n < 0)
     column_n = table->CurrentColumn;
-  ASSERT(column_n >= 0 && column_n < table->ColumnsCount);
+  assert(column_n >= 0 && column_n < table->ColumnsCount);
   TableColumn *column = &table->Columns[column_n];
   column->IsUserEnabledNextFrame = enabled;
 }
@@ -2178,7 +2178,7 @@ Rect Gui::TableGetCellBgRect(const Table *table, int column_n) {
 
 // Return the resizing int for the right-side of the given column.
 int Gui::TableGetColumnResizeID(Table *table, int column_n, int instance_no) {
-  ASSERT(column_n >= 0 && column_n < table->ColumnsCount);
+  assert(column_n >= 0 && column_n < table->ColumnsCount);
   int instance_id = TableGetInstanceID(table, instance_no);
   return instance_id + 1 + column_n; // FIXME: #6140: still not ideal
 }
@@ -2210,7 +2210,7 @@ int Gui::TableGetHoveredRow() {
 void Gui::TableSetBgColor(int target, unsigned int color, int column_n) {
   Context &g = *GGui;
   Table *table = g.CurrentTable;
-  ASSERT(target != TableBgTarget_None);
+  assert(target != TableBgTarget_None);
 
   if (color == COL32_DISABLE)
     color = 0;
@@ -2237,13 +2237,13 @@ void Gui::TableSetBgColor(int target, unsigned int color, int column_n) {
   case TableBgTarget_RowBg1: {
     if (table->RowPosY1 > table->InnerClipRect.Max.y) // Discard
       return;
-    ASSERT(column_n == -1);
+    assert(column_n == -1);
     int bg_idx = (target == TableBgTarget_RowBg1) ? 1 : 0;
     table->RowBgColor[bg_idx] = color;
     break;
   }
   default:
-    ASSERT(0);
+    assert(0);
   }
 }
 
@@ -2295,7 +2295,7 @@ void Gui::TableNextRow(int row_flags, float row_min_height) {
 // [Internal] Only called by TableNextRow()
 void Gui::TableBeginRow(Table *table) {
   Window *window = table->InnerWindow;
-  ASSERT(!table->IsInsideRow);
+  assert(!table->IsInsideRow);
 
   // New row
   table->CurrentRow++;
@@ -2339,8 +2339,8 @@ void Gui::TableBeginRow(Table *table) {
 void Gui::TableEndRow(Table *table) {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
-  ASSERT(window == table->InnerWindow);
-  ASSERT(table->IsInsideRow);
+  assert(window == table->InnerWindow);
+  assert(table->IsInsideRow);
 
   if (table->CurrentColumn != -1)
     TableEndCell(table);
@@ -2468,7 +2468,7 @@ void Gui::TableEndRow(Table *table) {
     for (int column_n = 0; column_n < table->ColumnsCount; column_n++)
       table->Columns[column_n].NavLayerCurrent = NavLayer_Main;
   if (unfreeze_rows_actual) {
-    ASSERT(table->IsUnfrozenRows == false);
+    assert(table->IsUnfrozenRows == false);
     const float y0 = Max(table->RowPosY2 + 1, window->InnerClipRect.Min.y);
     table->IsUnfrozenRows = true;
     table_instance->LastFrozenHeight = y0 - table->OuterRect.Min.y;
@@ -2480,7 +2480,7 @@ void Gui::TableEndRow(Table *table) {
     table->BgClipRect.Max.y = table->Bg2ClipRectForDrawCmd.Max.y =
         window->InnerClipRect.Max.y;
     table->Bg2DrawChannelCurrent = table->Bg2DrawChannelUnfrozen;
-    ASSERT(table->Bg2ClipRectForDrawCmd.Min.y <=
+    assert(table->Bg2ClipRectForDrawCmd.Min.y <=
            table->Bg2ClipRectForDrawCmd.Max.y);
 
     float row_height = table->RowPosY2 - table->RowPosY1;
@@ -2533,7 +2533,7 @@ bool Gui::TableSetColumnIndex(int column_n) {
   if (table->CurrentColumn != column_n) {
     if (table->CurrentColumn != -1)
       TableEndCell(table);
-    ASSERT(column_n >= 0 && table->ColumnsCount);
+    assert(column_n >= 0 && table->ColumnsCount);
     TableBeginCell(table, column_n);
   }
 
@@ -2613,7 +2613,7 @@ void Gui::TableBeginCell(Table *table, int column_n) {
     // and just assert that channel hasn't changed.
     table->DrawSplitter->SetCurrentChannel(window->DrawList,
                                            TABLE_DRAW_CHANNEL_NOCLIP);
-    // ASSERT(table->DrawSplitter._Current == TABLE_DRAW_CHANNEL_NOCLIP);
+    // assert(table->DrawSplitter._Current == TABLE_DRAW_CHANNEL_NOCLIP);
   } else {
     // FIXME-TABLE: Could avoid this if draw channel is dummy channel?
     SetWindowClipRectBeforeSetChannel(window, column->ClipRect);
@@ -2737,15 +2737,15 @@ float Gui::TableGetColumnWidthAuto(Table *table, TableColumn *column) {
 void Gui::TableSetColumnWidth(int column_n, float width) {
   Context &g = *GGui;
   Table *table = g.CurrentTable;
-  ASSERT(table != NULL && table->IsLayoutLocked == false);
-  ASSERT(column_n >= 0 && column_n < table->ColumnsCount);
+  assert(table != NULL && table->IsLayoutLocked == false);
+  assert(column_n >= 0 && column_n < table->ColumnsCount);
   TableColumn *column_0 = &table->Columns[column_n];
   float column_0_width = width;
 
   // Apply constraints early
   // Compare both requested and actual given width to avoid overwriting
   // requested width when column is stuck (minimum size, bounded)
-  ASSERT(table->MinColumnWidth > 0.0f);
+  assert(table->MinColumnWidth > 0.0f);
   const float min_width = table->MinColumnWidth;
   const float max_width =
       Max(min_width, TableGetMaxColumnWidth(table, column_n));
@@ -2838,7 +2838,7 @@ void Gui::TableSetColumnWidth(int column_n, float width) {
           min_width);
   column_0_width =
       column_0->WidthRequest + column_1->WidthRequest - column_1_width;
-  ASSERT(column_0_width > 0.0f && column_1_width > 0.0f);
+  assert(column_0_width > 0.0f && column_1_width > 0.0f);
   column_0->WidthRequest = column_0_width;
   column_1->WidthRequest = column_1_width;
   if ((column_0->Flags | column_1->Flags) & TableColumnFlags_WidthStretch)
@@ -2872,7 +2872,7 @@ void Gui::TableSetColumnWidthAutoAll(Table *table) {
 }
 
 void Gui::TableUpdateColumnsWeightFromWidth(Table *table) {
-  ASSERT(table->LeftMostStretchedColumn != -1 &&
+  assert(table->LeftMostStretchedColumn != -1 &&
          table->RightMostStretchedColumn != -1);
 
   // Measure existing quantities
@@ -2882,11 +2882,11 @@ void Gui::TableUpdateColumnsWeightFromWidth(Table *table) {
     TableColumn *column = &table->Columns[column_n];
     if (!column->IsEnabled || !(column->Flags & TableColumnFlags_WidthStretch))
       continue;
-    ASSERT(column->StretchWeight > 0.0f);
+    assert(column->StretchWeight > 0.0f);
     visible_weight += column->StretchWeight;
     visible_width += column->WidthRequest;
   }
-  ASSERT(visible_weight > 0.0f && visible_width > 0.0f);
+  assert(visible_weight > 0.0f && visible_width > 0.0f);
 
   // Apply new weights
   for (int column_n = 0; column_n < table->ColumnsCount; column_n++) {
@@ -2895,7 +2895,7 @@ void Gui::TableUpdateColumnsWeightFromWidth(Table *table) {
       continue;
     column->StretchWeight =
         (column->WidthRequest / visible_width) * visible_weight;
-    ASSERT(column->StretchWeight > 0.0f);
+    assert(column->StretchWeight > 0.0f);
   }
 }
 
@@ -3012,7 +3012,7 @@ void Gui::TableSetupDrawChannels(Table *table) {
   table->BgClipRect = table->InnerClipRect;
   table->Bg0ClipRectForDrawCmd = table->OuterWindow->ClipRect;
   table->Bg2ClipRectForDrawCmd = table->HostClipRect;
-  ASSERT(table->BgClipRect.Min.y <= table->BgClipRect.Max.y);
+  assert(table->BgClipRect.Min.y <= table->BgClipRect.Max.y);
 }
 
 // This function reorder draw channels based on matching clip rectangle, to
@@ -3061,7 +3061,7 @@ void Gui::TableMergeDrawChannels(Table *table) {
   DrawListSplitter *splitter = table->DrawSplitter;
   const bool has_freeze_v = (table->FreezeRowsCount > 0);
   const bool has_freeze_h = (table->FreezeColumnsCount > 0);
-  ASSERT(splitter->_Current == 0);
+  assert(splitter->_Current == 0);
 
   // Track which groups we are going to attempt to merge, and which channels
   // goes into each group.
@@ -3135,7 +3135,7 @@ void Gui::TableMergeDrawChannels(Table *table) {
       const int merge_group_n =
           (has_freeze_h && column_n < table->FreezeColumnsCount ? 0 : 1) +
           (has_freeze_v && merge_group_sub_n == 0 ? 0 : 2);
-      ASSERT(channel_no < max_draw_channels);
+      assert(channel_no < max_draw_channels);
       MergeGroup *merge_group = &merge_groups[merge_group_n];
       if (merge_group->ChannelsCount == 0)
         merge_group->ClipRect = Rect(+FLT_MAX, +FLT_MAX, -FLT_MAX, -FLT_MAX);
@@ -3182,7 +3182,7 @@ void Gui::TableMergeDrawChannels(Table *table) {
     BitArraySetBitRange(remaining_mask, LEADING_DRAW_CHANNELS,
                         splitter->_Count);
     BitArrayClearBit(remaining_mask, table->Bg2DrawChannelUnfrozen);
-    ASSERT(has_freeze_v == false ||
+    assert(has_freeze_v == false ||
            table->Bg2DrawChannelUnfrozen != TABLE_DRAW_CHANNEL_BG2_FROZEN);
     int remaining_count =
         splitter->_Count -
@@ -3238,7 +3238,7 @@ void Gui::TableMergeDrawChannels(Table *table) {
           merge_channels_count--;
 
           DrawChannel *channel = &splitter->_Channels[n];
-          ASSERT(
+          assert(
               channel->_CmdBuffer.Size == 1 &&
               merge_clip_rect.Contains(Rect(channel->_CmdBuffer[0].ClipRect)));
           channel->_CmdBuffer[0].ClipRect = merge_clip_rect.ToVec4();
@@ -3261,7 +3261,7 @@ void Gui::TableMergeDrawChannels(Table *table) {
       memcpy(dst_tmp++, channel, sizeof(DrawChannel));
       remaining_count--;
     }
-    ASSERT(dst_tmp == g.DrawChannelsTempMergeBuffer.Data +
+    assert(dst_tmp == g.DrawChannelsTempMergeBuffer.Data +
                           g.DrawChannelsTempMergeBuffer.Size);
     memcpy(splitter->_Channels.Data + LEADING_DRAW_CHANNELS,
            g.DrawChannelsTempMergeBuffer.Data,
@@ -3427,7 +3427,7 @@ void Gui::TableDrawBorders(Table *table) {
 TableSortSpecs *Gui::TableGetSortSpecs() {
   Context &g = *GGui;
   Table *table = g.CurrentTable;
-  ASSERT(table != NULL);
+  assert(table != NULL);
 
   if (!(table->Flags & TableFlags_Sortable))
     return NULL;
@@ -3442,7 +3442,7 @@ TableSortSpecs *Gui::TableGetSortSpecs() {
 }
 
 static inline int TableGetColumnAvailSortDirection(TableColumn *column, int n) {
-  ASSERT(n < column->SortDirectionsAvailCount);
+  assert(n < column->SortDirectionsAvailCount);
   return (column->SortDirectionsAvailList >> (n << 1)) & 0x03;
 }
 
@@ -3462,17 +3462,17 @@ void Gui::TableFixColumnSortDirection(Table *table, TableColumn *column) {
 // direction on the first click.
 // - Note that the PreferSortAscending flag is never checked, it is essentially
 // the default and therefore a no-op.
-STATIC_ASSERT(SortDirection_None == 0 && SortDirection_Ascending == 1 &&
+STATIC_assert(SortDirection_None == 0 && SortDirection_Ascending == 1 &&
               SortDirection_Descending == 2);
 int Gui::TableGetColumnNextSortDirection(TableColumn *column) {
-  ASSERT(column->SortDirectionsAvailCount > 0);
+  assert(column->SortDirectionsAvailCount > 0);
   if (column->SortOrder == -1)
     return TableGetColumnAvailSortDirection(column, 0);
   for (int n = 0; n < 3; n++)
     if (column->SortDirection == TableGetColumnAvailSortDirection(column, n))
       return TableGetColumnAvailSortDirection(
           column, (n + 1) % column->SortDirectionsAvailCount);
-  ASSERT(0);
+  assert(0);
   return SortDirection_None;
 }
 
@@ -3488,7 +3488,7 @@ void Gui::TableSetColumnSortDirection(int column_n, int sort_direction,
   if (!(table->Flags & TableFlags_SortMulti))
     append_to_sort_specs = false;
   if (!(table->Flags & TableFlags_SortTristate))
-    ASSERT(sort_direction != SortDirection_None);
+    assert(sort_direction != SortDirection_None);
 
   TableColumnIdx sort_order_max = 0;
   if (append_to_sort_specs)
@@ -3516,7 +3516,7 @@ void Gui::TableSetColumnSortDirection(int column_n, int sort_direction,
 }
 
 void Gui::TableSortSpecsSanitize(Table *table) {
-  ASSERT(table->Flags & TableFlags_Sortable);
+  assert(table->Flags & TableFlags_Sortable);
 
   // Clear SortOrder from hidden column and verify that there's no gap or
   // duplicate.
@@ -3530,7 +3530,7 @@ void Gui::TableSortSpecsSanitize(Table *table) {
       continue;
     sort_order_count++;
     sort_order_mask |= ((unsigned long long)1 << column->SortOrder);
-    ASSERT(sort_order_count < (int)sizeof(sort_order_mask) * 8);
+    assert(sort_order_count < (int)sizeof(sort_order_mask) * 8);
   }
 
   const bool need_fix_linearize =
@@ -3552,7 +3552,7 @@ void Gui::TableSortSpecsSanitize(Table *table) {
               table->Columns[column_n].SortOrder <
                   table->Columns[column_with_smallest_sort_order].SortOrder)
             column_with_smallest_sort_order = column_n;
-      ASSERT(column_with_smallest_sort_order != -1);
+      assert(column_with_smallest_sort_order != -1);
       fixed_mask |= ((unsigned long long)1 << column_with_smallest_sort_order);
       table->Columns[column_with_smallest_sort_order].SortOrder =
           (TableColumnIdx)sort_n;
@@ -3606,7 +3606,7 @@ void Gui::TableSortSpecsBuild(Table *table) {
       TableColumn *column = &table->Columns[column_n];
       if (column->SortOrder == -1)
         continue;
-      ASSERT(column->SortOrder < table->SortSpecsCount);
+      assert(column->SortOrder < table->SortSpecsCount);
       TableColumnSortSpecs *sort_spec = &sort_specs[column->SortOrder];
       sort_spec->ColumnUserID = column->UserID;
       sort_spec->ColumnIndex = (TableColumnIdx)column_n;
@@ -3673,7 +3673,7 @@ float Gui::TableGetHeaderAngledMaxLabelWidth() {
 void Gui::TableHeadersRow() {
   Context &g = *GGui;
   Table *table = g.CurrentTable;
-  ASSERT(table != NULL && "Need to call TableHeadersRow() after BeginTable()!");
+  assert(table != NULL && "Need to call TableHeadersRow() after BeginTable()!");
 
   // Layout if not already done (this is automatically done by TableNextRow, we
   // do it here solely to facilitate stepping in debugger as it is frequent to
@@ -3725,8 +3725,8 @@ void Gui::TableHeader(const char *label) {
     return;
 
   Table *table = g.CurrentTable;
-  ASSERT(table != NULL && "Need to call TableHeader() after BeginTable()!");
-  ASSERT(table->CurrentColumn != -1);
+  assert(table != NULL && "Need to call TableHeader() after BeginTable()!");
+  assert(table->CurrentColumn != -1);
   const int column_n = table->CurrentColumn;
   TableColumn *column = &table->Columns[column_n];
 
@@ -3906,8 +3906,8 @@ void Gui::TableAngledHeadersRowEx(float angle, float max_label_width) {
   Table *table = g.CurrentTable;
   Window *window = g.CurrentWindow;
   DrawList *draw_list = window->DrawList;
-  ASSERT(table != NULL && "Need to call TableHeadersRow() after BeginTable()!");
-  ASSERT(table->CurrentRow == -1 && "Must be first row");
+  assert(table != NULL && "Need to call TableHeadersRow() after BeginTable()!");
+  assert(table->CurrentRow == -1 && "Must be first row");
 
   if (max_label_width == 0.0f)
     max_label_width = TableGetHeaderAngledMaxLabelWidth();
@@ -4066,7 +4066,7 @@ void Gui::TableOpenContextMenu(int column_n) {
   if (column_n ==
       table->ColumnsCount) // To facilitate using with TableGetHoveredColumn()
     column_n = -1;
-  ASSERT(column_n >= -1 && column_n < table->ColumnsCount);
+  assert(column_n >= -1 && column_n < table->ColumnsCount);
   if (table->Flags &
       (TableFlags_Resizable | TableFlags_Reorderable | TableFlags_Hideable)) {
     table->IsContextPopupOpen = true;
@@ -4267,7 +4267,7 @@ TableSettings *Gui::TableGetBoundSettings(Table *table) {
     Context &g = *GGui;
     TableSettings *settings =
         g.SettingsTables.ptr_from_offset(table->SettingsOffset);
-    ASSERT(settings->ID == table->ID);
+    assert(settings->ID == table->ID);
     if (settings->ColumnsCountMax >= table->ColumnsCount)
       return settings; // OK
     settings->ID =
@@ -4302,8 +4302,8 @@ void Gui::TableSaveSettings(Table *table) {
 
   // Serialize Table/TableColumn into
   // TableSettings/TableColumnSettings
-  ASSERT(settings->ID == table->ID);
-  ASSERT(settings->ColumnsCount == table->ColumnsCount &&
+  assert(settings->ID == table->ID);
+  assert(settings->ColumnsCount == table->ColumnsCount &&
          settings->ColumnsCountMax >= settings->ColumnsCount);
   TableColumn *column = table->Columns.Data;
   TableColumnSettings *column_settings = settings->GetColumnSettings();
@@ -4602,7 +4602,7 @@ void Gui::TableGcCompactTransientBuffers(Table *table) {
   // DEBUG_PRINT("TableGcCompactTransientBuffers() id=0x%08X\n", table->unsigned
   // int);
   Context &g = *GGui;
-  ASSERT(table->MemoryCompacted == false);
+  assert(table->MemoryCompacted == false);
   table->SortSpecs.Specs = NULL;
   table->SortSpecsMulti.clear();
   table->IsSortSpecsDirty = true; // FIXME: In theory shouldn't have to leak
@@ -4871,8 +4871,8 @@ static float GetDraggedColumnOffset(OldColumns *columns, int column_index) {
   // enforce absolute positioning.
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
-  ASSERT(column_index > 0); // We are not supposed to drag column 0.
-  ASSERT(g.ActiveId == columns->ID + (unsigned int)(column_index));
+  assert(column_index > 0); // We are not supposed to drag column 0.
+  assert(g.ActiveId == columns->ID + (unsigned int)(column_index));
 
   float x = g.IO.MousePos.x - g.ActiveIdClickOffset.x +
             COLUMNS_HIT_RECT_HALF_WIDTH - window->Pos.x;
@@ -4893,7 +4893,7 @@ float Gui::GetColumnOffset(int column_index) {
 
   if (column_index < 0)
     column_index = columns->Current;
-  ASSERT(column_index < columns->Columns.Size);
+  assert(column_index < columns->Columns.Size);
 
   const float t = columns->Columns[column_index].OffsetNorm;
   const float x_offset = Lerp(columns->OffMinX, columns->OffMaxX, t);
@@ -4933,11 +4933,11 @@ void Gui::SetColumnOffset(int column_index, float offset) {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
   OldColumns *columns = window->DC.CurrentColumns;
-  ASSERT(columns != NULL);
+  assert(columns != NULL);
 
   if (column_index < 0)
     column_index = columns->Current;
-  ASSERT(column_index < columns->Columns.Size);
+  assert(column_index < columns->Columns.Size);
 
   const bool preserve_width =
       !(columns->Flags & OldColumnFlags_NoPreserveWidths) &&
@@ -4961,7 +4961,7 @@ void Gui::SetColumnOffset(int column_index, float offset) {
 void Gui::SetColumnWidth(int column_index, float width) {
   Window *window = GetCurrentWindowRead();
   OldColumns *columns = window->DC.CurrentColumns;
-  ASSERT(columns != NULL);
+  assert(columns != NULL);
 
   if (column_index < 0)
     column_index = columns->Current;
@@ -5034,14 +5034,14 @@ void Gui::BeginColumns(const char *str_id, int columns_count, int flags) {
   Context &g = *GGui;
   Window *window = GetCurrentWindow();
 
-  ASSERT(columns_count >= 1);
-  ASSERT(window->DC.CurrentColumns ==
+  assert(columns_count >= 1);
+  assert(window->DC.CurrentColumns ==
          NULL); // Nested columns are currently not supported
 
   // Acquire storage for the columns set
   int id = GetColumnsID(str_id, columns_count);
   OldColumns *columns = FindOrCreateColumns(window, id);
-  ASSERT(columns->ID == id);
+  assert(columns->ID == id);
   columns->Current = 0;
   columns->Count = columns_count;
   columns->Flags = flags;
@@ -5125,7 +5125,7 @@ void Gui::NextColumn() {
   if (columns->Count == 1) {
     window->DC.CursorPos.x =
         TRUNC(window->Pos.x + window->DC.Indent.x + window->DC.ColumnsOffset.x);
-    ASSERT(columns->Current == 0);
+    assert(columns->Current == 0);
     return;
   }
 
@@ -5174,7 +5174,7 @@ void Gui::EndColumns() {
   Context &g = *GGui;
   Window *window = GetCurrentWindow();
   OldColumns *columns = window->DC.CurrentColumns;
-  ASSERT(columns != NULL);
+  assert(columns != NULL);
 
   PopItemWidth();
   if (columns->Count > 1) {
@@ -5252,7 +5252,7 @@ void Gui::EndColumns() {
 
 void Gui::Columns(int columns_count, const char *id, bool border) {
   Window *window = GetCurrentWindow();
-  ASSERT(columns_count >= 1);
+  assert(columns_count >= 1);
 
   int flags = (border ? 0 : OldColumnFlags_NoBorder);
   // flags |= OldColumnFlags_NoPreserveWidths; // NB: Legacy behavior

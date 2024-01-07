@@ -124,16 +124,16 @@ struct DX12_ViewportData {
     }
   }
   ~DX12_ViewportData() {
-    ASSERT(CommandQueue == nullptr && CommandList == nullptr);
-    ASSERT(RtvDescHeap == nullptr);
-    ASSERT(SwapChain == nullptr);
-    ASSERT(Fence == nullptr);
-    ASSERT(FenceEvent == nullptr);
+    assert(CommandQueue == nullptr && CommandList == nullptr);
+    assert(RtvDescHeap == nullptr);
+    assert(SwapChain == nullptr);
+    assert(Fence == nullptr);
+    assert(FenceEvent == nullptr);
 
     for (UINT i = 0; i < NumFramesInFlight; ++i) {
-      ASSERT(FrameCtx[i].CommandAllocator == nullptr &&
+      assert(FrameCtx[i].CommandAllocator == nullptr &&
              FrameCtx[i].RenderTarget == nullptr);
-      ASSERT(FrameRenderBuffers[i].IndexBuffer == nullptr &&
+      assert(FrameRenderBuffers[i].IndexBuffer == nullptr &&
              FrameRenderBuffers[i].VertexBuffer == nullptr);
     }
 
@@ -412,12 +412,12 @@ static void DX12_CreateFontsTexture() {
     HRESULT hr = bd->pd3dDevice->CreateCommittedResource(
         &props, D3D12_HEAP_FLAG_NONE, &desc, D3D12_RESOURCE_STATE_GENERIC_READ,
         nullptr, IID_PPV_ARGS(&uploadBuffer));
-    ASSERT(SUCCEEDED(hr));
+    assert(SUCCEEDED(hr));
 
     void *mapped = nullptr;
     D3D12_RANGE range = {0, uploadSize};
     hr = uploadBuffer->Map(0, &range, &mapped);
-    ASSERT(SUCCEEDED(hr));
+    assert(SUCCEEDED(hr));
     for (int y = 0; y < height; y++)
       memcpy((void *)((uintptr_t)mapped + y * uploadPitch),
              pixels + y * width * 4, width * 4);
@@ -448,10 +448,10 @@ static void DX12_CreateFontsTexture() {
     ID3D12Fence *fence = nullptr;
     hr = bd->pd3dDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE,
                                      IID_PPV_ARGS(&fence));
-    ASSERT(SUCCEEDED(hr));
+    assert(SUCCEEDED(hr));
 
     HANDLE event = CreateEvent(0, 0, 0, 0);
-    ASSERT(event != nullptr);
+    assert(event != nullptr);
 
     D3D12_COMMAND_QUEUE_DESC queueDesc = {};
     queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
@@ -461,28 +461,28 @@ static void DX12_CreateFontsTexture() {
     ID3D12CommandQueue *cmdQueue = nullptr;
     hr =
         bd->pd3dDevice->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&cmdQueue));
-    ASSERT(SUCCEEDED(hr));
+    assert(SUCCEEDED(hr));
 
     ID3D12CommandAllocator *cmdAlloc = nullptr;
     hr = bd->pd3dDevice->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT,
                                                 IID_PPV_ARGS(&cmdAlloc));
-    ASSERT(SUCCEEDED(hr));
+    assert(SUCCEEDED(hr));
 
     ID3D12GraphicsCommandList *cmdList = nullptr;
     hr = bd->pd3dDevice->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT,
                                            cmdAlloc, nullptr,
                                            IID_PPV_ARGS(&cmdList));
-    ASSERT(SUCCEEDED(hr));
+    assert(SUCCEEDED(hr));
 
     cmdList->CopyTextureRegion(&dstLocation, 0, 0, 0, &srcLocation, nullptr);
     cmdList->ResourceBarrier(1, &barrier);
 
     hr = cmdList->Close();
-    ASSERT(SUCCEEDED(hr));
+    assert(SUCCEEDED(hr));
 
     cmdQueue->ExecuteCommandLists(1, (ID3D12CommandList *const *)&cmdList);
     hr = cmdQueue->Signal(fence, 1);
-    ASSERT(SUCCEEDED(hr));
+    assert(SUCCEEDED(hr));
 
     fence->SetEventOnCompletion(1, event);
     WaitForSingleObject(event, INFINITE);
@@ -509,7 +509,7 @@ static void DX12_CreateFontsTexture() {
   }
 
   // Store our identifier
-  // READ THIS IF THE STATIC_ASSERT() TRIGGERS:
+  // READ THIS IF THE STATIC_assert() TRIGGERS:
   // - Important: to compile on 32-bit systems, this backend requires code to be
   // compiled with '#define TextureID unsigned long long'.
   // - This is because we need TextureID to carry a 64-bit value and by
@@ -817,7 +817,7 @@ bool DX12_Init(ID3D12Device *device, int num_frames_in_flight,
                D3D12_CPU_DESCRIPTOR_HANDLE font_srv_cpu_desc_handle,
                D3D12_GPU_DESCRIPTOR_HANDLE font_srv_gpu_desc_handle) {
   IO &io = Gui::GetIO();
-  ASSERT(io.BackendRendererUserData == nullptr &&
+  assert(io.BackendRendererUserData == nullptr &&
          "Already initialized a renderer backend!");
 
   // Setup backend capabilities flags
@@ -853,7 +853,7 @@ bool DX12_Init(ID3D12Device *device, int num_frames_in_flight,
 
 void DX12_Shutdown() {
   DX12_Data *bd = DX12_GetBackendData();
-  ASSERT(bd != nullptr &&
+  assert(bd != nullptr &&
          "No renderer backend to shutdown, or already shutdown?");
   IO &io = Gui::GetIO();
 
@@ -884,7 +884,7 @@ void DX12_Shutdown() {
 
 void DX12_NewFrame() {
   DX12_Data *bd = DX12_GetBackendData();
-  ASSERT(bd != nullptr && "Did you call DX12_Init()?");
+  assert(bd != nullptr && "Did you call DX12_Init()?");
 
   if (!bd->pPipelineState)
     DX12_CreateDeviceObjects();
@@ -909,7 +909,7 @@ static void DX12_CreateWindow(Viewport *viewport) {
   // contain the HWND.
   HWND hwnd = viewport->PlatformHandleRaw ? (HWND)viewport->PlatformHandleRaw
                                           : (HWND)viewport->PlatformHandle;
-  ASSERT(hwnd != 0);
+  assert(hwnd != 0);
 
   vd->FrameIndex = UINT_MAX;
 
@@ -921,30 +921,30 @@ static void DX12_CreateWindow(Viewport *viewport) {
   HRESULT res = S_OK;
   res = bd->pd3dDevice->CreateCommandQueue(&queue_desc,
                                            IID_PPV_ARGS(&vd->CommandQueue));
-  ASSERT(res == S_OK);
+  assert(res == S_OK);
 
   // Create command allocator.
   for (UINT i = 0; i < bd->numFramesInFlight; ++i) {
     res = bd->pd3dDevice->CreateCommandAllocator(
         D3D12_COMMAND_LIST_TYPE_DIRECT,
         IID_PPV_ARGS(&vd->FrameCtx[i].CommandAllocator));
-    ASSERT(res == S_OK);
+    assert(res == S_OK);
   }
 
   // Create command list.
   res = bd->pd3dDevice->CreateCommandList(
       0, D3D12_COMMAND_LIST_TYPE_DIRECT, vd->FrameCtx[0].CommandAllocator,
       nullptr, IID_PPV_ARGS(&vd->CommandList));
-  ASSERT(res == S_OK);
+  assert(res == S_OK);
   vd->CommandList->Close();
 
   // Create fence.
   res = bd->pd3dDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE,
                                     IID_PPV_ARGS(&vd->Fence));
-  ASSERT(res == S_OK);
+  assert(res == S_OK);
 
   vd->FenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
-  ASSERT(vd->FenceEvent != nullptr);
+  assert(vd->FenceEvent != nullptr);
 
   // Create swap chain
   // FIXME-VIEWPORT: May want to copy/inherit swap chain settings from the
@@ -965,17 +965,17 @@ static void DX12_CreateWindow(Viewport *viewport) {
 
   IDXGIFactory4 *dxgi_factory = nullptr;
   res = ::CreateDXGIFactory1(IID_PPV_ARGS(&dxgi_factory));
-  ASSERT(res == S_OK);
+  assert(res == S_OK);
 
   IDXGISwapChain1 *swap_chain = nullptr;
   res = dxgi_factory->CreateSwapChainForHwnd(vd->CommandQueue, hwnd, &sd1,
                                              nullptr, nullptr, &swap_chain);
-  ASSERT(res == S_OK);
+  assert(res == S_OK);
 
   dxgi_factory->Release();
 
   // Or swapChain.As(&mSwapChain)
-  ASSERT(vd->SwapChain == nullptr);
+  assert(vd->SwapChain == nullptr);
   swap_chain->QueryInterface(IID_PPV_ARGS(&vd->SwapChain));
   swap_chain->Release();
 
@@ -989,7 +989,7 @@ static void DX12_CreateWindow(Viewport *viewport) {
 
     HRESULT hr = bd->pd3dDevice->CreateDescriptorHeap(
         &desc, IID_PPV_ARGS(&vd->RtvDescHeap));
-    ASSERT(hr == S_OK);
+    assert(hr == S_OK);
 
     SIZE_T rtv_descriptor_size =
         bd->pd3dDevice->GetDescriptorHandleIncrementSize(
@@ -1003,7 +1003,7 @@ static void DX12_CreateWindow(Viewport *viewport) {
 
     ID3D12Resource *back_buffer;
     for (UINT i = 0; i < bd->numFramesInFlight; i++) {
-      ASSERT(vd->FrameCtx[i].RenderTarget == nullptr);
+      assert(vd->FrameCtx[i].RenderTarget == nullptr);
       vd->SwapChain->GetBuffer(i, IID_PPV_ARGS(&back_buffer));
       bd->pd3dDevice->CreateRenderTargetView(
           back_buffer, nullptr, vd->FrameCtx[i].RenderTargetCpuDescriptors);
@@ -1019,11 +1019,11 @@ static void WaitForPendingOperations(DX12_ViewportData *vd) {
   HRESULT hr = S_FALSE;
   if (vd && vd->CommandQueue && vd->Fence && vd->FenceEvent) {
     hr = vd->CommandQueue->Signal(vd->Fence, ++vd->FenceSignaledValue);
-    ASSERT(hr == S_OK);
+    assert(hr == S_OK);
     ::WaitForSingleObject(vd->FenceEvent, 0); // Reset any forgotten waits
     hr =
         vd->Fence->SetEventOnCompletion(vd->FenceSignaledValue, vd->FenceEvent);
-    ASSERT(hr == S_OK);
+    assert(hr == S_OK);
     ::WaitForSingleObject(vd->FenceEvent, INFINITE);
   }
 }

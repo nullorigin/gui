@@ -266,7 +266,7 @@ void Gui::ShowDemoWindow(bool *p_open) {
   // Exceptionally add an extra assert here for people confused about initial
   // Gui setup Most functions would normally just assert/crash if the
   // context is missing.
-  ASSERT(Gui::GetCurrentContext() != NULL &&
+  assert(Gui::GetCurrentContext() != NULL &&
          "Missing Gui context. Refer to examples app!");
 
   // Examples Apps (accessible from the "Examples" menu)
@@ -1980,7 +1980,7 @@ static void ShowDemoWindowWidgets() {
         static int MyResizeCallback(InputTextCallbackData *data) {
           if (data->EventFlag == InputTextFlags_CallbackResize) {
             Vector<char> *my_str = (Vector<char> *)data->UserData;
-            ASSERT(my_str->begin() == data->Buf);
+            assert(my_str->begin() == data->Buf);
             my_str->resize(
                 data->BufSize); // NB: On resizing calls, generally
                                 // data->BufSize == data->BufTextLen + 1
@@ -1996,7 +1996,7 @@ static void ShowDemoWindowWidgets() {
                                          Vector<char> *my_str,
                                          const Vec2 &size = Vec2(0, 0),
                                          int flags = 0) {
-          ASSERT((flags & InputTextFlags_CallbackResize) == 0);
+          assert((flags & InputTextFlags_CallbackResize) == 0);
           return Gui::InputTextMultiline(
               label, my_str->begin(), (size_t)my_str->size(), size,
               flags | InputTextFlags_CallbackResize, Funcs::MyResizeCallback,
@@ -2985,7 +2985,7 @@ static void ShowDemoWindowWidgets() {
         if (Gui::BeginDragDropTarget()) {
           if (const Payload *payload =
                   Gui::AcceptDragDropPayload("DND_DEMO_CELL")) {
-            ASSERT(payload->DataSize == sizeof(int));
+            assert(payload->DataSize == sizeof(int));
             int payload_n = *(const int *)payload->Data;
             if (mode == Mode_Copy) {
               names[n] = names[payload_n];
@@ -4738,7 +4738,7 @@ struct MyItem {
         delta = (strcmp(a->Name, b->Name));
         break;
       default:
-        ASSERT(0);
+        assert(0);
         break;
       }
       if (delta > 0)
@@ -6011,9 +6011,9 @@ static void ShowDemoWindowTables() {
     Gui::Combo("cell bg type", (int *)&cell_bg_type, "None\0Blue\0");
     Gui::SameLine();
     HelpMarker("We are colorizing cells to B1->C2 here.");
-    ASSERT(row_bg_type >= 0 && row_bg_type <= 2);
-    ASSERT(row_bg_target >= 0 && row_bg_target <= 1);
-    ASSERT(cell_bg_type >= 0 && cell_bg_type <= 1);
+    assert(row_bg_type >= 0 && row_bg_type <= 2);
+    assert(row_bg_target >= 0 && row_bg_target <= 1);
+    assert(cell_bg_type >= 0 && cell_bg_type <= 1);
     PopStyleCompact();
 
     if (Gui::BeginTable("table1", 5, flags)) {
@@ -7336,7 +7336,7 @@ static void ShowDemoWindowInputs() {
       const char *mouse_cursors_names[] = {
           "Arrow",      "TextInput",  "ResizeAll", "ResizeNS",  "ResizeEW",
           "ResizeNESW", "ResizeNWSE", "Hand",      "NotAllowed"};
-      ASSERT(ARRAYSIZE(mouse_cursors_names) == MouseCursor_COUNT);
+      assert(ARRAYSIZE(mouse_cursors_names) == MouseCursor_COUNT);
 
       int current = Gui::GetMouseCursor();
       Gui::Text("Current mouse cursor = %d: %s", current,
@@ -8287,7 +8287,7 @@ static void ShowExampleMenuFile() {
 
   if (Gui::BeginMenu("Disabled", false)) // Disabled
   {
-    ASSERT(0);
+    assert(0);
   }
   if (Gui::MenuItem("Checked", NULL, true)) {
   }
@@ -8354,10 +8354,10 @@ struct ExampleAppConsole {
     return d;
   }
   static char *Strdup(const char *s) {
-    ASSERT(s);
+    assert(s);
     size_t len = strlen(s) + 1;
     void *buf = malloc(len);
-    ASSERT(buf);
+    assert(buf);
     return (char *)memcpy(buf, (const void *)s, len);
   }
   static void Strtrim(char *s) {

@@ -1203,8 +1203,8 @@ static void textedit_discard_redo(StbUndoState *state) {
     (void)buf_begin;
     const char *buf_end = (char *)state->undo_rec + sizeof(state->undo_rec);
     (void)buf_end;
-    ASSERT(((char *)(state->undo_rec + state->redo_point)) >= buf_begin);
-    ASSERT(((char *)(state->undo_rec + state->redo_point + 1) + move_size) <=
+    assert(((char *)(state->undo_rec + state->redo_point)) >= buf_begin);
+    assert(((char *)(state->undo_rec + state->redo_point + 1) + move_size) <=
            buf_end);
     TEXTEDIT_memmove(state->undo_rec + state->redo_point + 1,
                      state->undo_rec + state->redo_point, move_size);

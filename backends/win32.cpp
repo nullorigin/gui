@@ -96,7 +96,7 @@ static void Win32_UpdateKeyboardCodePage() {
 
 static bool Win32_InitEx(void *hwnd, bool platform_has_own_dc) {
   IO &io = Gui::GetIO();
-  ASSERT(io.BackendPlatformUserData == nullptr &&
+  assert(io.BackendPlatformUserData == nullptr &&
          "Already initialized a platform backend!");
 
   INT64 perf_frequency, perf_counter;
@@ -171,7 +171,7 @@ API bool Win32_InitForOpenGL(void *hwnd) {
 
 void Win32_Shutdown() {
   Win32_Data *bd = Win32_GetBackendData();
-  ASSERT(bd != nullptr &&
+  assert(bd != nullptr &&
          "No platform backend to shutdown, or already shutdown?");
   IO &io = Gui::GetIO();
 
@@ -280,7 +280,7 @@ static void Win32_UpdateKeyModifiers() {
 static void Win32_UpdateMouseData() {
   Win32_Data *bd = Win32_GetBackendData();
   IO &io = Gui::GetIO();
-  ASSERT(bd->hWnd != 0);
+  assert(bd->hWnd != 0);
 
   POINT mouse_screen_pos;
   bool has_mouse_screen_pos = ::GetCursorPos(&mouse_screen_pos) != 0;
@@ -460,7 +460,7 @@ static void Win32_UpdateMonitors() {
 void Win32_NewFrame() {
   IO &io = Gui::GetIO();
   Win32_Data *bd = Win32_GetBackendData();
-  ASSERT(bd != nullptr && "Did you call Win32_Init()?");
+  assert(bd != nullptr && "Did you call Win32_Init()?");
 
   // Setup display size (every frame to accommodate for window resizing)
   RECT rect = {0, 0, 0, 0};
@@ -1133,7 +1133,7 @@ float Win32_GetDpiScaleForMonitor(void *monitor) {
           shcore_dll, "GetDpiForMonitor");
     if (GetDpiForMonitorFn != nullptr) {
       GetDpiForMonitorFn((HMONITOR)monitor, MDT_EFFECTIVE_DPI, &xdpi, &ydpi);
-      ASSERT(xdpi == ydpi); // Please contact me if you hit this assert!
+      assert(xdpi == ydpi); // Please contact me if you hit this assert!
       return xdpi / 96.0f;
     }
   }
@@ -1141,7 +1141,7 @@ float Win32_GetDpiScaleForMonitor(void *monitor) {
   const HDC dc = ::GetDC(nullptr);
   xdpi = ::GetDeviceCaps(dc, LOGPIXELSX);
   ydpi = ::GetDeviceCaps(dc, LOGPIXELSY);
-  ASSERT(xdpi == ydpi); // Please contact me if you hit this assert!
+  assert(xdpi == ydpi); // Please contact me if you hit this assert!
   ::ReleaseDC(nullptr, dc);
 #endif
   return xdpi / 96.0f;
@@ -1213,7 +1213,7 @@ struct Win32_ViewportData {
     HwndOwned = false;
     DwStyle = DwExStyle = 0;
   }
-  ~Win32_ViewportData() { ASSERT(Hwnd == nullptr); }
+  ~Win32_ViewportData() { assert(Hwnd == nullptr); }
 };
 
 static void Win32_GetWin32StyleFromViewportFlags(int flags, DWORD *out_style,
@@ -1285,7 +1285,7 @@ static void Win32_DestroyWindow(Viewport *viewport) {
 
 static void Win32_ShowWindow(Viewport *viewport) {
   Win32_ViewportData *vd = (Win32_ViewportData *)viewport->PlatformUserData;
-  ASSERT(vd->Hwnd != 0);
+  assert(vd->Hwnd != 0);
   if (viewport->Flags & ViewportFlags_NoFocusOnAppearing)
     ::ShowWindow(vd->Hwnd, SW_SHOWNA);
   else
@@ -1294,7 +1294,7 @@ static void Win32_ShowWindow(Viewport *viewport) {
 
 static void Win32_UpdateWindow(Viewport *viewport) {
   Win32_ViewportData *vd = (Win32_ViewportData *)viewport->PlatformUserData;
-  ASSERT(vd->Hwnd != 0);
+  assert(vd->Hwnd != 0);
 
   // Update Win32 parent if it changed _after_ creation
   // Unlike style settings derived from configuration flags, this is more likely
@@ -1357,7 +1357,7 @@ static void Win32_UpdateWindow(Viewport *viewport) {
 
 static Vec2 Win32_GetWindowPos(Viewport *viewport) {
   Win32_ViewportData *vd = (Win32_ViewportData *)viewport->PlatformUserData;
-  ASSERT(vd->Hwnd != 0);
+  assert(vd->Hwnd != 0);
   POINT pos = {0, 0};
   ::ClientToScreen(vd->Hwnd, &pos);
   return Vec2((float)pos.x, (float)pos.y);
@@ -1365,7 +1365,7 @@ static Vec2 Win32_GetWindowPos(Viewport *viewport) {
 
 static void Win32_SetWindowPos(Viewport *viewport, Vec2 pos) {
   Win32_ViewportData *vd = (Win32_ViewportData *)viewport->PlatformUserData;
-  ASSERT(vd->Hwnd != 0);
+  assert(vd->Hwnd != 0);
   RECT rect = {(LONG)pos.x, (LONG)pos.y, (LONG)pos.x, (LONG)pos.y};
   ::AdjustWindowRectEx(&rect, vd->DwStyle, FALSE, vd->DwExStyle);
   ::SetWindowPos(vd->Hwnd, nullptr, rect.left, rect.top, 0, 0,
@@ -1374,7 +1374,7 @@ static void Win32_SetWindowPos(Viewport *viewport, Vec2 pos) {
 
 static Vec2 Win32_GetWindowSize(Viewport *viewport) {
   Win32_ViewportData *vd = (Win32_ViewportData *)viewport->PlatformUserData;
-  ASSERT(vd->Hwnd != 0);
+  assert(vd->Hwnd != 0);
   RECT rect;
   ::GetClientRect(vd->Hwnd, &rect);
   return Vec2(float(rect.right - rect.left), float(rect.bottom - rect.top));
@@ -1382,7 +1382,7 @@ static Vec2 Win32_GetWindowSize(Viewport *viewport) {
 
 static void Win32_SetWindowSize(Viewport *viewport, Vec2 size) {
   Win32_ViewportData *vd = (Win32_ViewportData *)viewport->PlatformUserData;
-  ASSERT(vd->Hwnd != 0);
+  assert(vd->Hwnd != 0);
   RECT rect = {0, 0, (LONG)size.x, (LONG)size.y};
   ::AdjustWindowRectEx(&rect, vd->DwStyle, FALSE,
                        vd->DwExStyle); // Client to Screen
@@ -1393,7 +1393,7 @@ static void Win32_SetWindowSize(Viewport *viewport, Vec2 size) {
 
 static void Win32_SetWindowFocus(Viewport *viewport) {
   Win32_ViewportData *vd = (Win32_ViewportData *)viewport->PlatformUserData;
-  ASSERT(vd->Hwnd != 0);
+  assert(vd->Hwnd != 0);
   ::BringWindowToTop(vd->Hwnd);
   ::SetForegroundWindow(vd->Hwnd);
   ::SetFocus(vd->Hwnd);
@@ -1401,13 +1401,13 @@ static void Win32_SetWindowFocus(Viewport *viewport) {
 
 static bool Win32_GetWindowFocus(Viewport *viewport) {
   Win32_ViewportData *vd = (Win32_ViewportData *)viewport->PlatformUserData;
-  ASSERT(vd->Hwnd != 0);
+  assert(vd->Hwnd != 0);
   return ::GetForegroundWindow() == vd->Hwnd;
 }
 
 static bool Win32_GetWindowMinimized(Viewport *viewport) {
   Win32_ViewportData *vd = (Win32_ViewportData *)viewport->PlatformUserData;
-  ASSERT(vd->Hwnd != 0);
+  assert(vd->Hwnd != 0);
   return ::IsIconic(vd->Hwnd) != 0;
 }
 
@@ -1415,7 +1415,7 @@ static void Win32_SetWindowTitle(Viewport *viewport, const char *title) {
   // ::SetWindowTextA() doesn't properly handle UTF-8 so we explicitely convert
   // our string.
   Win32_ViewportData *vd = (Win32_ViewportData *)viewport->PlatformUserData;
-  ASSERT(vd->Hwnd != 0);
+  assert(vd->Hwnd != 0);
   int n = ::MultiByteToWideChar(CP_UTF8, 0, title, -1, nullptr, 0);
   Vector<wchar_t> title_w;
   title_w.resize(n);
@@ -1425,8 +1425,8 @@ static void Win32_SetWindowTitle(Viewport *viewport, const char *title) {
 
 static void Win32_SetWindowAlpha(Viewport *viewport, float alpha) {
   Win32_ViewportData *vd = (Win32_ViewportData *)viewport->PlatformUserData;
-  ASSERT(vd->Hwnd != 0);
-  ASSERT(alpha >= 0.0f && alpha <= 1.0f);
+  assert(vd->Hwnd != 0);
+  assert(alpha >= 0.0f && alpha <= 1.0f);
   if (alpha < 1.0f) {
     DWORD style = ::GetWindowLongW(vd->Hwnd, GWL_EXSTYLE) | WS_EX_LAYERED;
     ::SetWindowLongW(vd->Hwnd, GWL_EXSTYLE, style);
@@ -1439,7 +1439,7 @@ static void Win32_SetWindowAlpha(Viewport *viewport, float alpha) {
 
 static float Win32_GetWindowDpiScale(Viewport *viewport) {
   Win32_ViewportData *vd = (Win32_ViewportData *)viewport->PlatformUserData;
-  ASSERT(vd->Hwnd != 0);
+  assert(vd->Hwnd != 0);
   return Win32_GetDpiScaleForHwnd(vd->Hwnd);
 }
 

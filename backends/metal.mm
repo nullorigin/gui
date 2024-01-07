@@ -138,7 +138,7 @@ bool Metal_Init(id<MTLDevice> device) {
 
 void Metal_Shutdown() {
   Metal_Data *bd = Metal_GetBackendData();
-  ASSERT(bd != nullptr &&
+  assert(bd != nullptr &&
          "No renderer backend to shutdown, or already shutdown?");
   Metal_ShutdownPlatformInterface();
   Metal_DestroyDeviceObjects();
@@ -153,7 +153,7 @@ void Metal_Shutdown() {
 
 void Metal_NewFrame(MTLRenderPassDescriptor *renderPassDescriptor) {
   Metal_Data *bd = Metal_GetBackendData();
-  ASSERT(bd->SharedMetalContext != nil &&
+  assert(bd->SharedMetalContext != nil &&
          "No Metal context. Did you call Metal_Init() ?");
   bd->SharedMetalContext.framebufferDescriptor = [[FramebufferDescriptor alloc]
       initWithRenderPassDescriptor:renderPassDescriptor];
@@ -454,7 +454,7 @@ static void Metal_CreateWindow(Viewport *viewport) {
   // PlatformHandle will contain the NSWindow*.
   void *handle = viewport->PlatformHandleRaw ? viewport->PlatformHandleRaw
                                              : viewport->PlatformHandle;
-  ASSERT(handle != nullptr);
+  assert(handle != nullptr);
 
   id<MTLDevice> device = bd->SharedMetalContext.device;
   CAMetalLayer *layer = [CAMetalLayer layer];

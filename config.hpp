@@ -25,8 +25,8 @@
 //---- Define assertion handler. Defaults to calling assert().
 // If your macro uses multiple statements, make sure is enclosed in a 'do { .. }
 // while (0)' block so it can be used as a single statement.
-// #define ASSERT(_EXPR)  MyAssert(_EXPR)
-// #define ASSERT(_EXPR)  ((void)(_EXPR))     // Disable asserts
+// #define assert(_EXPR)  MyAssert(_EXPR)
+// #define assert(_EXPR)  ((void)(_EXPR))     // Disable asserts
 
 //---- Define attributes of all API symbols declarations, e.g. for DLL under
 // Windows
@@ -171,7 +171,7 @@ MyVec2() const { return MyVec2(x,y); }
 // implementation of this in the codebase)
 // (use 'Metrics->Tools->Item Picker' to pick widgets with the mouse and break
 // into them for easy debugging.)
-// #define DEBUG_BREAK  ASSERT(0)
+// #define DEBUG_BREAK  assert(0)
 // #define DEBUG_BREAK  __debugbreak()
 
 //---- Debug Tools: Enable slower asserts

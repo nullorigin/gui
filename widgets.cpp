@@ -867,7 +867,7 @@ bool Gui::InvisibleButton(const char *str_id, const Vec2 &size_arg, int flags) {
 
   // Cannot use zero-size for InvisibleButton(). Unlike Button() there is not
   // way to fallback using the label size.
-  ASSERT(size_arg.x != 0.0f && size_arg.y != 0.0f);
+  assert(size_arg.x != 0.0f && size_arg.y != 0.0f);
 
   const int id = window->GetID(str_id);
   Vec2 size = CalcItemSize(size_arg, 0.0f, 0.0f);
@@ -1020,7 +1020,7 @@ Rect Gui::GetWindowScrollbarRect(Window *window, Axis axis) {
       window->ScrollbarSizes[axis ^
                              1]; // (ScrollbarSizes.x = width of Y scrollbar;
                                  // ScrollbarSizes.y = height of X scrollbar)
-  ASSERT(scrollbar_size > 0.0f);
+  assert(scrollbar_size > 0.0f);
   if (axis == Axis_X)
     return Rect(
         inner_rect.Min.x,
@@ -1109,7 +1109,7 @@ bool Gui::ScrollbarEx(const Rect &bb_frame, int id, Axis axis,
   // Calculate the height of our grabbable box. It generally represent the
   // amount visible (vs the total scrollable amount) But we maintain a minimum
   // size in pixel to allow for the user to still aim inside.
-  ASSERT(Max(size_contents_v, size_avail_v) >
+  assert(Max(size_contents_v, size_avail_v) >
          0.0f); // Adding this assert to check if the Max(XXX,1.0f) is
                 // still needed. PLEASE CONTACT ME if this triggers.
   const signed long long win_size_v =
@@ -1633,11 +1633,11 @@ void Gui::SeparatorEx(int flags, float thickness) {
     return;
 
   Context &g = *GGui;
-  ASSERT(IsPowerOfTwo(
+  assert(IsPowerOfTwo(
       flags &
       (SeparatorFlags_Horizontal |
        SeparatorFlags_Vertical))); // Check that only 1 option is selected
-  ASSERT(thickness > 0.0f);
+  assert(thickness > 0.0f);
 
   if (flags & SeparatorFlags_Vertical) {
     // Vertical separator, for menu bars (use current line height).
@@ -1957,11 +1957,11 @@ bool Gui::BeginCombo(const char *label, const char *preview_value, int flags) {
 
   const Style &style = g.Style;
   const int id = window->GetID(label);
-  ASSERT((flags & (ComboFlags_NoArrowButton | ComboFlags_NoPreview)) !=
+  assert((flags & (ComboFlags_NoArrowButton | ComboFlags_NoPreview)) !=
          (ComboFlags_NoArrowButton |
           ComboFlags_NoPreview)); // Can't use both flags together
   if (flags & ComboFlags_WidthFitPreview)
-    ASSERT((flags & (ComboFlags_NoPreview | (int)ComboFlags_CustomPreview)) ==
+    assert((flags & (ComboFlags_NoPreview | (int)ComboFlags_CustomPreview)) ==
            0);
 
   const float arrow_size =
@@ -2029,7 +2029,7 @@ bool Gui::BeginCombo(const char *label, const char *preview_value, int flags) {
   if (flags & ComboFlags_CustomPreview) {
     g.ComboPreviewData.PreviewRect =
         Rect(bb.Min.x, bb.Min.y, value_x2, bb.Max.y);
-    ASSERT(preview_value == NULL || preview_value[0] == 0);
+    assert(preview_value == NULL || preview_value[0] == 0);
     preview_value = NULL;
   }
 
@@ -2067,7 +2067,7 @@ bool Gui::BeginComboPopup(int popup_id, const Rect &bb, int flags) {
   } else {
     if ((flags & ComboFlags_HeightMask_) == 0)
       flags |= ComboFlags_HeightRegular;
-    ASSERT(IsPowerOfTwo(flags & ComboFlags_HeightMask_)); // Only one
+    assert(IsPowerOfTwo(flags & ComboFlags_HeightMask_)); // Only one
     int popup_max_height_in_items = -1;
     if (flags & ComboFlags_HeightRegular)
       popup_max_height_in_items = 8;
@@ -2129,7 +2129,7 @@ bool Gui::BeginComboPopup(int popup_id, const Rect &bb, int flags) {
   PopStyleVar();
   if (!ret) {
     EndPopup();
-    ASSERT(0); // This should never happen as we tested for IsPopupOpen() above
+    assert(0); // This should never happen as we tested for IsPopupOpen() above
     return false;
   }
   return true;
@@ -2148,7 +2148,7 @@ bool Gui::BeginComboPreview() {
   if (window->SkipItems ||
       !(g.LastItemData.StatusFlags & ItemStatusFlags_Visible))
     return false;
-  ASSERT(g.LastItemData.Rect.Min.x == preview_data->PreviewRect.Min.x &&
+  assert(g.LastItemData.Rect.Min.x == preview_data->PreviewRect.Min.x &&
          g.LastItemData.Rect.Min.y ==
              preview_data->PreviewRect.Min
                  .y); // Didn't call after BeginCombo/EndCombo block or
@@ -2368,10 +2368,10 @@ static const DataTypeInfo GDataTypeInfo[] = {
      "%f"}, // DataType_Float (float are promoted to double in va_arg)
     {sizeof(double), "double", "%f", "%lf"}, // DataType_Double
 };
-STATIC_ASSERT(ARRAYSIZE(GDataTypeInfo) == DataType_COUNT);
+STATIC_assert(ARRAYSIZE(GDataTypeInfo) == DataType_COUNT);
 
 const DataTypeInfo *Gui::DataTypeGetInfo(int data_type) {
-  ASSERT(data_type >= 0 && data_type < DataType_COUNT);
+  assert(data_type >= 0 && data_type < DataType_COUNT);
   return &GDataTypeInfo[data_type];
 }
 
@@ -2395,13 +2395,13 @@ int Gui::DataTypeFormatString(char *buf, int buf_size, int data_type,
     return FormatString(buf, buf_size, format, *(const signed short *)p_data);
   if (data_type == DataType_U16)
     return FormatString(buf, buf_size, format, *(const unsigned short *)p_data);
-  ASSERT(0);
+  assert(0);
   return 0;
 }
 
 void Gui::DataTypeApplyOp(int data_type, int op, void *output, const void *arg1,
                           const void *arg2) {
-  ASSERT(op == '+' || op == '-');
+  assert(op == '+' || op == '-');
   switch (data_type) {
   case DataType_S8:
     if (op == '+') {
@@ -2518,7 +2518,7 @@ void Gui::DataTypeApplyOp(int data_type, int op, void *output, const void *arg1,
   case DataType_COUNT:
     break;
   }
-  ASSERT(0);
+  assert(0);
 }
 
 // User can input math operators (e.g. +100) to edit a numerical values.
@@ -2568,7 +2568,7 @@ bool Gui::DataTypeApplyFromText(const char *buf, int data_type, void *p_data,
       *(unsigned short *)p_data =
           (unsigned short)Clamp(v32, (int)U16_MIN, (int)U16_MAX);
     else
-      ASSERT(0);
+      assert(0);
   }
 
   return memcmp(&data_backup, p_data, type_info->Size) != 0;
@@ -2616,7 +2616,7 @@ int Gui::DataTypeCompare(int data_type, const void *arg_1, const void *arg_2) {
   case DataType_COUNT:
     break;
   }
-  ASSERT(0);
+  assert(0);
   return 0;
 }
 
@@ -2678,7 +2678,7 @@ bool Gui::DataTypeClamp(int data_type, void *p_data, const void *p_min,
   case DataType_COUNT:
     break;
   }
-  ASSERT(0);
+  assert(0);
   return false;
 }
 
@@ -2696,7 +2696,7 @@ static float GetMinimumStepAtDecimalPrecision(int decimal_precision) {
 template <typename TYPE>
 TYPE Gui::RoundScalarWithFormatT(const char *format, int data_type, TYPE v) {
   UNUSED(data_type);
-  ASSERT(data_type == DataType_Float || data_type == DataType_Double);
+  assert(data_type == DataType_Float || data_type == DataType_Double);
   const char *fmt_start = ParseFormatFindStart(format);
   if (fmt_start[0] != '%' ||
       fmt_start[1] ==
@@ -2886,7 +2886,7 @@ bool Gui::DragBehavior(int id, int data_type, void *p_v, float v_speed,
                        int flags) {
   // Read gui.cpp "API BREAKING CHANGES" section for 1.78 if you hit this
   // assert.
-  ASSERT((flags == 1 || (flags & SliderFlags_InvalidMask_) == 0) &&
+  assert((flags == 1 || (flags & SliderFlags_InvalidMask_) == 0) &&
          "Invalid int flags! Has the 'float power' argument "
          "been mistakenly cast to flags? Call function with "
          "SliderFlags_Logarithmic flags instead.");
@@ -2982,7 +2982,7 @@ bool Gui::DragBehavior(int id, int data_type, void *p_v, float v_speed,
   case DataType_COUNT:
     break;
   }
-  ASSERT(0);
+  assert(0);
   return false;
 }
 
@@ -3691,7 +3691,7 @@ bool Gui::SliderBehavior(const Rect &bb, int id, int data_type, void *p_v,
                          const char *format, int flags, Rect *out_grab_bb) {
   // Read gui.cpp "API BREAKING CHANGES" section for 1.78 if you hit this
   // assert.
-  ASSERT((flags == 1 || (flags & SliderFlags_InvalidMask_) == 0) &&
+  assert((flags == 1 || (flags & SliderFlags_InvalidMask_) == 0) &&
          "Invalid int flag!  Has the 'float power' argument "
          "been mistakenly cast to flags? Call function with "
          "SliderFlags_Logarithmic flags instead.");
@@ -3734,37 +3734,37 @@ bool Gui::SliderBehavior(const Rect &bb, int id, int data_type, void *p_v,
     return r;
   }
   case DataType_S32:
-    ASSERT(*(const signed int *)p_min >= S32_MIN / 2 &&
+    assert(*(const signed int *)p_min >= S32_MIN / 2 &&
            *(const signed int *)p_max <= S32_MAX / 2);
     return SliderBehaviorT<signed int, signed int, float>(
         bb, id, data_type, (signed int *)p_v, *(const signed int *)p_min,
         *(const signed int *)p_max, format, flags, out_grab_bb);
   case DataType_U32:
-    ASSERT(*(const unsigned int *)p_max <= U32_MAX / 2);
+    assert(*(const unsigned int *)p_max <= U32_MAX / 2);
     return SliderBehaviorT<unsigned int, signed int, float>(
         bb, id, data_type, (unsigned int *)p_v, *(const unsigned int *)p_min,
         *(const unsigned int *)p_max, format, flags, out_grab_bb);
   case DataType_S64:
-    ASSERT(*(const signed long long *)p_min >= S64_MIN / 2 &&
+    assert(*(const signed long long *)p_min >= S64_MIN / 2 &&
            *(const signed long long *)p_max <= S64_MAX / 2);
     return SliderBehaviorT<signed long long, signed long long, double>(
         bb, id, data_type, (signed long long *)p_v,
         *(const signed long long *)p_min, *(const signed long long *)p_max,
         format, flags, out_grab_bb);
   case DataType_U64:
-    ASSERT(*(const unsigned long long *)p_max <= U64_MAX / 2);
+    assert(*(const unsigned long long *)p_max <= U64_MAX / 2);
     return SliderBehaviorT<unsigned long long, signed long long, double>(
         bb, id, data_type, (unsigned long long *)p_v,
         *(const unsigned long long *)p_min, *(const unsigned long long *)p_max,
         format, flags, out_grab_bb);
   case DataType_Float:
-    ASSERT(*(const float *)p_min >= -FLT_MAX / 2.0f &&
+    assert(*(const float *)p_min >= -FLT_MAX / 2.0f &&
            *(const float *)p_max <= FLT_MAX / 2.0f);
     return SliderBehaviorT<float, float, float>(
         bb, id, data_type, (float *)p_v, *(const float *)p_min,
         *(const float *)p_max, format, flags, out_grab_bb);
   case DataType_Double:
-    ASSERT(*(const double *)p_min >= -DBL_MAX / 2.0f &&
+    assert(*(const double *)p_min >= -DBL_MAX / 2.0f &&
            *(const double *)p_max <= DBL_MAX / 2.0f);
     return SliderBehaviorT<double, double, double>(
         bb, id, data_type, (double *)p_v, *(const double *)p_min,
@@ -3772,7 +3772,7 @@ bool Gui::SliderBehavior(const Rect &bb, int id, int data_type, void *p_v,
   case DataType_COUNT:
     break;
   }
-  ASSERT(0);
+  assert(0);
   return false;
 }
 
@@ -4161,7 +4161,7 @@ void ParseFormatSanitizeForPrinting(const char *fmt_in, char *fmt_out,
                                     size_t fmt_out_size) {
   const char *fmt_end = ParseFormatFindEnd(fmt_in);
   UNUSED(fmt_out_size);
-  ASSERT(
+  assert(
       (size_t)(fmt_end - fmt_in + 1) <
       fmt_out_size); // Format is too long, let us know if this happens to you!
   while (fmt_in < fmt_end) {
@@ -4182,7 +4182,7 @@ const char *ParseFormatSanitizeForScanning(const char *fmt_in, char *fmt_out,
   const char *fmt_end = ParseFormatFindEnd(fmt_in);
   const char *fmt_out_begin = fmt_out;
   UNUSED(fmt_out_size);
-  ASSERT(
+  assert(
       (size_t)(fmt_end - fmt_in + 1) <
       fmt_out_size); // Format is too long, let us know if this happens to you!
   bool has_type = false;
@@ -4261,7 +4261,7 @@ bool Gui::TempInputText(const Rect &bb, int id, const char *label, char *buf,
   if (init) {
     // First frame we started displaying the InputText widget, we expect it to
     // take the active id.
-    ASSERT(g.ActiveId == id);
+    assert(g.ActiveId == id);
     g.TempInputId = g.ActiveId;
   }
   return value_changed;
@@ -4500,7 +4500,7 @@ bool Gui::InputDouble(const char *label, double *v, double step,
 
 bool Gui::InputText(const char *label, char *buf, size_t buf_size, int flags,
                     InputTextCallback callback, void *user_data) {
-  ASSERT(!(flags & InputTextFlags_Multiline)); // call InputTextMultiline()
+  assert(!(flags & InputTextFlags_Multiline)); // call InputTextMultiline()
   return InputTextEx(label, NULL, buf, (int)buf_size, Vec2(0, 0), flags,
                      callback, user_data);
 }
@@ -4515,7 +4515,7 @@ bool Gui::InputTextMultiline(const char *label, char *buf, size_t buf_size,
 bool Gui::InputTextWithHint(const char *label, const char *hint, char *buf,
                             size_t buf_size, int flags,
                             InputTextCallback callback, void *user_data) {
-  ASSERT(!(flags & InputTextFlags_Multiline)); // call InputTextMultiline() or
+  assert(!(flags & InputTextFlags_Multiline)); // call InputTextMultiline() or
                                                // InputTextEx() manually if
                                                // you need multi-line + hint.
   return InputTextEx(label, hint, buf, (int)buf_size, Vec2(0, 0), flags,
@@ -4596,7 +4596,7 @@ static int TEXTEDIT_STRINGLEN(const InputTextState *obj) {
   return obj->CurLenW;
 }
 static Wchar TEXTEDIT_GETCHAR(const InputTextState *obj, int idx) {
-  ASSERT(idx <= obj->CurLenW);
+  assert(idx <= obj->CurLenW);
   return obj->TextW[idx];
 }
 static float TEXTEDIT_GETWIDTH(InputTextState *obj, int line_start_idx,
@@ -4704,7 +4704,7 @@ static bool TEXTEDIT_INSERTCHARS(InputTextState *obj, int pos,
                                  const Wchar *new_text, int new_text_len) {
   const bool is_resizable = (obj->Flags & InputTextFlags_CallbackResize) != 0;
   const int text_len = obj->CurLenW;
-  ASSERT(pos <= text_len);
+  assert(pos <= text_len);
 
   const int new_text_len_utf8 =
       TextCountUtf8BytesFromStr(new_text, new_text + new_text_len);
@@ -4716,7 +4716,7 @@ static bool TEXTEDIT_INSERTCHARS(InputTextState *obj, int pos,
   if (new_text_len + text_len + 1 > obj->TextW.Size) {
     if (!is_resizable)
       return false;
-    ASSERT(text_len < obj->TextW.Size);
+    assert(text_len < obj->TextW.Size);
     obj->TextW.resize(text_len +
                       Clamp(new_text_len * 4, 32, Max(256, new_text_len)) + 1);
   }
@@ -4782,7 +4782,7 @@ static void textedit_replace(InputTextState *str, TexteditState *state,
     state->has_preferred_x = 0;
     return;
   }
-  ASSERT(0); // Failed to insert character, normally shouldn't happen because
+  assert(0); // Failed to insert character, normally shouldn't happen because
              // of how we currently use textedit_replace()
 }
 
@@ -4804,7 +4804,7 @@ InputTextCallbackData::InputTextCallbackData() {
 // FIXME: The existence of this rarely exercised code path is a bit of a
 // nuisance.
 void InputTextCallbackData::DeleteChars(int pos, int bytes_count) {
-  ASSERT(pos + bytes_count <= BufTextLen);
+  assert(pos + bytes_count <= BufTextLen);
   char *dst = Buf + pos;
   const char *src = Buf + pos + bytes_count;
   while (char c = *src++)
@@ -4838,8 +4838,8 @@ void InputTextCallbackData::InsertChars(int pos, const char *new_text,
     // buffer altogether!)
     Context &g = *Ctx;
     InputTextState *edit_state = &g.InputTextState;
-    ASSERT(edit_state->ID != 0 && g.ActiveId == edit_state->ID);
-    ASSERT(Buf == edit_state->TextA.Data);
+    assert(edit_state->ID != 0 && g.ActiveId == edit_state->ID);
+    assert(Buf == edit_state->TextA.Data);
     int new_buf_size =
         BufTextLen + Clamp(new_text_len * 4, 32, Max(256, new_text_len)) + 1;
     edit_state->TextA.reserve(new_buf_size + 1);
@@ -4864,7 +4864,7 @@ static bool InputTextFilterCharacter(Context *ctx, unsigned int *p_char,
                                      int flags, InputTextCallback callback,
                                      void *user_data,
                                      InputSource input_source) {
-  ASSERT(input_source == InputSource_Keyboard ||
+  assert(input_source == InputSource_Keyboard ||
          input_source == InputSource_Clipboard);
   unsigned int c = *p_char;
 
@@ -5041,7 +5041,7 @@ void Gui::InputTextDeactivateHook(int id) {
     g.InputTextDeactivatedState.TextA.resize(
         0); // In theory this data won't be used, but clear to be neat.
   } else {
-    ASSERT(state->TextA.Data != 0);
+    assert(state->TextA.Data != 0);
     g.InputTextDeactivatedState.TextA.resize(state->CurLenA + 1);
     memcpy(g.InputTextDeactivatedState.TextA.Data, state->TextA.Data,
            state->CurLenA + 1);
@@ -5070,11 +5070,11 @@ bool Gui::InputTextEx(const char *label, const char *hint, char *buf,
   if (window->SkipItems)
     return false;
 
-  ASSERT(buf != NULL && buf_size >= 0);
-  ASSERT(!((flags & InputTextFlags_CallbackHistory) &&
+  assert(buf != NULL && buf_size >= 0);
+  assert(!((flags & InputTextFlags_CallbackHistory) &&
            (flags & InputTextFlags_Multiline))); // Can't use both together
                                                  // (they both use up/down keys)
-  ASSERT(!((flags & InputTextFlags_CallbackCompletion) &&
+  assert(!((flags & InputTextFlags_CallbackCompletion) &&
            (flags & InputTextFlags_AllowTabInput))); // Can't use both together
                                                      // (they both use tab key)
 
@@ -5179,7 +5179,7 @@ bool Gui::InputTextEx(const char *label, const char *hint, char *buf,
   const bool is_undoable = (flags & InputTextFlags_NoUndoRedo) == 0;
   const bool is_resizable = (flags & InputTextFlags_CallbackResize) != 0;
   if (is_resizable)
-    ASSERT(callback != NULL); // Must provide a callback if you set the
+    assert(callback != NULL); // Must provide a callback if you set the
                               // InputTextFlags_CallbackResize flag!
 
   const bool input_requested_by_nav =
@@ -5281,7 +5281,7 @@ bool Gui::InputTextEx(const char *label, const char *hint, char *buf,
 
   const bool is_osx = io.ConfigMacOSXBehaviors;
   if (g.ActiveId != id && init_make_active) {
-    ASSERT(state && state->ID == id);
+    assert(state && state->ID == id);
     SetActiveID(id, window);
     SetFocusID(id, window);
     FocusWindow(window);
@@ -5360,7 +5360,7 @@ bool Gui::InputTextEx(const char *label, const char *hint, char *buf,
     password_font->ContainerAtlas = g.Font->ContainerAtlas;
     password_font->FallbackGlyph = glyph;
     password_font->FallbackAdvanceX = glyph->AdvanceX;
-    ASSERT(password_font->Glyphs.empty() &&
+    assert(password_font->Glyphs.empty() &&
            password_font->IndexAdvanceX.empty() &&
            password_font->IndexLookup.empty());
     PushFont(password_font);
@@ -5369,7 +5369,7 @@ bool Gui::InputTextEx(const char *label, const char *hint, char *buf,
   // Process mouse inputs and character inputs
   int backup_current_text_length = 0;
   if (g.ActiveId == id) {
-    ASSERT(state != NULL);
+    assert(state != NULL);
     backup_current_text_length = state->CurLenA;
     state->Edited = false;
     state->BufCapacityA = buf_size;
@@ -5482,7 +5482,7 @@ bool Gui::InputTextEx(const char *label, const char *hint, char *buf,
   // Process other shortcuts/key-presses
   bool revert_edit = false;
   if (g.ActiveId == id && !g.ActiveIdIsJustActivated && !clear_active_id) {
-    ASSERT(state != NULL);
+    assert(state != NULL);
 
     const int row_count_per_page =
         Max((int)((inner_size.y - style.FramePadding.y) / g.FontSize), 1);
@@ -5691,11 +5691,11 @@ bool Gui::InputTextEx(const char *label, const char *hint, char *buf,
   const char *apply_new_text = NULL;
   int apply_new_text_length = 0;
   if (g.ActiveId == id) {
-    ASSERT(state != NULL);
+    assert(state != NULL);
     if (revert_edit && !is_readonly) {
       if (flags & InputTextFlags_EscapeClearsAll) {
         // Clear input
-        ASSERT(buf[0] != 0);
+        assert(buf[0] != 0);
         apply_new_text = "";
         apply_new_text_length = 0;
         value_changed = true;
@@ -5758,7 +5758,7 @@ bool Gui::InputTextEx(const char *label, const char *hint, char *buf,
            (InputTextFlags_CallbackCompletion | InputTextFlags_CallbackHistory |
             InputTextFlags_CallbackEdit | InputTextFlags_CallbackAlways)) !=
           0) {
-        ASSERT(callback != NULL);
+        assert(callback != NULL);
 
         // The reason we specify the usage semantic (Completion/History) is that
         // Completion needs to disable keyboard TABBING at the moment.
@@ -5815,10 +5815,10 @@ bool Gui::InputTextEx(const char *label, const char *hint, char *buf,
                   ? buf
                   : state->TextA.Data; // Pointer may have been invalidated by a
                                        // resize callback
-          ASSERT(callback_data.Buf ==
+          assert(callback_data.Buf ==
                  callback_buf); // Invalid to modify those fields
-          ASSERT(callback_data.BufSize == state->BufCapacityA);
-          ASSERT(callback_data.Flags == flags);
+          assert(callback_data.BufSize == state->BufCapacityA);
+          assert(callback_data.Flags == flags);
           const bool buf_dirty = callback_data.BufDirty;
           if (callback_data.CursorPos != utf8_cursor_pos || buf_dirty) {
             state->Stb.cursor = TextCountCharsFromUtf8(
@@ -5843,8 +5843,8 @@ bool Gui::InputTextEx(const char *label, const char *hint, char *buf,
                                                  callback_data.SelectionEnd);
           }
           if (buf_dirty) {
-            ASSERT(!is_readonly);
-            ASSERT(callback_data.BufTextLen ==
+            assert(!is_readonly);
+            assert(callback_data.BufTextLen ==
                    (int)strlen(
                        callback_data.Buf)); // You need to maintain BufTextLen
                                             // if you change the text!
@@ -5902,7 +5902,7 @@ bool Gui::InputTextEx(const char *label, const char *hint, char *buf,
     // here because we have no guarantee that the size of our owned buffer
     // matches the size of the string object held by the user, and by design we
     // allow InputText() to be used without any storage on user's side.
-    ASSERT(apply_new_text_length >= 0);
+    assert(apply_new_text_length >= 0);
     if (is_resizable) {
       InputTextCallbackData callback_data;
       callback_data.Ctx = &g;
@@ -5916,7 +5916,7 @@ bool Gui::InputTextEx(const char *label, const char *hint, char *buf,
       buf = callback_data.Buf;
       buf_size = callback_data.BufSize;
       apply_new_text_length = Min(callback_data.BufTextLen, buf_size - 1);
-      ASSERT(apply_new_text_length <= buf_size);
+      assert(apply_new_text_length <= buf_size);
     }
     // DEBUG_PRINT("InputText(\"%s\"): apply_new_text length %d\n", label,
     // apply_new_text_length);
@@ -5970,7 +5970,7 @@ bool Gui::InputTextEx(const char *label, const char *hint, char *buf,
   // FIXME: We could remove the '&& render_cursor' to keep rendering selection
   // when inactive.
   if (render_cursor || render_selection) {
-    ASSERT(state != NULL);
+    assert(state != NULL);
     if (!is_displaying_hint)
       buf_display_end = buf_display + state->CurLenA;
 
@@ -6316,7 +6316,7 @@ bool Gui::ColorEdit3(const char *label, float col[3], int flags) {
 
 static void ColorEditRestoreH(const float *col, float *H) {
   Context &g = *GGui;
-  ASSERT(g.ColorEditCurrentID != 0);
+  assert(g.ColorEditCurrentID != 0);
   if (g.ColorEditSavedID != g.ColorEditCurrentID ||
       g.ColorEditSavedColor !=
           Gui::ColorConvertFloat4ToU32(Vec4(col[0], col[1], col[2], 0)))
@@ -6330,7 +6330,7 @@ static void ColorEditRestoreH(const float *col, float *H) {
 // resetting.
 static void ColorEditRestoreHS(const float *col, float *H, float *S, float *V) {
   Context &g = *GGui;
-  ASSERT(g.ColorEditCurrentID != 0);
+  assert(g.ColorEditCurrentID != 0);
   if (g.ColorEditSavedID != g.ColorEditCurrentID ||
       g.ColorEditSavedColor !=
           Gui::ColorConvertFloat4ToU32(Vec4(col[0], col[1], col[2], 0)))
@@ -6392,9 +6392,9 @@ bool Gui::ColorEdit4(const char *label, float col[4], int flags) {
   flags |= (g.ColorEditOptions &
             ~(ColorEditFlags_DisplayMask_ | ColorEditFlags_DataTypeMask_ |
               ColorEditFlags_PickerMask_ | ColorEditFlags_InputMask_));
-  ASSERT(IsPowerOfTwo(
+  assert(IsPowerOfTwo(
       flags & ColorEditFlags_DisplayMask_)); // Check that only 1 is selected
-  ASSERT(IsPowerOfTwo(
+  assert(IsPowerOfTwo(
       flags & ColorEditFlags_InputMask_)); // Check that only 1 is selected
 
   const bool alpha = (flags & ColorEditFlags_NoAlpha) == 0;
@@ -6707,9 +6707,9 @@ bool Gui::ColorPicker4(const char *label, float col[4], int flags,
                   ? g.ColorEditOptions
                   : ColorEditFlags_DefaultOptions_) &
              ColorEditFlags_InputMask_;
-  ASSERT(IsPowerOfTwo(
+  assert(IsPowerOfTwo(
       flags & ColorEditFlags_PickerMask_)); // Check that only 1 is selected
-  ASSERT(IsPowerOfTwo(
+  assert(IsPowerOfTwo(
       flags & ColorEditFlags_InputMask_)); // Check that only 1 is selected
   if (!(flags & ColorEditFlags_NoOptions))
     flags |= (g.ColorEditOptions & ColorEditFlags_AlphaBar);
@@ -7231,13 +7231,13 @@ void Gui::SetColorEditOptions(int flags) {
     flags |= ColorEditFlags_DefaultOptions_ & ColorEditFlags_PickerMask_;
   if ((flags & ColorEditFlags_InputMask_) == 0)
     flags |= ColorEditFlags_DefaultOptions_ & ColorEditFlags_InputMask_;
-  ASSERT(IsPowerOfTwo(
+  assert(IsPowerOfTwo(
       flags & ColorEditFlags_DisplayMask_)); // Check only 1 option is selected
-  ASSERT(IsPowerOfTwo(
+  assert(IsPowerOfTwo(
       flags & ColorEditFlags_DataTypeMask_)); // Check only 1 option is selected
-  ASSERT(IsPowerOfTwo(
+  assert(IsPowerOfTwo(
       flags & ColorEditFlags_PickerMask_)); // Check only 1 option is selected
-  ASSERT(IsPowerOfTwo(
+  assert(IsPowerOfTwo(
       flags & ColorEditFlags_InputMask_)); // Check only 1 option is selected
   g.ColorEditOptions = flags;
 }
@@ -7725,7 +7725,7 @@ bool Gui::TreeNodeBehavior(int id, int flags, const char *label,
           g.IO.MouseClickedCount[0] == 2)
         toggled = true;
     } else if (pressed && g.DragDropHoldJustPressedId == id) {
-      ASSERT(button_flags & ButtonFlags_PressedOnDragDropHold);
+      assert(button_flags & ButtonFlags_PressedOnDragDropHold);
       if (!is_open) // When using Drag and Drop "hold to open" we keep the node
                     // highlighted after opening, but never close it again.
         toggled = true;
@@ -7869,7 +7869,7 @@ void Gui::TreePop() {
       tree_depth_mask) // Only set during request
   {
     NavTreeNodeData *nav_tree_node_data = &g.NavTreeNodeStack.back();
-    ASSERT(nav_tree_node_data->ID == window->IDStack.back());
+    assert(nav_tree_node_data->ID == window->IDStack.back());
     if (g.NavIdIsAlive && g.NavMoveDir == Dir_Left && g.NavWindow == window &&
         NavMoveRequestButNoResultYet())
       NavMoveRequestResolveWithPastTreeNode(&g.NavMoveResultLocal,
@@ -7878,7 +7878,7 @@ void Gui::TreePop() {
   }
   window->DC.TreeJumpToParentOnPopMask &= tree_depth_mask - 1;
 
-  ASSERT(window->IDStack.Size >
+  assert(window->IDStack.Size >
          1); // There should always be 1 element in the IDStack (pushed
              // during window creation). If this triggers you called
              // TreePop/PopID too much.
@@ -8462,7 +8462,7 @@ bool Gui::BeginListBox(const char *label, const Vec2 &size_arg) {
 void Gui::EndListBox() {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
-  ASSERT((window->Flags & WindowFlags_ChildWindow) &&
+  assert((window->Flags & WindowFlags_ChildWindow) &&
          "Mismatched BeginListBox/EndListBox calls. Did you test the return "
          "value of BeginListBox?");
   UNUSED(window);
@@ -8607,7 +8607,7 @@ int Gui::PlotEx(PlotType plot_type, const char *label,
                                 (inner_bb.Max.x - inner_bb.Min.x),
                             0.0f, 0.9999f);
       const int v_idx = (int)(t * item_count);
-      ASSERT(v_idx >= 0 && v_idx < values_count);
+      assert(v_idx >= 0 && v_idx < values_count);
 
       const float v0 =
           values_getter(data, (v_idx + values_offset) % values_count);
@@ -8645,7 +8645,7 @@ int Gui::PlotEx(PlotType plot_type, const char *label,
     for (int n = 0; n < res_w; n++) {
       const float t1 = t0 + t_step;
       const int v1_idx = (int)(t0 * item_count + 0.5f);
-      ASSERT(v1_idx >= 0 && v1_idx < values_count);
+      assert(v1_idx >= 0 && v1_idx < values_count);
       const float v1 =
           values_getter(data, (v1_idx + values_offset + 1) % values_count);
       const Vec2 tp1 = Vec2(t1, 1.0f - Saturate((v1 - scale_min) * inv_scale));
@@ -8844,7 +8844,7 @@ bool Gui::BeginMenuBar() {
   if (!(window->Flags & WindowFlags_MenuBar))
     return false;
 
-  ASSERT(!window->DC.MenuBarAppending);
+  assert(!window->DC.MenuBarAppending);
   BeginGroup(); // Backup position on layer 0 // FIXME: Misleading to use a
                 // group for that backup/restore
   PushID("##menubar");
@@ -8902,7 +8902,7 @@ void Gui::EndMenuBar() {
       // which isn't very problematic in this situation. We could remove it by
       // scoring in advance for multiple window (probably not worth bothering)
       const NavLayer layer = NavLayer_Menu;
-      ASSERT(window->DC.NavLayersActiveMaskNext &
+      assert(window->DC.NavLayersActiveMaskNext &
              (1 << layer)); // Sanity check (FIXME: Seems unnecessary)
       FocusWindow(window);
       SetNavID(window->NavLastIds[layer], layer, 0, window->NavRectRel[layer]);
@@ -8916,8 +8916,8 @@ void Gui::EndMenuBar() {
 
   MSVC_WARNING_SUPPRESS(6011); // Static Analysis false positive "warning
                                // C6011: Dereferencing NULL pointer 'window'"
-  ASSERT(window->Flags & WindowFlags_MenuBar);
-  ASSERT(window->DC.MenuBarAppending);
+  assert(window->Flags & WindowFlags_MenuBar);
+  assert(window->DC.MenuBarAppending);
   PopClipRect();
   PopID();
   window->DC.MenuBarOffset.x =
@@ -8950,7 +8950,7 @@ void Gui::EndMenuBar() {
 // helper (rect-cut: https://halt.software/dead-simple-layouts)
 bool Gui::BeginViewportSideBar(const char *name, Viewport *viewport_p, int dir,
                                float axis_size, int window_flags) {
-  ASSERT(dir != Dir_None);
+  assert(dir != Dir_None);
 
   Window *bar_window = FindWindowByName(name);
   ViewportP *viewport =
@@ -9344,7 +9344,7 @@ void Gui::EndMenu() {
   // Nav: When a left move request our menu failed, close ourselves.
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
-  ASSERT(window->Flags &
+  assert(window->Flags &
          WindowFlags_Popup); // Mismatched BeginMenu()/EndMenu() calls
   Window *parent_window =
       window->ParentWindow; // Should always be != NULL is we passed assert.
@@ -9585,7 +9585,7 @@ bool Gui::BeginTabBarEx(TabBar *tab_bar, const Rect &tab_bar_bb, int flags) {
   if (window->SkipItems)
     return false;
 
-  ASSERT(tab_bar->ID != 0);
+  assert(tab_bar->ID != 0);
   if ((flags & TabBarFlags_DockNode) == 0)
     PushOverrideID(tab_bar->ID);
 
@@ -9806,7 +9806,7 @@ static void Gui::TabBarLayout(TabBar *tab_bar) {
   bool found_selected_tab_id = false;
   for (int tab_n = 0; tab_n < tab_bar->Tabs.Size; tab_n++) {
     TabItem *tab = &tab_bar->Tabs[tab_n];
-    ASSERT(tab->LastFrameVisible >= tab_bar->PrevFrameVisible);
+    assert(tab->LastFrameVisible >= tab_bar->PrevFrameVisible);
 
     if ((most_recently_selected_tab == NULL ||
          most_recently_selected_tab->LastFrameSelected <
@@ -10021,7 +10021,7 @@ static unsigned int Gui::TabBarCalcTabID(TabBar *tab_bar, const char *label,
                                          Window *docked_window) {
   if (docked_window != NULL) {
     UNUSED(tab_bar);
-    ASSERT(tab_bar->Flags & TabBarFlags_DockNode);
+    assert(tab_bar->Flags & TabBarFlags_DockNode);
     int id = docked_window->TabId;
     KeepAliveID(id);
     return id;
@@ -10077,7 +10077,7 @@ const char *Gui::TabBarGetTabName(TabBar *tab_bar, TabItem *tab) {
     return tab->Window->Name;
   if (tab->NameOffset == -1)
     return "N/A";
-  ASSERT(tab->NameOffset < tab_bar->TabsNames.Buf.Size);
+  assert(tab->NameOffset < tab_bar->TabsNames.Buf.Size);
   return tab_bar->TabsNames.Buf.Data + tab->NameOffset;
 }
 
@@ -10086,8 +10086,8 @@ const char *Gui::TabBarGetTabName(TabBar *tab_bar, TabItem *tab) {
 // tabs are appending as needed by the BeginTabItem() function.
 void Gui::TabBarAddTab(TabBar *tab_bar, int tab_flags, Window *window) {
   Context &g = *GGui;
-  ASSERT(TabBarFindTabByID(tab_bar, window->TabId) == NULL);
-  ASSERT(g.CurrentTabBar !=
+  assert(TabBarFindTabByID(tab_bar, window->TabId) == NULL);
+  assert(g.CurrentTabBar !=
          tab_bar); // Can't work while the tab bar is active as our tab doesn't
                    // have an X offset yet, in theory we could/should test
                    // something like (tab_bar->CurrFrameVisible < g.FrameCount)
@@ -10206,8 +10206,8 @@ void Gui::TabBarQueueFocus(TabBar *tab_bar, TabItem *tab) {
 }
 
 void Gui::TabBarQueueReorder(TabBar *tab_bar, TabItem *tab, int offset) {
-  ASSERT(offset != 0);
-  ASSERT(tab_bar->ReorderRequestTabId == 0);
+  assert(offset != 0);
+  assert(tab_bar->ReorderRequestTabId == 0);
   tab_bar->ReorderRequestTabId = tab->ID;
   tab_bar->ReorderRequestOffset = (signed short)offset;
 }
@@ -10215,7 +10215,7 @@ void Gui::TabBarQueueReorder(TabBar *tab_bar, TabItem *tab, int offset) {
 void Gui::TabBarQueueReorderFromMousePos(TabBar *tab_bar, TabItem *src_tab,
                                          Vec2 mouse_pos) {
   Context &g = *GGui;
-  ASSERT(tab_bar->ReorderRequestTabId == 0);
+  assert(tab_bar->ReorderRequestTabId == 0);
   if ((tab_bar->Flags & TabBarFlags_Reorderable) == 0)
     return;
 
@@ -10258,7 +10258,7 @@ bool Gui::TabBarProcessReorder(TabBar *tab_bar) {
   if (tab1 == NULL || (tab1->Flags & TabItemFlags_NoReorder))
     return false;
 
-  // ASSERT(tab_bar->Flags & TabBarFlags_Reorderable); // <- this may
+  // assert(tab_bar->Flags & TabBarFlags_Reorderable); // <- this may
   // happen when using debug tools
   int tab2_order =
       TabBarGetTabOrder(tab_bar, tab1) + tab_bar->ReorderRequestOffset;
@@ -10425,7 +10425,7 @@ bool Gui::BeginTabItem(const char *label, bool *p_open, int flags) {
         tab_bar, "Needs to be called between BeginTabBar() and EndTabBar()!");
     return false;
   }
-  ASSERT((flags & TabItemFlags_Button) ==
+  assert((flags & TabItemFlags_Button) ==
          0); // BeginTabItem() Can't be used with button flags, use
              // TabItemButton() instead!
 
@@ -10452,7 +10452,7 @@ void Gui::EndTabItem() {
         "Needs to be called between BeginTabBar() and EndTabBar()!");
     return;
   }
-  ASSERT(tab_bar->LastTabItemIdx >= 0);
+  assert(tab_bar->LastTabItemIdx >= 0);
   TabItem *tab = &tab_bar->Tabs[tab_bar->LastTabItemIdx];
   if (!(tab->Flags & TabItemFlags_NoPushId))
     PopID();
@@ -10500,8 +10500,8 @@ bool Gui::TabItemEx(TabBar *tab_bar, const char *label, bool *p_open, int flags,
     return false;
   }
 
-  ASSERT(!p_open || !(flags & TabItemFlags_Button));
-  ASSERT((flags & (TabItemFlags_Leading | TabItemFlags_Trailing)) !=
+  assert(!p_open || !(flags & TabItemFlags_Button));
+  assert((flags & (TabItemFlags_Leading | TabItemFlags_Trailing)) !=
          (TabItemFlags_Leading |
           TabItemFlags_Trailing)); // Can't use both Leading and Trailing
 
@@ -10548,7 +10548,7 @@ bool Gui::TabItemEx(TabBar *tab_bar, const char *label, bool *p_open, int flags,
   // (regular tabs are permitted in a DockNode tab bar, but window tabs not
   // permitted in a non-DockNode tab bar)
   if (docked_window != NULL) {
-    ASSERT(tab_bar->Flags & TabBarFlags_DockNode);
+    assert(tab_bar->Flags & TabBarFlags_DockNode);
     tab->NameOffset = -1;
   } else {
     tab->NameOffset = (signed int)tab_bar->TabsNames.size();
@@ -10794,7 +10794,7 @@ bool Gui::TabItemEx(TabBar *tab_bar, const char *label, bool *p_open, int flags,
         !(tab->Flags & TabItemFlags_NoTooltip))
       SetItemTooltip("%.*s", (int)(FindRenderedTextEnd(label) - label), label);
 
-  ASSERT(!is_tab_button ||
+  assert(!is_tab_button ||
          !(tab_bar->SelectedTabId == tab->ID &&
            is_tab_button)); // TabItemButton should not be selected
   if (is_tab_button)
@@ -10855,7 +10855,7 @@ void Gui::TabItemBackground(DrawList *draw_list, const Rect &bb, int flags,
   Context &g = *GGui;
   const float width = bb.GetWidth();
   UNUSED(flags);
-  ASSERT(width > 0.0f);
+  assert(width > 0.0f);
   const float rounding =
       Max(0.0f, Min((flags & TabItemFlags_Button) ? g.Style.FrameRounding
                                                   : g.Style.TabRounding,

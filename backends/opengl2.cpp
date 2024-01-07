@@ -60,7 +60,7 @@ static void OpenGL2_ShutdownPlatformInterface();
 // Functions
 bool OpenGL2_Init() {
   IO &io = Gui::GetIO();
-  ASSERT(io.BackendRendererUserData == nullptr &&
+  assert(io.BackendRendererUserData == nullptr &&
          "Already initialized a renderer backend!");
 
   // Setup backend capabilities flags
@@ -79,7 +79,7 @@ bool OpenGL2_Init() {
 
 void OpenGL2_Shutdown() {
   OpenGL2_Data *bd = OpenGL2_GetBackendData();
-  ASSERT(bd != nullptr &&
+  assert(bd != nullptr &&
          "No renderer backend to shutdown, or already shutdown?");
   IO &io = Gui::GetIO();
 
@@ -93,7 +93,7 @@ void OpenGL2_Shutdown() {
 
 void OpenGL2_NewFrame() {
   OpenGL2_Data *bd = OpenGL2_GetBackendData();
-  ASSERT(bd != nullptr && "Did you call OpenGL2_Init()?");
+  assert(bd != nullptr && "Did you call OpenGL2_Init()?");
 
   if (!bd->FontTexture)
     OpenGL2_CreateDeviceObjects();

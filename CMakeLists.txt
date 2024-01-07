@@ -9,7 +9,7 @@ set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 
 # Add library target with source files listed in SOURCE_FILES variable
-add_library(Gui "gui.cpp" "draw.cpp" "tables.cpp" "widgets.cpp")
+add_library(Gui "gui.cpp" "draw.cpp" "tables.cpp" "widgets.cpp" "backends/opengl3.cpp" "backends/sdl2.cpp")
 set(CMAKE_CXX_STANDARD 20)
 find_package(SDL2 REQUIRED)
 find_package(OpenGL REQUIRED OpenGL GLX EGL)

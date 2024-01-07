@@ -59,7 +59,7 @@ int main(int, char **) {
   // io.Fonts->AddFontFromFileTTF("../../misc/fonts/Cousine-Regular.ttf", 15.0f);
   // Font* font =
   // io.Fonts->AddFontFromFileTTF("c:\\Windows\\Fonts\\ArialUni.ttf", 18.0f,
-  // nullptr, io.Fonts->GetGlyphRangesJapanese()); ASSERT(font != nullptr);
+  // nullptr, io.Fonts->GetGlyphRangesJapanese()); assert(font != nullptr);
 
   // Setup SDL
   // (Some versions of SDL before <2.0.10 appears to have performance/stalling

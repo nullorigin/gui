@@ -337,7 +337,7 @@ namespace Gui {
   } while (0)
 
 // Static Asserts
-#define STATIC_ASSERT(_COND) static_assert(_COND, "")
+#define STATIC_assert(_COND) static_assert(_COND, "")
 
 // "Paranoid" Debug Asserts are meant to only be enabled during specific
 // debugging/work, otherwise would slow down the code too much. We currently
@@ -345,7 +345,7 @@ namespace Gui {
 // intent to add more aggressive ones in the code.
 // #define DEBUG_PARANOID
 #ifdef DEBUG_PARANOID
-#define ASSERT_PARANOID(_EXPR) ASSERT(_EXPR)
+#define ASSERT_PARANOID(_EXPR) assert(_EXPR)
 #else
 #define ASSERT_PARANOID(_EXPR)
 #endif
@@ -355,7 +355,7 @@ namespace Gui {
 // redirect those to the programmer and recover from more faults.
 #ifndef ASSERT_USER_ERROR
 #define ASSERT_USER_ERROR(_EXP, _MSG)                                          \
-  ASSERT((_EXP) && _MSG) // Recoverable User Error
+  assert((_EXP) && _MSG) // Recoverable User Error
 #endif
 
 // Misc Macros
@@ -423,7 +423,7 @@ namespace Gui {
 #define DEBUG_BREAK() __asm__ volatile(".inst 0xe7f001f0");
 #else
 #define DEBUG_BREAK()                                                          \
-  ASSERT(0) // It is expected that you define DEBUG_BREAK() into something
+  assert(0) // It is expected that you define DEBUG_BREAK() into something
             // that will break nicely in a debugger!
 #endif
 #endif // #ifndef DEBUG_BREAK
@@ -974,28 +974,28 @@ template <int BITCOUNT, int OFFSET = 0> struct BitArray {
   void SetAllBits() { memset(Storage, 255, sizeof(Storage)); }
   bool TestBit(int n) const {
     n += OFFSET;
-    ASSERT(n >= 0 && n < BITCOUNT);
+    assert(n >= 0 && n < BITCOUNT);
     return BITARRAY_TESTBIT(Storage, n);
   }
   void SetBit(int n) {
     n += OFFSET;
-    ASSERT(n >= 0 && n < BITCOUNT);
+    assert(n >= 0 && n < BITCOUNT);
     BitArraySetBit(Storage, n);
   }
   void ClearBit(int n) {
     n += OFFSET;
-    ASSERT(n >= 0 && n < BITCOUNT);
+    assert(n >= 0 && n < BITCOUNT);
     BitArrayClearBit(Storage, n);
   }
   void SetBitRange(int n, int n2) {
     n += OFFSET;
     n2 += OFFSET;
-    ASSERT(n >= 0 && n < BITCOUNT && n2 > n && n2 <= BITCOUNT);
+    assert(n >= 0 && n < BITCOUNT && n2 > n && n2 <= BITCOUNT);
     BitArraySetBitRange(Storage, n, n2);
   } // Works on range [n..n2)
   bool operator[](int n) const {
     n += OFFSET;
-    ASSERT(n >= 0 && n < BITCOUNT);
+    assert(n >= 0 && n < BITCOUNT);
     return BITARRAY_TESTBIT(Storage, n);
   }
 };
@@ -1010,15 +1010,15 @@ struct API BitVector {
   }
   void Clear() { Storage.clear(); }
   bool TestBit(int n) const {
-    ASSERT(n < (Storage.Size << 5));
+    assert(n < (Storage.Size << 5));
     return BITARRAY_TESTBIT(Storage.Data, n);
   }
   void SetBit(int n) {
-    ASSERT(n < (Storage.Size << 5));
+    assert(n < (Storage.Size << 5));
     BitArraySetBit(Storage.Data, n);
   }
   void ClearBit(int n) {
-    ASSERT(n < (Storage.Size << 5));
+    assert(n < (Storage.Size << 5));
     BitArrayClearBit(Storage.Data, n);
   }
 };
@@ -1055,12 +1055,12 @@ template <typename T> struct Span {
   }
   inline T &operator[](int i) {
     T *p = Data + i;
-    ASSERT(p >= Data && p < DataEnd);
+    assert(p >= Data && p < DataEnd);
     return *p;
   }
   inline const T &operator[](int i) const {
     const T *p = Data + i;
-    ASSERT(p >= Data && p < DataEnd);
+    assert(p >= Data && p < DataEnd);
     return *p;
   }
 
@@ -1071,7 +1071,7 @@ template <typename T> struct Span {
 
   // Utilities
   inline int index_from_ptr(const T *it) const {
-    ASSERT(it >= Data && it < DataEnd);
+    assert(it >= Data && it < DataEnd);
     const ptrdiff_t off = it - Data;
     return (int)off;
   }
@@ -1091,7 +1091,7 @@ template <int CHUNKS> struct SpanAllocator {
 
   SpanAllocator() { memset(this, 0, sizeof(*this)); }
   inline void Reserve(int n, size_t sz, int a = 4) {
-    ASSERT(n == CurrIdx && n < CHUNKS);
+    assert(n == CurrIdx && n < CHUNKS);
     CurrOff = MEMALIGN(CurrOff, a);
     Offsets[n] = CurrOff;
     Sizes[n] = (int)sz;
@@ -1101,11 +1101,11 @@ template <int CHUNKS> struct SpanAllocator {
   inline int GetArenaSizeInBytes() { return CurrOff; }
   inline void SetArenaBasePtr(void *base_ptr) { BasePtr = (char *)base_ptr; }
   inline void *GetSpanPtrBegin(int n) {
-    ASSERT(n >= 0 && n < CHUNKS && CurrIdx == CHUNKS);
+    assert(n >= 0 && n < CHUNKS && CurrIdx == CHUNKS);
     return (void *)(BasePtr + Offsets[n]);
   }
   inline void *GetSpanPtrEnd(int n) {
-    ASSERT(n >= 0 && n < CHUNKS && CurrIdx == CHUNKS);
+    assert(n >= 0 && n < CHUNKS && CurrIdx == CHUNKS);
     return (void *)(BasePtr + Offsets[n] + Sizes[n]);
   }
   template <typename T> inline void GetSpan(int n, Span<T> *span) {
@@ -1133,7 +1133,7 @@ template <typename T> struct Pool {
   }
   T *GetByIndex(PoolIdx n) { return &Buf[n]; }
   PoolIdx GetIndex(const T *p) const {
-    ASSERT(p >= Buf.Data && p < Buf.Data + Buf.Size);
+    assert(p >= Buf.Data && p < Buf.Data + Buf.Size);
     return (PoolIdx)(p - Buf.Data);
   }
   T *GetOrAddByKey(int key) {
@@ -1233,22 +1233,22 @@ template <typename T> struct ChunkStream {
   }
   T *next_chunk(T *p) {
     size_t HDR_SZ = 4;
-    ASSERT(p >= begin() && p < end());
+    assert(p >= begin() && p < end());
     p = (T *)(void *)((char *)(void *)p + chunk_size(p));
     if (p == (T *)(void *)((char *)end() + HDR_SZ))
       return (T *)0;
-    ASSERT(p < end());
+    assert(p < end());
     return p;
   }
   int chunk_size(const T *p) { return ((const int *)p)[-1]; }
   T *end() { return (T *)(void *)(Buf.Data + Buf.Size); }
   int offset_from_ptr(const T *p) {
-    ASSERT(p >= begin() && p < end());
+    assert(p >= begin() && p < end());
     const ptrdiff_t off = (const char *)p - Buf.Data;
     return (int)off;
   }
   T *ptr_from_offset(int off) {
-    ASSERT(off >= 4 && off < Buf.Size);
+    assert(off >= 4 && off < Buf.Size);
     return (T *)(void *)(Buf.Data + off);
   }
   void swap(ChunkStream<T> &rhs) { rhs.Buf.swap(Buf); }
@@ -5110,7 +5110,7 @@ inline KeyData *GetKeyData(Key key) {
 }
 API void GetKeyChordName(int key_chord, char *out_buf, int out_buf_size);
 inline Key MouseButtonToKey(int button) {
-  ASSERT(button >= 0 && button < MouseButton_COUNT);
+  assert(button >= 0 && button < MouseButton_COUNT);
   return (Key)(Key_MouseLeft + button);
 }
 API bool IsMouseDragPastThreshold(int button, float lock_threshold = -1.0f);
@@ -5165,7 +5165,7 @@ API bool TestKeyOwner(Key key,
 inline KeyOwnerData *GetKeyOwnerData(Context *ctx, Key key) {
   if (key & Mod_Mask_)
     key = ConvertSingleModFlagToKey(ctx, key);
-  ASSERT(IsNamedKey(key));
+  assert(IsNamedKey(key));
   return &ctx->KeysOwnerData[key - Key_NamedKey_BEGIN];
 }
 
@@ -5788,19 +5788,19 @@ inline bool TreeNodeBehaviorIsOpen(int id, int flags = 0) {
 // FocusableItemUnregister() while managing the transition from regular widget
 // to TempInputText()
 inline bool FocusableItemRegister(Window *window, int id) {
-  ASSERT(0);
+  assert(0);
   UNUSED(window);
   UNUSED(id);
   return false;
 } // -> pass ItemAddFlags_Inputable flag to ItemAdd()
 inline void FocusableItemUnregister(Window *window) {
-  ASSERT(0);
+  assert(0);
   UNUSED(window);
 } // -> unnecessary: TempInputText() uses InputTextFlags_MergedItem
 #endif
 #ifndef DISABLE_OBSOLETE_KEYIO
 inline bool IsKeyPressedMap(Key key, bool repeat = true) {
-  ASSERT(IsNamedKey(key));
+  assert(IsNamedKey(key));
   return IsKeyPressed(key, repeat);
 } // Removed in 1.87: Mapping from named key is always identity!
 #endif
@@ -5826,8 +5826,7 @@ API void FontAtlasBuildInit(FontAtlas *atlas);
 API void FontAtlasBuildSetupFont(FontAtlas *atlas, Font *font,
                                  FontConfig *font_config, float ascent,
                                  float descent);
-API void FontAtlasBuildPackCustomRects(FontAtlas *atlas,
-                                       void *stbrp_context_opaque);
+API void FontAtlasBuildPackCustomRects(FontAtlas *atlas, void *context_opaque);
 API void FontAtlasBuildFinish(FontAtlas *atlas);
 API void FontAtlasBuildRender8bppRectFromString(
     FontAtlas *atlas, int x, int y, int w, int h, const char *in_str,

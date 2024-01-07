@@ -355,7 +355,7 @@ void Gui::ShowDemoWindow(bool *p_open) {
   static bool no_docking = false;
   static bool unsaved_document = false;
 
-  WindowFlags window_flags = 0;
+  int window_flags = 0;
   if (no_titlebar)
     window_flags |= WindowFlags_NoTitleBar;
   if (no_scrollbar)
@@ -449,7 +449,7 @@ void Gui::ShowDemoWindow(bool *p_open) {
       Gui::MenuItem("Metrics/Debugger", NULL, &show_tool_metrics,
                     has_debug_tools);
       Gui::MenuItem("Debug Log", NULL, &show_tool_debug_log, has_debug_tools);
-      Gui::MenuItem("ID Stack Tool", NULL, &show_tool_id_stack_tool,
+      Gui::MenuItem("unsigned int Stack Tool", NULL, &show_tool_id_stack_tool,
                     has_debug_tools);
       Gui::MenuItem("Style Editor", NULL, &show_tool_style_editor);
       Gui::MenuItem("About Gui", NULL, &show_tool_about);
@@ -812,7 +812,7 @@ static void ShowDemoWindowWidgets() {
     Gui::RadioButton("radio c", &e, 2);
 
     // Color buttons, demonstrate using PushID() to add unique identifier in the
-    // ID stack, and changing style.
+    // int stack, and changing style.
     DEMO_MARKER("Widgets/Basic/Buttons (Colored)");
     for (int i = 0; i < 7; i++) {
       if (i > 0)
@@ -1080,7 +1080,7 @@ static void ShowDemoWindowWidgets() {
 
     // The following examples are passed for documentation purpose but may not
     // be useful to most users. Passing HoveredFlags_ForTooltip to
-    // IsItemHovered() will pull HoveredFlags flags values from
+    // IsItemHovered() will pull int flags values from
     // 'style.HoverFlagsForTooltipMouse' or 'style.HoverFlagsForTooltipNav'
     // depending on whether mouse or gamepad/keyboard is being used. With
     // default settings, HoveredFlags_ForTooltip is equivalent to
@@ -1156,9 +1156,9 @@ static void ShowDemoWindowWidgets() {
       HelpMarker("This is a more typical looking tree with selectable nodes.\n"
                  "Click to select, CTRL+Click to toggle, click on arrows or "
                  "double-click to open.");
-      static TreeNodeFlags base_flags = TreeNodeFlags_OpenOnArrow |
-                                        TreeNodeFlags_OpenOnDoubleClick |
-                                        TreeNodeFlags_SpanAvailWidth;
+      static int base_flags = TreeNodeFlags_OpenOnArrow |
+                              TreeNodeFlags_OpenOnDoubleClick |
+                              TreeNodeFlags_SpanAvailWidth;
       static bool align_label_with_current_x_position = false;
       static bool test_drag_and_drop = false;
       Gui::CheckboxFlags("TreeNodeFlags_OpenOnArrow", &base_flags,
@@ -1197,7 +1197,7 @@ static void ShowDemoWindowWidgets() {
         // flag according to our selection. To alter selection we use
         // IsItemClicked() && !IsItemToggledOpen(), so clicking on an arrow
         // doesn't alter selection.
-        TreeNodeFlags node_flags = base_flags;
+        int node_flags = base_flags;
         const bool is_selected = (selection_mask & (1 << i)) != 0;
         if (is_selected)
           node_flags |= TreeNodeFlags_Selected;
@@ -1488,7 +1488,7 @@ static void ShowDemoWindowWidgets() {
   if (Gui::TreeNode("Combo")) {
     // Combo Boxes are also called "Dropdown" in other systems
     // Expose flags as checkbox for the demo
-    static ComboFlags flags = 0;
+    static int flags = 0;
     Gui::CheckboxFlags("ComboFlags_PopupAlignLeft", &flags,
                        ComboFlags_PopupAlignLeft);
     Gui::SameLine();
@@ -1823,7 +1823,7 @@ static void ShowDemoWindowWidgets() {
           "label:\n"
           "\tlock cmpxchg8b eax\n";
 
-      static InputTextFlags flags = InputTextFlags_AllowTabInput;
+      static int flags = InputTextFlags_AllowTabInput;
       HelpMarker("You can use the InputTextFlags_CallbackResize facility "
                  "if you need to wire InputTextMultiline() to a dynamic string "
                  "type. See misc/cpp/stdlib.h for an example. (This is "
@@ -1995,7 +1995,7 @@ static void ShowDemoWindowWidgets() {
         static bool MyInputTextMultiline(const char *label,
                                          Vector<char> *my_str,
                                          const Vec2 &size = Vec2(0, 0),
-                                         InputTextFlags flags = 0) {
+                                         int flags = 0) {
           ASSERT((flags & InputTextFlags_CallbackResize) == 0);
           return Gui::InputTextMultiline(
               label, my_str->begin(), (size_t)my_str->size(), size,
@@ -2021,7 +2021,7 @@ static void ShowDemoWindowWidgets() {
     DEMO_MARKER("Widgets/Text Input/Miscellaneous");
     if (Gui::TreeNode("Miscellaneous")) {
       static char buf1[16];
-      static InputTextFlags flags = InputTextFlags_EscapeClearsAll;
+      static int flags = InputTextFlags_EscapeClearsAll;
       Gui::CheckboxFlags("InputTextFlags_EscapeClearsAll", &flags,
                          InputTextFlags_EscapeClearsAll);
       Gui::CheckboxFlags("InputTextFlags_ReadOnly", &flags,
@@ -2040,7 +2040,7 @@ static void ShowDemoWindowWidgets() {
   if (Gui::TreeNode("Tabs")) {
     DEMO_MARKER("Widgets/Tabs/Basic");
     if (Gui::TreeNode("Basic")) {
-      TabBarFlags tab_bar_flags = TabBarFlags_None;
+      int tab_bar_flags = TabBarFlags_None;
       if (Gui::BeginTabBar("MyTabBar", tab_bar_flags)) {
         if (Gui::BeginTabItem("Avocado")) {
           Gui::Text("This is the Avocado tab!\nblah blah blah blah blah");
@@ -2064,7 +2064,7 @@ static void ShowDemoWindowWidgets() {
     if (Gui::TreeNode("Advanced & Close Button")) {
       // Expose a couple of the available flags. In most cases you may just call
       // BeginTabBar() with no flags (0).
-      static TabBarFlags tab_bar_flags = TabBarFlags_Reorderable;
+      static int tab_bar_flags = TabBarFlags_Reorderable;
       Gui::CheckboxFlags("TabBarFlags_Reorderable", &tab_bar_flags,
                          TabBarFlags_Reorderable);
       Gui::CheckboxFlags("TabBarFlags_AutoSelectNewTabs", &tab_bar_flags,
@@ -2132,9 +2132,9 @@ static void ShowDemoWindowWidgets() {
 
       // Expose some other flags which are useful to showcase how they interact
       // with Leading/Trailing tabs
-      static TabBarFlags tab_bar_flags = TabBarFlags_AutoSelectNewTabs |
-                                         TabBarFlags_Reorderable |
-                                         TabBarFlags_FittingPolicyResizeDown;
+      static int tab_bar_flags = TabBarFlags_AutoSelectNewTabs |
+                                 TabBarFlags_Reorderable |
+                                 TabBarFlags_FittingPolicyResizeDown;
       Gui::CheckboxFlags("TabBarFlags_TabListPopupButton", &tab_bar_flags,
                          TabBarFlags_TabListPopupButton);
       if (Gui::CheckboxFlags("TabBarFlags_FittingPolicyResizeDown",
@@ -2308,13 +2308,12 @@ static void ShowDemoWindowWidgets() {
     Gui::SameLine();
     HelpMarker("Currently all this does is to lift the 0..1 limits on dragging "
                "widgets.");
-    ColorEditFlags misc_flags =
-        (hdr ? ColorEditFlags_HDR : 0) |
-        (drag_and_drop ? 0 : ColorEditFlags_NoDragDrop) |
-        (alpha_half_preview
-             ? ColorEditFlags_AlphaPreviewHalf
-             : (alpha_preview ? ColorEditFlags_AlphaPreview : 0)) |
-        (options_menu ? 0 : ColorEditFlags_NoOptions);
+    int misc_flags = (hdr ? ColorEditFlags_HDR : 0) |
+                     (drag_and_drop ? 0 : ColorEditFlags_NoDragDrop) |
+                     (alpha_half_preview
+                          ? ColorEditFlags_AlphaPreviewHalf
+                          : (alpha_preview ? ColorEditFlags_AlphaPreview : 0)) |
+                     (options_menu ? 0 : ColorEditFlags_NoOptions);
 
     DEMO_MARKER("Widgets/Color/ColorEdit");
     Gui::SeparatorText("Inline color editor");
@@ -2396,9 +2395,9 @@ static void ShowDemoWindowWidgets() {
         if ((n % 8) != 0)
           Gui::SameLine(0.0f, Gui::GetStyle().ItemSpacing.y);
 
-        ColorEditFlags palette_button_flags = ColorEditFlags_NoAlpha |
-                                              ColorEditFlags_NoPicker |
-                                              ColorEditFlags_NoTooltip;
+        int palette_button_flags = ColorEditFlags_NoAlpha |
+                                   ColorEditFlags_NoPicker |
+                                   ColorEditFlags_NoTooltip;
         if (Gui::ColorButton("##palette", saved_palette[n],
                              palette_button_flags, Vec2(20, 20)))
           color = Vec4(saved_palette[n].x, saved_palette[n].y,
@@ -2466,7 +2465,7 @@ static void ShowDemoWindowWidgets() {
     Gui::SameLine();
     HelpMarker("When not specified explicitly (Auto/Current mode), user can "
                "right-click the picker to change mode.");
-    ColorEditFlags flags = misc_flags;
+    int flags = misc_flags;
     if (!alpha)
       flags |= ColorEditFlags_NoAlpha; // This is by default if you call
                                        // ColorPicker3() instead of
@@ -2553,7 +2552,7 @@ static void ShowDemoWindowWidgets() {
   if (Gui::TreeNode("Drag/Slider Flags")) {
     // Demonstrate using advanced flags for DragXXX and SliderXXX functions.
     // Note that the flags are the same!
-    static SliderFlags flags = SliderFlags_None;
+    static int flags = SliderFlags_None;
     Gui::CheckboxFlags("SliderFlags_AlwaysClamp", &flags,
                        SliderFlags_AlwaysClamp);
     Gui::SameLine();
@@ -2620,7 +2619,7 @@ static void ShowDemoWindowWidgets() {
 // - 8/16/32/64-bits
 // - integer/float/double
 // To avoid polluting the public API with all possible combinations, we use the
-// DataType enum to pass the type, and passing all arguments by pointer.
+// int enum to pass the type, and passing all arguments by pointer.
 // This is the reason the test code below creates local variables to hold "zero"
 // "one" etc. for each type. In practice, if you frequently use a given type
 // that is not covered by the normal API entry points, you can wrap it yourself
@@ -2637,29 +2636,32 @@ static void ShowDemoWindowWidgets() {
 // above) Note: SliderScalar() functions have a maximum usable range of half the
 // natural type maximum, hence the /2.
 #ifndef LLONG_MIN
-    S64 LLONG_MIN = -9223372036854775807LL - 1;
-    S64 LLONG_MAX = 9223372036854775807LL;
-    U64 ULLONG_MAX = (2ULL * 9223372036854775807LL + 1);
+    signed long long LLONG_MIN = -9223372036854775807LL - 1;
+    signed long long LLONG_MAX = 9223372036854775807LL;
+    unsigned long long ULLONG_MAX = (2ULL * 9223372036854775807LL + 1);
 #endif
     const char s8_zero = 0, s8_one = 1, s8_fifty = 50, s8_min = -128,
                s8_max = 127;
-    const U8 u8_zero = 0, u8_one = 1, u8_fifty = 50, u8_min = 0, u8_max = 255;
+    const unsigned char u8_zero = 0, u8_one = 1, u8_fifty = 50, u8_min = 0,
+                        u8_max = 255;
     const short s16_zero = 0, s16_one = 1, s16_fifty = 50, s16_min = -32768,
                 s16_max = 32767;
-    const U16 u16_zero = 0, u16_one = 1, u16_fifty = 50, u16_min = 0,
-              u16_max = 65535;
-    const S32 s32_zero = 0, s32_one = 1, s32_fifty = 50, s32_min = INT_MIN / 2,
-              s32_max = INT_MAX / 2, s32_hi_a = INT_MAX / 2 - 100,
-              s32_hi_b = INT_MAX / 2;
-    const U32 u32_zero = 0, u32_one = 1, u32_fifty = 50, u32_min = 0,
-              u32_max = UINT_MAX / 2, u32_hi_a = UINT_MAX / 2 - 100,
-              u32_hi_b = UINT_MAX / 2;
-    const S64 s64_zero = 0, s64_one = 1, s64_fifty = 50,
-              s64_min = LLONG_MIN / 2, s64_max = LLONG_MAX / 2,
-              s64_hi_a = LLONG_MAX / 2 - 100, s64_hi_b = LLONG_MAX / 2;
-    const U64 u64_zero = 0, u64_one = 1, u64_fifty = 50, u64_min = 0,
-              u64_max = ULLONG_MAX / 2, u64_hi_a = ULLONG_MAX / 2 - 100,
-              u64_hi_b = ULLONG_MAX / 2;
+    const unsigned short u16_zero = 0, u16_one = 1, u16_fifty = 50, u16_min = 0,
+                         u16_max = 65535;
+    const signed int s32_zero = 0, s32_one = 1, s32_fifty = 50,
+                     s32_min = INT_MIN / 2, s32_max = INT_MAX / 2,
+                     s32_hi_a = INT_MAX / 2 - 100, s32_hi_b = INT_MAX / 2;
+    const unsigned int u32_zero = 0, u32_one = 1, u32_fifty = 50, u32_min = 0,
+                       u32_max = UINT_MAX / 2, u32_hi_a = UINT_MAX / 2 - 100,
+                       u32_hi_b = UINT_MAX / 2;
+    const signed long long s64_zero = 0, s64_one = 1, s64_fifty = 50,
+                           s64_min = LLONG_MIN / 2, s64_max = LLONG_MAX / 2,
+                           s64_hi_a = LLONG_MAX / 2 - 100,
+                           s64_hi_b = LLONG_MAX / 2;
+    const unsigned long long u64_zero = 0, u64_one = 1, u64_fifty = 50,
+                             u64_min = 0, u64_max = ULLONG_MAX / 2,
+                             u64_hi_a = ULLONG_MAX / 2 - 100,
+                             u64_hi_b = ULLONG_MAX / 2;
     const float f32_zero = 0.f, f32_one = 1.f, f32_lo_a = -10000000000.0f,
                 f32_hi_a = +10000000000.0f;
     const double f64_zero = 0., f64_one = 1., f64_lo_a = -1000000000000000.0,
@@ -2667,13 +2669,13 @@ static void ShowDemoWindowWidgets() {
 
     // State
     static char s8_v = 127;
-    static U8 u8_v = 255;
+    static unsigned char u8_v = 255;
     static short s16_v = 32767;
-    static U16 u16_v = 65535;
-    static S32 s32_v = -1;
-    static U32 u32_v = (U32)-1;
-    static S64 s64_v = -1;
-    static U64 u64_v = (U64)-1;
+    static unsigned short u16_v = 65535;
+    static signed int s32_v = -1;
+    static unsigned int u32_v = (unsigned int)-1;
+    static signed long long s64_v = -1;
+    static unsigned long long u64_v = (unsigned long long)-1;
     static float f32_v = 0.123f;
     static double f64_v = 90000.01234567890123456789;
 
@@ -3035,9 +3037,8 @@ static void ShowDemoWindowWidgets() {
         // Drop targets
         Gui::Button(n ? "drop here##1" : "drop here##0");
         if (Gui::BeginDragDropTarget()) {
-          DragDropFlags drop_target_flags =
-              DragDropFlags_AcceptBeforeDelivery |
-              DragDropFlags_AcceptNoPreviewTooltip;
+          int drop_target_flags = DragDropFlags_AcceptBeforeDelivery |
+                                  DragDropFlags_AcceptNoPreviewTooltip;
           if (const Payload *payload = Gui::AcceptDragDropPayload(
                   PAYLOAD_TYPE_COLOR_4F, drop_target_flags)) {
             UNUSED(payload);
@@ -3410,7 +3411,7 @@ static void ShowDemoWindowLayout() {
 
     // Child 1: no border, enable horizontal scrollbar
     {
-      WindowFlags window_flags = WindowFlags_HorizontalScrollbar;
+      int window_flags = WindowFlags_HorizontalScrollbar;
       if (disable_mouse_wheel)
         window_flags |= WindowFlags_NoScrollWithMouse;
       Gui::BeginChild("ChildL",
@@ -3425,7 +3426,7 @@ static void ShowDemoWindowLayout() {
 
     // Child 2: rounded border
     {
-      WindowFlags window_flags = WindowFlags_None;
+      int window_flags = WindowFlags_None;
       if (disable_mouse_wheel)
         window_flags |= WindowFlags_NoScrollWithMouse;
       if (!disable_menu)
@@ -3506,7 +3507,7 @@ static void ShowDemoWindowLayout() {
     {
       static int offset_x = 0;
       static bool override_bg_color = true;
-      static ChildFlags child_flags =
+      static int child_flags =
           ChildFlags_Border | ChildFlags_ResizeX | ChildFlags_ResizeY;
       Gui::SetNextItemWidth(Gui::GetFontSize() * 8);
       Gui::DragInt("Offset X", &offset_x, 1.0f, -1000, 1000);
@@ -3989,9 +3990,9 @@ static void ShowDemoWindowLayout() {
       const char *names[] = {"Top", "25%", "Center", "75%", "Bottom"};
       Gui::TextUnformatted(names[i]);
 
-      const WindowFlags child_flags =
+      const int child_flags =
           enable_extra_decorations ? WindowFlags_MenuBar : 0;
-      const ID child_id = Gui::GetID((void *)(intptr_t)i);
+      const int child_id = Gui::GetID((void *)(intptr_t)i);
       const bool child_is_visible = Gui::BeginChild(
           child_id, Vec2(child_w, 200.0f), ChildFlags_Border, child_flags);
       if (Gui::BeginMenuBar()) {
@@ -4038,10 +4039,10 @@ static void ShowDemoWindowLayout() {
     for (int i = 0; i < 5; i++) {
       float child_height = Gui::GetTextLineHeight() + style.ScrollbarSize +
                            style.WindowPadding.y * 2.0f;
-      WindowFlags child_flags =
+      int child_flags =
           WindowFlags_HorizontalScrollbar |
           (enable_extra_decorations ? WindowFlags_AlwaysVerticalScrollbar : 0);
-      ID child_id = Gui::GetID((void *)(intptr_t)i);
+      int child_id = Gui::GetID((void *)(intptr_t)i);
       bool child_is_visible = Gui::BeginChild(
           child_id, Vec2(-100, child_height), ChildFlags_Border, child_flags);
       if (scroll_to_off)
@@ -4402,7 +4403,7 @@ static void ShowDemoWindowPopups() {
 
     // Simple selection popup (if you want to show the current selection inside
     // the Button itself, you may want to build a string using the "###"
-    // operator to preserve a constant ID with a variable label)
+    // operator to preserve a constant int with a variable label)
     if (Gui::Button("Select.."))
       Gui::OpenPopup("my_select_popup");
     Gui::SameLine();
@@ -4490,9 +4491,9 @@ static void ShowDemoWindowPopups() {
     // See more details in BeginPopupContextItem().
 
     // Example 1
-    // When used after an item that has an ID (e.g. Button), we can skip
-    // providing an ID to BeginPopupContextItem(), and BeginPopupContextItem()
-    // will use the last item ID as the popup ID.
+    // When used after an item that has an int (e.g. Button), we can skip
+    // providing an int to BeginPopupContextItem(), and BeginPopupContextItem()
+    // will use the last item int as the popup unsigned int.
     {
       const char *names[5] = {"Label1", "Label2", "Label3", "Label4", "Label5"};
       static int selected = -1;
@@ -4545,16 +4546,18 @@ static void ShowDemoWindowPopups() {
 
     // Example 3
     // When using BeginPopupContextItem() with an implicit identifier (NULL ==
-    // use last item ID), we need to make sure your item identifier is stable.
-    // In this example we showcase altering the item label while preserving its
-    // identifier, using the ### operator (see FAQ).
+    // use last item unsigned int), we need to make sure your item identifier is
+    // stable. In this example we showcase altering the item label while
+    // preserving its identifier, using the ### operator (see FAQ).
     {
-      HelpMarker("Showcase using a popup ID linked to item ID, with the item "
-                 "having a changing label + stable ID using the ### operator.");
+      HelpMarker(
+          "Showcase using a popup int linked to item unsigned int, with the "
+          "item "
+          "having a changing label + stable int using the ### operator.");
       static char name[32] = "Label1";
       char buf[64];
       sprintf(buf, "Button: %s###Button",
-              name); // ### operator override ID ignoring the preceding label
+              name); // ### operator override int ignoring the preceding label
       Gui::Button(buf);
       if (Gui::BeginPopupContextItem()) {
         Gui::Text("Edit name:");
@@ -4675,7 +4678,7 @@ namespace {
 // into TableSortSpec::ColumnUserID. But it is possible to omit the user id
 // parameter of TableSetupColumn() and just use the column index instead!
 // (TableSortSpec::ColumnIndex) If you don't use sorting, you will
-// generally never care about giving column an ID!
+// generally never care about giving column an unsigned int!
 enum MyItemColumnID {
   MyItemColumnID_ID,
   MyItemColumnID_Name,
@@ -4767,9 +4770,9 @@ static void PushStyleCompact() {
 static void PopStyleCompact() { Gui::PopStyleVar(2); }
 
 // Show a combo box with a choice of sizing policies
-static void EditTableSizingFlags(TableFlags *p_flags) {
+static void EditTableSizingFlags(int *p_flags) {
   struct EnumDesc {
-    TableFlags Value;
+    int Value;
     const char *Name;
     const char *Tooltip;
   };
@@ -4822,7 +4825,7 @@ static void EditTableSizingFlags(TableFlags *p_flags) {
   }
 }
 
-static void EditTableColumnsFlags(TableColumnFlags *p_flags) {
+static void EditTableColumnsFlags(int *p_flags) {
   Gui::CheckboxFlags("_Disabled", p_flags, TableColumnFlags_Disabled);
   Gui::SameLine();
   HelpMarker("Master disable flag (also hide from context menu)");
@@ -4857,7 +4860,7 @@ static void EditTableColumnsFlags(TableColumnFlags *p_flags) {
   Gui::CheckboxFlags("_AngledHeader", p_flags, TableColumnFlags_AngledHeader);
 }
 
-static void ShowTableColumnsStatusFlags(TableColumnFlags flags) {
+static void ShowTableColumnsStatusFlags(int flags) {
   Gui::CheckboxFlags("_IsEnabled", &flags, TableColumnFlags_IsEnabled);
   Gui::CheckboxFlags("_IsVisible", &flags, TableColumnFlags_IsVisible);
   Gui::CheckboxFlags("_IsSorted", &flags, TableColumnFlags_IsSorted);
@@ -4977,7 +4980,7 @@ static void ShowDemoWindowTables() {
   if (Gui::TreeNode("Borders, background")) {
     // Expose a few Borders related flags interactively
     enum ContentsType { CT_Text, CT_FillButton };
-    static TableFlags flags = TableFlags_Borders | TableFlags_RowBg;
+    static int flags = TableFlags_Borders | TableFlags_RowBg;
     static bool display_headers = false;
     static int contents_type = CT_Text;
 
@@ -5061,10 +5064,9 @@ static void ShowDemoWindowTables() {
     // By default, if we don't enable ScrollX the sizing policy for each column
     // is "Stretch" All columns maintain a sizing weight, and they will occupy
     // all available width.
-    static TableFlags flags = TableFlags_SizingStretchSame |
-                              TableFlags_Resizable | TableFlags_BordersOuter |
-                              TableFlags_BordersV |
-                              TableFlags_ContextMenuInBody;
+    static int flags = TableFlags_SizingStretchSame | TableFlags_Resizable |
+                       TableFlags_BordersOuter | TableFlags_BordersV |
+                       TableFlags_ContextMenuInBody;
     PushStyleCompact();
     Gui::CheckboxFlags("TableFlags_Resizable", &flags, TableFlags_Resizable);
     Gui::CheckboxFlags("TableFlags_BordersV", &flags, TableFlags_BordersV);
@@ -5104,9 +5106,9 @@ static void ShowDemoWindowTables() {
         "horizontal scrolling.\n\n"
         "Double-click a column border to auto-fit the column to its contents.");
     PushStyleCompact();
-    static TableFlags flags = TableFlags_SizingFixedFit | TableFlags_Resizable |
-                              TableFlags_BordersOuter | TableFlags_BordersV |
-                              TableFlags_ContextMenuInBody;
+    static int flags = TableFlags_SizingFixedFit | TableFlags_Resizable |
+                       TableFlags_BordersOuter | TableFlags_BordersV |
+                       TableFlags_ContextMenuInBody;
     Gui::CheckboxFlags("TableFlags_NoHostExtendX", &flags,
                        TableFlags_NoHostExtendX);
     PopStyleCompact();
@@ -5132,9 +5134,9 @@ static void ShowDemoWindowTables() {
                "per-column basis.\n\n"
                "When combining Fixed and Stretch columns, generally you only "
                "want one, maybe two trailing columns to use _WidthStretch.");
-    static TableFlags flags = TableFlags_SizingFixedFit | TableFlags_RowBg |
-                              TableFlags_Borders | TableFlags_Resizable |
-                              TableFlags_Reorderable | TableFlags_Hideable;
+    static int flags = TableFlags_SizingFixedFit | TableFlags_RowBg |
+                       TableFlags_Borders | TableFlags_Resizable |
+                       TableFlags_Reorderable | TableFlags_Hideable;
 
     if (Gui::BeginTable("table1", 3, flags)) {
       Gui::TableSetupColumn("AAA", TableColumnFlags_WidthFixed);
@@ -5180,9 +5182,9 @@ static void ShowDemoWindowTables() {
   if (Gui::TreeNode("Reorderable, hideable, with headers")) {
     HelpMarker("Click and drag column headers to reorder columns.\n\n"
                "Right-click on a header to open a context menu.");
-    static TableFlags flags = TableFlags_Resizable | TableFlags_Reorderable |
-                              TableFlags_Hideable | TableFlags_BordersOuter |
-                              TableFlags_BordersV;
+    static int flags = TableFlags_Resizable | TableFlags_Reorderable |
+                       TableFlags_Hideable | TableFlags_BordersOuter |
+                       TableFlags_BordersV;
     PushStyleCompact();
     Gui::CheckboxFlags("TableFlags_Resizable", &flags, TableFlags_Resizable);
     Gui::CheckboxFlags("TableFlags_Reorderable", &flags,
@@ -5256,7 +5258,7 @@ static void ShowDemoWindowTables() {
                "In this demo we don't show horizontal borders to emphasize how "
                "they don't affect default horizontal padding.");
 
-    static TableFlags flags1 = TableFlags_BordersV;
+    static int flags1 = TableFlags_BordersV;
     PushStyleCompact();
     Gui::CheckboxFlags("TableFlags_PadOuterX", &flags1, TableFlags_PadOuterX);
     Gui::SameLine();
@@ -5312,7 +5314,7 @@ static void ShowDemoWindowTables() {
     // FIXME-TABLE: Vertical border effectively not displayed the same way as
     // horizontal one...
     HelpMarker("Setting style.CellPadding to (0,0) or a custom value.");
-    static TableFlags flags2 = TableFlags_Borders | TableFlags_RowBg;
+    static int flags2 = TableFlags_Borders | TableFlags_RowBg;
     static Vec2 cell_padding(0.0f, 0.0f);
     static bool show_widget_frame_bg = true;
 
@@ -5359,15 +5361,15 @@ static void ShowDemoWindowTables() {
     Gui::SetNextItemOpen(open_action != 0);
   DEMO_MARKER("Tables/Explicit widths");
   if (Gui::TreeNode("Sizing policies")) {
-    static TableFlags flags1 = TableFlags_BordersV | TableFlags_BordersOuterH |
-                               TableFlags_RowBg | TableFlags_ContextMenuInBody;
+    static int flags1 = TableFlags_BordersV | TableFlags_BordersOuterH |
+                        TableFlags_RowBg | TableFlags_ContextMenuInBody;
     PushStyleCompact();
     Gui::CheckboxFlags("TableFlags_Resizable", &flags1, TableFlags_Resizable);
     Gui::CheckboxFlags("TableFlags_NoHostExtendX", &flags1,
                        TableFlags_NoHostExtendX);
     PopStyleCompact();
 
-    static TableFlags sizing_policy_flags[4] = {
+    static int sizing_policy_flags[4] = {
         TableFlags_SizingFixedFit, TableFlags_SizingFixedSame,
         TableFlags_SizingStretchProp, TableFlags_SizingStretchSame};
     for (int table_n = 0; table_n < 4; table_n++) {
@@ -5421,8 +5423,8 @@ static void ShowDemoWindowTables() {
       CT_FillButton,
       CT_InputText
     };
-    static TableFlags flags = TableFlags_ScrollY | TableFlags_Borders |
-                              TableFlags_RowBg | TableFlags_Resizable;
+    static int flags = TableFlags_ScrollY | TableFlags_Borders |
+                       TableFlags_RowBg | TableFlags_Resizable;
     static int contents_type = CT_ShowWidth;
     static int column_count = 3;
 
@@ -5504,10 +5506,10 @@ static void ShowDemoWindowTables() {
         "Here we activate ScrollY, which will create a child window container "
         "to allow hosting scrollable contents.\n\nWe also demonstrate using "
         "ListClipper to virtualize the submission of many items.");
-    static TableFlags flags = TableFlags_ScrollY | TableFlags_RowBg |
-                              TableFlags_BordersOuter | TableFlags_BordersV |
-                              TableFlags_Resizable | TableFlags_Reorderable |
-                              TableFlags_Hideable;
+    static int flags = TableFlags_ScrollY | TableFlags_RowBg |
+                       TableFlags_BordersOuter | TableFlags_BordersV |
+                       TableFlags_Resizable | TableFlags_Reorderable |
+                       TableFlags_Hideable;
 
     PushStyleCompact();
     Gui::CheckboxFlags("TableFlags_ScrollY", &flags, TableFlags_ScrollY);
@@ -5554,10 +5556,10 @@ static void ShowDemoWindowTables() {
         "to enable ScrollY along with ScrollX,"
         "because the container window won't automatically extend vertically to "
         "fix contents (this may be improved in future versions).");
-    static TableFlags flags = TableFlags_ScrollX | TableFlags_ScrollY |
-                              TableFlags_RowBg | TableFlags_BordersOuter |
-                              TableFlags_BordersV | TableFlags_Resizable |
-                              TableFlags_Reorderable | TableFlags_Hideable;
+    static int flags = TableFlags_ScrollX | TableFlags_ScrollY |
+                       TableFlags_RowBg | TableFlags_BordersOuter |
+                       TableFlags_BordersV | TableFlags_Resizable |
+                       TableFlags_Reorderable | TableFlags_Hideable;
     static int freeze_cols = 1;
     static int freeze_rows = 1;
 
@@ -5622,10 +5624,9 @@ static void ShowDemoWindowTables() {
                "Without an explicit value, inner_width is == outer_size.x and "
                "therefore using Stretch columns + ScrollX together doesn't "
                "make sense.");
-    static TableFlags flags2 = TableFlags_SizingStretchSame |
-                               TableFlags_ScrollX | TableFlags_ScrollY |
-                               TableFlags_BordersOuter | TableFlags_RowBg |
-                               TableFlags_ContextMenuInBody;
+    static int flags2 = TableFlags_SizingStretchSame | TableFlags_ScrollX |
+                        TableFlags_ScrollY | TableFlags_BordersOuter |
+                        TableFlags_RowBg | TableFlags_ContextMenuInBody;
     static float inner_width = 1000.0f;
     PushStyleCompact();
     Gui::PushID("flags3");
@@ -5654,10 +5655,10 @@ static void ShowDemoWindowTables() {
     // visible in our example!
     const int column_count = 3;
     const char *column_names[column_count] = {"One", "Two", "Three"};
-    static TableColumnFlags column_flags[column_count] = {
-        TableColumnFlags_DefaultSort, TableColumnFlags_None,
-        TableColumnFlags_DefaultHide};
-    static TableColumnFlags column_flags_out[column_count] = {
+    static int column_flags[column_count] = {TableColumnFlags_DefaultSort,
+                                             TableColumnFlags_None,
+                                             TableColumnFlags_DefaultHide};
+    static int column_flags_out[column_count] = {
         0, 0, 0}; // Output from TableGetColumnFlags()
 
     if (Gui::BeginTable("table_columns_flags_checkboxes", column_count,
@@ -5689,11 +5690,11 @@ static void ShowDemoWindowTables() {
     // the _IsEnabled and _IsVisible flags above, otherwise in a non-scrolling
     // table columns are always visible (unless using
     // TableFlags_NoKeepColumnsVisible + resizing the parent window down)
-    const TableFlags flags = TableFlags_SizingFixedFit | TableFlags_ScrollX |
-                             TableFlags_ScrollY | TableFlags_RowBg |
-                             TableFlags_BordersOuter | TableFlags_BordersV |
-                             TableFlags_Resizable | TableFlags_Reorderable |
-                             TableFlags_Hideable | TableFlags_Sortable;
+    const int flags = TableFlags_SizingFixedFit | TableFlags_ScrollX |
+                      TableFlags_ScrollY | TableFlags_RowBg |
+                      TableFlags_BordersOuter | TableFlags_BordersV |
+                      TableFlags_Resizable | TableFlags_Reorderable |
+                      TableFlags_Hideable | TableFlags_Sortable;
     Vec2 outer_size = Vec2(0.0f, TEXT_BASE_HEIGHT * 9);
     if (Gui::BeginTable("table_columns_flags", column_count, flags,
                         outer_size)) {
@@ -5733,7 +5734,7 @@ static void ShowDemoWindowTables() {
   if (Gui::TreeNode("Columns widths")) {
     HelpMarker("Using TableSetupColumn() to setup default width.");
 
-    static TableFlags flags1 =
+    static int flags1 =
         TableFlags_Borders | TableFlags_NoBordersInBodyUntilResize;
     PushStyleCompact();
     Gui::CheckboxFlags("TableFlags_Resizable", &flags1, TableFlags_Resizable);
@@ -5767,7 +5768,7 @@ static void ShowDemoWindowTables() {
                "_NoKeepColumnsVisible is set, fixed columns with set width may "
                "still be shrunk down if there's not enough space in the host.");
 
-    static TableFlags flags2 = TableFlags_None;
+    static int flags2 = TableFlags_None;
     PushStyleCompact();
     Gui::CheckboxFlags("TableFlags_NoKeepColumnsVisible", &flags2,
                        TableFlags_NoKeepColumnsVisible);
@@ -5925,10 +5926,9 @@ static void ShowDemoWindowTables() {
     // have slightly different behaviors!
     Gui::Text("Using NoHostExtendX and NoHostExtendY:");
     PushStyleCompact();
-    static TableFlags flags = TableFlags_Borders | TableFlags_Resizable |
-                              TableFlags_ContextMenuInBody | TableFlags_RowBg |
-                              TableFlags_SizingFixedFit |
-                              TableFlags_NoHostExtendX;
+    static int flags = TableFlags_Borders | TableFlags_Resizable |
+                       TableFlags_ContextMenuInBody | TableFlags_RowBg |
+                       TableFlags_SizingFixedFit | TableFlags_NoHostExtendX;
     Gui::CheckboxFlags("TableFlags_NoHostExtendX", &flags,
                        TableFlags_NoHostExtendX);
     Gui::SameLine();
@@ -5992,7 +5992,7 @@ static void ShowDemoWindowTables() {
     Gui::SetNextItemOpen(open_action != 0);
   DEMO_MARKER("Tables/Background color");
   if (Gui::TreeNode("Background color")) {
-    static TableFlags flags = TableFlags_RowBg;
+    static int flags = TableFlags_RowBg;
     static int row_bg_type = 1;
     static int row_bg_target = 1;
     static int cell_bg_type = 1;
@@ -6026,7 +6026,7 @@ static void ShowDemoWindowTables() {
         // RowBg1 and RowBg0 was already targeted by the TableFlags_RowBg
         // flag.
         if (row_bg_type != 0) {
-          U32 row_bg_color = Gui::GetColorU32(
+          unsigned int row_bg_color = Gui::GetColorU32(
               row_bg_type == 1 ? Vec4(0.7f, 0.3f, 0.3f, 0.65f)
                                : Vec4(0.2f + row * 0.1f, 0.2f, 0.2f,
                                       0.65f)); // Flat or Gradient?
@@ -6047,7 +6047,8 @@ static void ShowDemoWindowTables() {
           // TableSetBgColor() and do this outside the column loop.
           if (row >= 1 && row <= 2 && column >= 1 && column <= 2 &&
               cell_bg_type == 1) {
-            U32 cell_bg_color = Gui::GetColorU32(Vec4(0.3f, 0.3f, 0.7f, 0.65f));
+            unsigned int cell_bg_color =
+                Gui::GetColorU32(Vec4(0.3f, 0.3f, 0.7f, 0.65f));
             Gui::TableSetBgColor(TableBgTarget_CellBg, cell_bg_color);
           }
         }
@@ -6061,11 +6062,11 @@ static void ShowDemoWindowTables() {
     Gui::SetNextItemOpen(open_action != 0);
   DEMO_MARKER("Tables/Tree view");
   if (Gui::TreeNode("Tree view")) {
-    static TableFlags flags = TableFlags_BordersV | TableFlags_BordersOuterH |
-                              TableFlags_Resizable | TableFlags_RowBg |
-                              TableFlags_NoBordersInBody;
+    static int flags = TableFlags_BordersV | TableFlags_BordersOuterH |
+                       TableFlags_Resizable | TableFlags_RowBg |
+                       TableFlags_NoBordersInBody;
 
-    static TreeNodeFlags tree_node_flags = TreeNodeFlags_SpanAllColumns;
+    static int tree_node_flags = TreeNodeFlags_SpanAllColumns;
     Gui::CheckboxFlags("TreeNodeFlags_SpanFullWidth", &tree_node_flags,
                        TreeNodeFlags_SpanFullWidth);
     Gui::CheckboxFlags("TreeNodeFlags_SpanAllColumns", &tree_node_flags,
@@ -6242,11 +6243,11 @@ static void ShowDemoWindowTables() {
     const int columns_count = ARRAYSIZE(column_names);
     const int rows_count = 12;
 
-    static TableFlags table_flags =
-        TableFlags_SizingFixedFit | TableFlags_ScrollX | TableFlags_ScrollY |
-        TableFlags_BordersOuter | TableFlags_BordersInnerH |
-        TableFlags_Hideable | TableFlags_Resizable | TableFlags_Reorderable |
-        TableFlags_HighlightHoveredColumn;
+    static int table_flags = TableFlags_SizingFixedFit | TableFlags_ScrollX |
+                             TableFlags_ScrollY | TableFlags_BordersOuter |
+                             TableFlags_BordersInnerH | TableFlags_Hideable |
+                             TableFlags_Resizable | TableFlags_Reorderable |
+                             TableFlags_HighlightHoveredColumn;
     static bool bools[columns_count * rows_count] =
         {}; // Dummy storage selection storage
     static int frozen_cols = 1;
@@ -6306,9 +6307,9 @@ static void ShowDemoWindowTables() {
                "TableHeadersRow()/TableHeader() line will open the default "
                "context-menu.\nUsing TableFlags_ContextMenuInBody we also "
                "allow right-clicking over columns body.");
-    static TableFlags flags1 = TableFlags_Resizable | TableFlags_Reorderable |
-                               TableFlags_Hideable | TableFlags_Borders |
-                               TableFlags_ContextMenuInBody;
+    static int flags1 = TableFlags_Resizable | TableFlags_Reorderable |
+                        TableFlags_Hideable | TableFlags_Borders |
+                        TableFlags_ContextMenuInBody;
 
     PushStyleCompact();
     Gui::CheckboxFlags("TableFlags_ContextMenuInBody", &flags1,
@@ -6347,9 +6348,9 @@ static void ShowDemoWindowTables() {
     HelpMarker("Demonstrate mixing table context menu (over header), item "
                "context button (over button) and custom per-colum context menu "
                "(over column body).");
-    TableFlags flags2 = TableFlags_Resizable | TableFlags_SizingFixedFit |
-                        TableFlags_Reorderable | TableFlags_Hideable |
-                        TableFlags_Borders;
+    int flags2 = TableFlags_Resizable | TableFlags_SizingFixedFit |
+                 TableFlags_Reorderable | TableFlags_Hideable |
+                 TableFlags_Borders;
     if (Gui::BeginTable("table_context_menu_2", COLUMNS_COUNT, flags2)) {
       Gui::TableSetupColumn("One");
       Gui::TableSetupColumn("Two");
@@ -6412,7 +6413,7 @@ static void ShowDemoWindowTables() {
     Gui::TreePop();
   }
 
-  // Demonstrate creating multiple tables with the same ID
+  // Demonstrate creating multiple tables with the same unsigned int
   if (open_action != -1)
     Gui::SetNextItemOpen(open_action != 0);
   DEMO_MARKER("Tables/Synced instances");
@@ -6420,10 +6421,9 @@ static void ShowDemoWindowTables() {
     HelpMarker("Multiple tables with the same identifier will share their "
                "settings, width, visibility, order etc.");
 
-    static TableFlags flags = TableFlags_Resizable | TableFlags_Reorderable |
-                              TableFlags_Hideable | TableFlags_Borders |
-                              TableFlags_SizingFixedFit |
-                              TableFlags_NoSavedSettings;
+    static int flags = TableFlags_Resizable | TableFlags_Reorderable |
+                       TableFlags_Hideable | TableFlags_Borders |
+                       TableFlags_SizingFixedFit | TableFlags_NoSavedSettings;
     Gui::CheckboxFlags("TableFlags_ScrollY", &flags, TableFlags_ScrollY);
     Gui::CheckboxFlags("TableFlags_SizingFixedFit", &flags,
                        TableFlags_SizingFixedFit);
@@ -6482,11 +6482,11 @@ static void ShowDemoWindowTables() {
     }
 
     // Options
-    static TableFlags flags = TableFlags_Resizable | TableFlags_Reorderable |
-                              TableFlags_Hideable | TableFlags_Sortable |
-                              TableFlags_SortMulti | TableFlags_RowBg |
-                              TableFlags_BordersOuter | TableFlags_BordersV |
-                              TableFlags_NoBordersInBody | TableFlags_ScrollY;
+    static int flags = TableFlags_Resizable | TableFlags_Reorderable |
+                       TableFlags_Hideable | TableFlags_Sortable |
+                       TableFlags_SortMulti | TableFlags_RowBg |
+                       TableFlags_BordersOuter | TableFlags_BordersV |
+                       TableFlags_NoBordersInBody | TableFlags_ScrollY;
     PushStyleCompact();
     Gui::CheckboxFlags("TableFlags_SortMulti", &flags, TableFlags_SortMulti);
     Gui::SameLine();
@@ -6514,9 +6514,10 @@ static void ShowDemoWindowTables() {
       // / TableColumnFlags_NoSortDescending
       // - TableColumnFlags_PreferSortAscending /
       // TableColumnFlags_PreferSortDescending
-      Gui::TableSetupColumn(
-          "ID", TableColumnFlags_DefaultSort | TableColumnFlags_WidthFixed,
-          0.0f, MyItemColumnID_ID);
+      Gui::TableSetupColumn("unsigned int",
+                            TableColumnFlags_DefaultSort |
+                                TableColumnFlags_WidthFixed,
+                            0.0f, MyItemColumnID_ID);
       Gui::TableSetupColumn("Name", TableColumnFlags_WidthFixed, 0.0f,
                             MyItemColumnID_Name);
       Gui::TableSetupColumn(
@@ -6570,12 +6571,12 @@ static void ShowDemoWindowTables() {
     Gui::SetNextItemOpen(open_action != 0);
   DEMO_MARKER("Tables/Advanced");
   if (Gui::TreeNode("Advanced")) {
-    static TableFlags flags =
+    static int flags =
         TableFlags_Resizable | TableFlags_Reorderable | TableFlags_Hideable |
         TableFlags_Sortable | TableFlags_SortMulti | TableFlags_RowBg |
         TableFlags_Borders | TableFlags_NoBordersInBody | TableFlags_ScrollX |
         TableFlags_ScrollY | TableFlags_SizingFixedFit;
-    static TableColumnFlags columns_base_flags = TableColumnFlags_None;
+    static int columns_base_flags = TableColumnFlags_None;
 
     enum ContentsType {
       CT_Text,
@@ -6813,7 +6814,7 @@ static void ShowDemoWindowTables() {
       // id that will be stored in the sort specifications. This is so our sort
       // function can identify a column given our own identifier. We could also
       // identify them based on their index!
-      Gui::TableSetupColumn("ID",
+      Gui::TableSetupColumn("unsigned int",
                             columns_base_flags | TableColumnFlags_DefaultSort |
                                 TableColumnFlags_WidthFixed |
                                 TableColumnFlags_NoHide,
@@ -6903,11 +6904,10 @@ static void ShowDemoWindowTables() {
             Gui::Button(label, Vec2(-FLT_MIN, 0.0f));
           else if (contents_type == CT_Selectable ||
                    contents_type == CT_SelectableSpanRow) {
-            SelectableFlags selectable_flags =
-                (contents_type == CT_SelectableSpanRow)
-                    ? SelectableFlags_SpanAllColumns |
-                          SelectableFlags_AllowOverlap
-                    : SelectableFlags_None;
+            int selectable_flags = (contents_type == CT_SelectableSpanRow)
+                                       ? SelectableFlags_SpanAllColumns |
+                                             SelectableFlags_AllowOverlap
+                                       : SelectableFlags_None;
             if (Gui::Selectable(label, item_is_selected, selectable_flags,
                                 Vec2(0, row_min_height))) {
               if (Gui::GetIO().KeyCtrl) {
@@ -7030,7 +7030,7 @@ static void ShowDemoWindowColumns() {
     Gui::Text("With border:");
     Gui::Columns(4, "mycolumns"); // 4-ways, with border
     Gui::Separator();
-    Gui::Text("ID");
+    Gui::Text("unsigned int");
     Gui::NextColumn();
     Gui::Text("Name");
     Gui::NextColumn();
@@ -7338,7 +7338,7 @@ static void ShowDemoWindowInputs() {
           "ResizeNESW", "ResizeNWSE", "Hand",      "NotAllowed"};
       ASSERT(ARRAYSIZE(mouse_cursors_names) == MouseCursor_COUNT);
 
-      MouseCursor current = Gui::GetMouseCursor();
+      int current = Gui::GetMouseCursor();
       Gui::Text("Current mouse cursor = %d: %s", current,
                 mouse_cursors_names[current]);
       Gui::BeginDisabled(true);
@@ -7901,8 +7901,8 @@ void Gui::ShowStyleEditor(Style *ref) {
       for (int n = 0; n < 2; n++)
         if (Gui::TreeNodeEx(n == 0 ? "HoverFlagsForTooltipMouse"
                                    : "HoverFlagsForTooltipNav")) {
-          HoveredFlags *p = (n == 0) ? &style.HoverFlagsForTooltipMouse
-                                     : &style.HoverFlagsForTooltipNav;
+          int *p = (n == 0) ? &style.HoverFlagsForTooltipMouse
+                            : &style.HoverFlagsForTooltipNav;
           Gui::CheckboxFlags("HoveredFlags_DelayNone", p,
                              HoveredFlags_DelayNone);
           Gui::CheckboxFlags("HoveredFlags_DelayShort", p,
@@ -7957,7 +7957,7 @@ void Gui::ShowStyleEditor(Style *ref) {
       static TextFilter filter;
       filter.Draw("Filter colors", Gui::GetFontSize() * 16);
 
-      static ColorEditFlags alpha_flags = 0;
+      static int alpha_flags = 0;
       if (Gui::RadioButton("Opaque", alpha_flags == ColorEditFlags_None)) {
         alpha_flags = ColorEditFlags_None;
       }
@@ -7990,7 +7990,7 @@ void Gui::ShowStyleEditor(Style *ref) {
           continue;
         Gui::PushID(i);
         if (Gui::Button("?"))
-          Gui::DebugFlashStyleColor((Col)i);
+          Gui::DebugFlashStyleColor((int)i);
         Gui::SetItemTooltip(
             "Flash given color to identify places where it is used.");
         Gui::SameLine();
@@ -8262,10 +8262,10 @@ static void ShowExampleMenuFile() {
   if (Gui::BeginMenu("Colors")) {
     float sz = Gui::GetTextLineHeight();
     for (int i = 0; i < Col_COUNT; i++) {
-      const char *name = Gui::GetStyleColorName((Col)i);
+      const char *name = Gui::GetStyleColorName((int)i);
       Vec2 p = Gui::GetCursorScreenPos();
       Gui::GetWindowDrawList()->AddRectFilled(p, Vec2(p.x + sz, p.y + sz),
-                                              Gui::GetColorU32((Col)i));
+                                              Gui::GetColorU32((int)i));
       Gui::Dummy(Vec2(sz, sz));
       Gui::SameLine();
       Gui::MenuItem(name);
@@ -8527,7 +8527,7 @@ struct ExampleAppConsole {
 
     // Command-line
     bool reclaim_focus = false;
-    InputTextFlags input_text_flags =
+    int input_text_flags =
         InputTextFlags_EnterReturnsTrue | InputTextFlags_EscapeClearsAll |
         InputTextFlags_CallbackCompletion | InputTextFlags_CallbackHistory;
     if (Gui::InputText("Input", InputBuf, ARRAYSIZE(InputBuf), input_text_flags,
@@ -8904,7 +8904,7 @@ static void ShowExampleAppLayout(bool *p_open) {
           Gui::EndTabItem();
         }
         if (Gui::BeginTabItem("Details")) {
-          Gui::Text("ID: 0123456789");
+          Gui::Text("unsigned int: 0123456789");
           Gui::EndTabItem();
         }
         Gui::EndTabBar();
@@ -8927,7 +8927,7 @@ static void ShowExampleAppLayout(bool *p_open) {
 
 static void ShowPlaceholderObject(const char *prefix, int uid) {
   // Use object uid as identifier. Most commonly you could also use the object
-  // pointer as a base ID.
+  // pointer as a base unsigned int.
   Gui::PushID(uid);
 
   // Text and Tree nodes are less high than framed widgets, using
@@ -8953,9 +8953,8 @@ static void ShowPlaceholderObject(const char *prefix, int uid) {
         Gui::TableNextRow();
         Gui::TableSetColumnIndex(0);
         Gui::AlignTextToFramePadding();
-        TreeNodeFlags flags = TreeNodeFlags_Leaf |
-                              TreeNodeFlags_NoTreePushOnOpen |
-                              TreeNodeFlags_Bullet;
+        int flags = TreeNodeFlags_Leaf | TreeNodeFlags_NoTreePushOnOpen |
+                    TreeNodeFlags_Bullet;
         Gui::TreeNodeEx("Field", flags, "Field_%d", i);
 
         Gui::TableSetColumnIndex(1);
@@ -9181,8 +9180,7 @@ static void ShowExampleAppConstrainedResize(bool *p_open) {
   // Submit window
   if (!window_padding)
     Gui::PushStyleVar(StyleVar_WindowPadding, Vec2(0.0f, 0.0f));
-  const WindowFlags window_flags =
-      auto_resize ? WindowFlags_AlwaysAutoResize : 0;
+  const int window_flags = auto_resize ? WindowFlags_AlwaysAutoResize : 0;
   const bool window_open =
       Gui::Begin("Example: Constrained Resize", p_open, window_flags);
   if (!window_padding)
@@ -9239,10 +9237,10 @@ static void ShowExampleAppConstrainedResize(bool *p_open) {
 static void ShowExampleAppSimpleOverlay(bool *p_open) {
   static int location = 0;
   IO &io = Gui::GetIO();
-  WindowFlags window_flags = WindowFlags_NoDecoration | WindowFlags_NoDocking |
-                             WindowFlags_AlwaysAutoResize |
-                             WindowFlags_NoSavedSettings |
-                             WindowFlags_NoFocusOnAppearing | WindowFlags_NoNav;
+  int window_flags = WindowFlags_NoDecoration | WindowFlags_NoDocking |
+                     WindowFlags_AlwaysAutoResize |
+                     WindowFlags_NoSavedSettings |
+                     WindowFlags_NoFocusOnAppearing | WindowFlags_NoNav;
   if (location >= 0) {
     const float PAD = 10.0f;
     const Viewport *viewport = Gui::GetMainViewport();
@@ -9303,8 +9301,8 @@ static void ShowExampleAppSimpleOverlay(bool *p_open) {
 // Demonstrate creating a window covering the entire screen/viewport
 static void ShowExampleAppFullscreen(bool *p_open) {
   static bool use_work_area = true;
-  static WindowFlags flags = WindowFlags_NoDecoration | WindowFlags_NoMove |
-                             WindowFlags_NoSavedSettings;
+  static int flags = WindowFlags_NoDecoration | WindowFlags_NoMove |
+                     WindowFlags_NoSavedSettings;
 
   // We demonstrate using the full viewport area or the work area (without
   // menu-bars, task-bars etc.) Based on your use case you may want one or the
@@ -9345,15 +9343,16 @@ static void ShowExampleAppFullscreen(bool *p_open) {
 // ShowExampleAppWindowTitles()
 //-----------------------------------------------------------------------------
 
-// Demonstrate the use of "##" and "###" in identifiers to manipulate ID
-// generation. This applies to all regular items as well. Read FAQ section "How
-// can I have multiple widgets with the same label?" for details.
+// Demonstrate the use of "##" and "###" in identifiers to manipulate unsigned
+// int generation. This applies to all regular items as well. Read FAQ section
+// "How can I have multiple widgets with the same label?" for details.
 static void ShowExampleAppWindowTitles(bool *) {
   const Viewport *viewport = Gui::GetMainViewport();
   const Vec2 base_pos = viewport->Pos;
 
   // By default, Windows are uniquely identified by their title.
-  // You can use the "##" and "###" markers to manipulate the display/ID.
+  // You can use the "##" and "###" markers to manipulate the display/unsigned
+  // int.
 
   // Using "##" to display same title but have unique identifier.
   Gui::SetNextWindowPos(Vec2(base_pos.x + 100, base_pos.y + 100),
@@ -9417,16 +9416,16 @@ static void ShowExampleAppCustomRendering(bool *p_open) {
       {
         Vec2 p0 = Gui::GetCursorScreenPos();
         Vec2 p1 = Vec2(p0.x + gradient_size.x, p0.y + gradient_size.y);
-        U32 col_a = Gui::GetColorU32(COL32(0, 0, 0, 255));
-        U32 col_b = Gui::GetColorU32(COL32(255, 255, 255, 255));
+        unsigned int col_a = Gui::GetColorU32(COL32(0, 0, 0, 255));
+        unsigned int col_b = Gui::GetColorU32(COL32(255, 255, 255, 255));
         draw_list->AddRectFilledMultiColor(p0, p1, col_a, col_b, col_b, col_a);
         Gui::InvisibleButton("##gradient1", gradient_size);
       }
       {
         Vec2 p0 = Gui::GetCursorScreenPos();
         Vec2 p1 = Vec2(p0.x + gradient_size.x, p0.y + gradient_size.y);
-        U32 col_a = Gui::GetColorU32(COL32(0, 255, 0, 255));
-        U32 col_b = Gui::GetColorU32(COL32(255, 0, 0, 255));
+        unsigned int col_a = Gui::GetColorU32(COL32(0, 255, 0, 255));
+        unsigned int col_b = Gui::GetColorU32(COL32(255, 0, 0, 255));
         draw_list->AddRectFilledMultiColor(p0, p1, col_a, col_b, col_b, col_a);
         Gui::InvisibleButton("##gradient2", gradient_size);
       }
@@ -9455,9 +9454,9 @@ static void ShowExampleAppCustomRendering(bool *p_open) {
       Gui::ColorEdit4("Color", &colf.x);
 
       const Vec2 p = Gui::GetCursorScreenPos();
-      const U32 col = Color(colf);
+      const unsigned int col = Color(colf);
       const float spacing = 10.0f;
-      const DrawFlags corners_tl_br =
+      const int corners_tl_br =
           DrawFlags_RoundCornersTopLeft | DrawFlags_RoundCornersBottomRight;
       const float rounding = sz / 5.0f;
       const int circle_segments =
@@ -9816,12 +9815,12 @@ void ShowExampleAppDockSpace(bool *p_open) {
 
   static bool opt_fullscreen = true;
   static bool opt_padding = false;
-  static DockNodeFlags dockspace_flags = DockNodeFlags_None;
+  static int dockspace_flags = DockNodeFlags_None;
 
   // We are using the WindowFlags_NoDocking flag to make the parent window
   // not dockable into, because it would be confusing to have two docking
   // targets within each others.
-  WindowFlags window_flags = WindowFlags_MenuBar | WindowFlags_NoDocking;
+  int window_flags = WindowFlags_MenuBar | WindowFlags_NoDocking;
   if (opt_fullscreen) {
     const Viewport *viewport = Gui::GetMainViewport();
     Gui::SetNextWindowPos(viewport->WorkPos);
@@ -9861,7 +9860,7 @@ void ShowExampleAppDockSpace(bool *p_open) {
   // Submit the DockSpace
   IO &io = Gui::GetIO();
   if (io.ConfigFlags & ConfigFlags_DockingEnable) {
-    ID dockspace_id = Gui::GetID("MyDockSpace");
+    int dockspace_id = Gui::GetID("MyDockSpace");
     Gui::DockSpace(dockspace_id, Vec2(0.0f, 0.0f), dockspace_flags);
   } else {
     ShowDockingDisabledMessage();
@@ -10051,7 +10050,7 @@ void ShowExampleAppDocuments(bool *p_open) {
   };
   static Target opt_target = Target_Tab;
   static bool opt_reorderable = true;
-  static TabBarFlags opt_fitting_flags = TabBarFlags_FittingPolicyDefault_;
+  static int opt_fitting_flags = TabBarFlags_FittingPolicyDefault_;
 
   // When (opt_target == Target_DockSpaceAndWindow) there is the possibily that
   // one of our child Document window (e.g. "Eggplant") that we emit gets docked
@@ -10135,7 +10134,7 @@ void ShowExampleAppDocuments(bool *p_open) {
 
   // Tabs
   if (opt_target == Target_Tab) {
-    TabBarFlags tab_bar_flags =
+    int tab_bar_flags =
         (opt_fitting_flags) | (opt_reorderable ? TabBarFlags_Reorderable : 0);
     if (Gui::BeginTabBar("##tabs", tab_bar_flags)) {
       if (opt_reorderable)
@@ -10153,7 +10152,7 @@ void ShowExampleAppDocuments(bool *p_open) {
         if (!doc.Open)
           continue;
 
-        TabItemFlags tab_flags = (doc.Dirty ? TabItemFlags_UnsavedDocument : 0);
+        int tab_flags = (doc.Dirty ? TabItemFlags_UnsavedDocument : 0);
         bool visible = Gui::BeginTabItem(doc.Name, &doc.Open, tab_flags);
 
         // Cancel attempt to close when unsaved add to save queue so we can
@@ -10177,7 +10176,7 @@ void ShowExampleAppDocuments(bool *p_open) {
       NotifyOfDocumentsClosedElsewhere(app);
 
       // Create a DockSpace node where any window can be docked
-      ID dockspace_id = Gui::GetID("MyDockSpace");
+      int dockspace_id = Gui::GetID("MyDockSpace");
       Gui::DockSpace(dockspace_id);
 
       // Create Windows
@@ -10188,8 +10187,7 @@ void ShowExampleAppDocuments(bool *p_open) {
 
         Gui::SetNextWindowDockID(dockspace_id,
                                  redock_all ? Cond_Always : Cond_FirstUseEver);
-        WindowFlags window_flags =
-            (doc->Dirty ? WindowFlags_UnsavedDocument : 0);
+        int window_flags = (doc->Dirty ? WindowFlags_UnsavedDocument : 0);
         bool visible = Gui::Begin(doc->Name, &doc->Open, window_flags);
 
         // Cancel attempt to close when unsaved add to save queue so we can

@@ -205,7 +205,7 @@ namespace NAMESPACE {
 #define STBTT_STATIC
 #define TRUETYPE_IMPLEMENTATION
 #else
-#define STBTT_DEF extern
+#define extern extern
 #endif
 #ifdef TRUETYPE_FILENAME
 #include TRUETYPE_FILENAME
@@ -458,9 +458,10 @@ void DrawListSharedData::SetCircleTessellationMaxError(float max_error) {
   CircleSegmentMaxError = max_error;
   for (int i = 0; i < ARRAYSIZE(CircleSegmentCounts); i++) {
     const float radius = (float)i;
-    CircleSegmentCounts[i] = (U8)((i > 0) ? DRAWLIST_CIRCLE_AUTO_SEGMENT_CALC(
-                                                radius, CircleSegmentMaxError)
-                                          : DRAWLIST_ARCFAST_SAMPLE_MAX);
+    CircleSegmentCounts[i] =
+        (unsigned char)((i > 0) ? DRAWLIST_CIRCLE_AUTO_SEGMENT_CALC(
+                                      radius, CircleSegmentMaxError)
+                                : DRAWLIST_ARCFAST_SAMPLE_MAX);
   }
   ArcFastRadiusCutoff = DRAWLIST_CIRCLE_AUTO_SEGMENT_CALC_R(
       DRAWLIST_ARCFAST_SAMPLE_MAX, CircleSegmentMaxError);
@@ -754,7 +755,7 @@ void DrawList::PrimUnreserve(int idx_count, int vtx_count) {
 }
 
 // Fully unrolled with inline call to keep our debug builds decently fast.
-void DrawList::PrimRect(const Vec2 &a, const Vec2 &c, U32 col) {
+void DrawList::PrimRect(const Vec2 &a, const Vec2 &c, unsigned int col) {
   Vec2 b(c.x, a.y), d(a.x, c.y), uv(_Data->TexUvWhitePixel);
   DrawIdx idx = (DrawIdx)_VtxCurrentIdx;
   _IdxWritePtr[0] = idx;
@@ -781,7 +782,7 @@ void DrawList::PrimRect(const Vec2 &a, const Vec2 &c, U32 col) {
 }
 
 void DrawList::PrimRectUV(const Vec2 &a, const Vec2 &c, const Vec2 &uv_a,
-                          const Vec2 &uv_c, U32 col) {
+                          const Vec2 &uv_c, unsigned int col) {
   Vec2 b(c.x, a.y), d(a.x, c.y), uv_b(uv_c.x, uv_a.y), uv_d(uv_a.x, uv_c.y);
   DrawIdx idx = (DrawIdx)_VtxCurrentIdx;
   _IdxWritePtr[0] = idx;
@@ -809,7 +810,8 @@ void DrawList::PrimRectUV(const Vec2 &a, const Vec2 &c, const Vec2 &uv_a,
 
 void DrawList::PrimQuadUV(const Vec2 &a, const Vec2 &b, const Vec2 &c,
                           const Vec2 &d, const Vec2 &uv_a, const Vec2 &uv_b,
-                          const Vec2 &uv_c, const Vec2 &uv_d, U32 col) {
+                          const Vec2 &uv_c, const Vec2 &uv_d,
+                          unsigned int col) {
   DrawIdx idx = (DrawIdx)_VtxCurrentIdx;
   _IdxWritePtr[0] = idx;
   _IdxWritePtr[1] = (DrawIdx)(idx + 1);
@@ -866,8 +868,8 @@ void DrawList::PrimQuadUV(const Vec2 &a, const Vec2 &b, const Vec2 &c,
 // TODO: Thickness anti-aliased lines cap are missing their AA fringe.
 // We avoid using the Vec2 math operators here to reduce cost to a minimum for
 // debug/non-inlined builds.
-void DrawList::AddPolyline(const Vec2 *points, const int points_count, U32 col,
-                           DrawFlags flags, float thickness) {
+void DrawList::AddPolyline(const Vec2 *points, const int points_count,
+                           unsigned int col, int flags, float thickness) {
   if (points_count < 2 || (col & COL32_A_MASK) == 0)
     return;
 
@@ -881,7 +883,7 @@ void DrawList::AddPolyline(const Vec2 *points, const int points_count, U32 col,
   if (Flags & DrawListFlags_AntiAliasedLines) {
     // Anti-aliased stroke
     const float AA_SIZE = _FringeScale;
-    const U32 col_trans = col & ~COL32_A_MASK;
+    const unsigned int col_trans = col & ~COL32_A_MASK;
 
     // Thicknesses <1.0 should behave like thickness 1.0
     thickness = Max(thickness, 1.0f);
@@ -1231,7 +1233,7 @@ void DrawList::AddPolyline(const Vec2 *points, const int points_count, U32 col,
 // fringe depends on it. Counter-clockwise shapes will have "inward"
 // anti-aliasing.
 void DrawList::AddConvexPolyFilled(const Vec2 *points, const int points_count,
-                                   U32 col) {
+                                   unsigned int col) {
   if (points_count < 3 || (col & COL32_A_MASK) == 0)
     return;
 
@@ -1240,7 +1242,7 @@ void DrawList::AddConvexPolyFilled(const Vec2 *points, const int points_count,
   if (Flags & DrawListFlags_AntiAliasedFill) {
     // Anti-aliased Fill
     const float AA_SIZE = _FringeScale;
-    const U32 col_trans = col & ~COL32_A_MASK;
+    const unsigned int col_trans = col & ~COL32_A_MASK;
     const int idx_count = (points_count - 2) * 3 + points_count * 6;
     const int vtx_count = (points_count * 2);
     PrimReserve(idx_count, vtx_count);
@@ -1617,7 +1619,7 @@ void DrawList::PathBezierQuadraticCurveTo(const Vec2 &p2, const Vec2 &p3,
   }
 }
 
-static inline DrawFlags FixRectCornerFlags(DrawFlags flags) {
+static inline int FixRectCornerFlags(int flags) {
   /*
   STATIC_ASSERT(DrawFlags_RoundCornersTopLeft == (1 << 4));
 #ifndef DISABLE_OBSOLETE_FUNCTIONS
@@ -1647,7 +1649,7 @@ with DrawFlags_RoundCornersNone or use 'float rounding = 0.0f' #endif
 }
 
 void DrawList::PathRect(const Vec2 &a, const Vec2 &b, float rounding,
-                        DrawFlags flags) {
+                        int flags) {
   if (rounding >= 0.5f) {
     flags = FixRectCornerFlags(flags);
     rounding = Min(rounding,
@@ -1695,7 +1697,7 @@ void DrawList::PathRect(const Vec2 &a, const Vec2 &b, float rounding,
   }
 }
 
-void DrawList::AddLine(const Vec2 &p1, const Vec2 &p2, U32 col,
+void DrawList::AddLine(const Vec2 &p1, const Vec2 &p2, unsigned int col,
                        float thickness) {
   if ((col & COL32_A_MASK) == 0)
     return;
@@ -1706,8 +1708,8 @@ void DrawList::AddLine(const Vec2 &p1, const Vec2 &p2, U32 col,
 
 // p_min = upper-left, p_max = lower-right
 // Note we don't render 1 pixels sized rectangles properly.
-void DrawList::AddRect(const Vec2 &p_min, const Vec2 &p_max, U32 col,
-                       float rounding, DrawFlags flags, float thickness) {
+void DrawList::AddRect(const Vec2 &p_min, const Vec2 &p_max, unsigned int col,
+                       float rounding, int flags, float thickness) {
   if ((col & COL32_A_MASK) == 0)
     return;
   if (Flags & DrawListFlags_AntiAliasedLines)
@@ -1720,8 +1722,8 @@ void DrawList::AddRect(const Vec2 &p_min, const Vec2 &p_max, U32 col,
   PathStroke(col, DrawFlags_Closed, thickness);
 }
 
-void DrawList::AddRectFilled(const Vec2 &p_min, const Vec2 &p_max, U32 col,
-                             float rounding, DrawFlags flags) {
+void DrawList::AddRectFilled(const Vec2 &p_min, const Vec2 &p_max,
+                             unsigned int col, float rounding, int flags) {
   if ((col & COL32_A_MASK) == 0)
     return;
   if (rounding < 0.5f ||
@@ -1736,8 +1738,10 @@ void DrawList::AddRectFilled(const Vec2 &p_min, const Vec2 &p_max, U32 col,
 
 // p_min = upper-left, p_max = lower-right
 void DrawList::AddRectFilledMultiColor(const Vec2 &p_min, const Vec2 &p_max,
-                                       U32 col_upr_left, U32 col_upr_right,
-                                       U32 col_bot_right, U32 col_bot_left) {
+                                       unsigned int col_upr_left,
+                                       unsigned int col_upr_right,
+                                       unsigned int col_bot_right,
+                                       unsigned int col_bot_left) {
   if (((col_upr_left | col_upr_right | col_bot_right | col_bot_left) &
        COL32_A_MASK) == 0)
     return;
@@ -1757,7 +1761,7 @@ void DrawList::AddRectFilledMultiColor(const Vec2 &p_min, const Vec2 &p_max,
 }
 
 void DrawList::AddQuad(const Vec2 &p1, const Vec2 &p2, const Vec2 &p3,
-                       const Vec2 &p4, U32 col, float thickness) {
+                       const Vec2 &p4, unsigned int col, float thickness) {
   if ((col & COL32_A_MASK) == 0)
     return;
 
@@ -1769,7 +1773,7 @@ void DrawList::AddQuad(const Vec2 &p1, const Vec2 &p2, const Vec2 &p3,
 }
 
 void DrawList::AddQuadFilled(const Vec2 &p1, const Vec2 &p2, const Vec2 &p3,
-                             const Vec2 &p4, U32 col) {
+                             const Vec2 &p4, unsigned int col) {
   if ((col & COL32_A_MASK) == 0)
     return;
 
@@ -1781,7 +1785,7 @@ void DrawList::AddQuadFilled(const Vec2 &p1, const Vec2 &p2, const Vec2 &p3,
 }
 
 void DrawList::AddTriangle(const Vec2 &p1, const Vec2 &p2, const Vec2 &p3,
-                           U32 col, float thickness) {
+                           unsigned int col, float thickness) {
   if ((col & COL32_A_MASK) == 0)
     return;
 
@@ -1792,7 +1796,7 @@ void DrawList::AddTriangle(const Vec2 &p1, const Vec2 &p2, const Vec2 &p3,
 }
 
 void DrawList::AddTriangleFilled(const Vec2 &p1, const Vec2 &p2, const Vec2 &p3,
-                                 U32 col) {
+                                 unsigned int col) {
   if ((col & COL32_A_MASK) == 0)
     return;
 
@@ -1802,7 +1806,7 @@ void DrawList::AddTriangleFilled(const Vec2 &p1, const Vec2 &p2, const Vec2 &p3,
   PathFillConvex(col);
 }
 
-void DrawList::AddCircle(const Vec2 &center, float radius, U32 col,
+void DrawList::AddCircle(const Vec2 &center, float radius, unsigned int col,
                          int num_segments, float thickness) {
   if ((col & COL32_A_MASK) == 0 || radius < 0.5f)
     return;
@@ -1826,8 +1830,8 @@ void DrawList::AddCircle(const Vec2 &center, float radius, U32 col,
   PathStroke(col, DrawFlags_Closed, thickness);
 }
 
-void DrawList::AddCircleFilled(const Vec2 &center, float radius, U32 col,
-                               int num_segments) {
+void DrawList::AddCircleFilled(const Vec2 &center, float radius,
+                               unsigned int col, int num_segments) {
   if ((col & COL32_A_MASK) == 0 || radius < 0.5f)
     return;
 
@@ -1851,7 +1855,7 @@ void DrawList::AddCircleFilled(const Vec2 &center, float radius, U32 col,
 }
 
 // Guaranteed to honor 'num_segments'
-void DrawList::AddNgon(const Vec2 &center, float radius, U32 col,
+void DrawList::AddNgon(const Vec2 &center, float radius, unsigned int col,
                        int num_segments, float thickness) {
   if ((col & COL32_A_MASK) == 0 || num_segments <= 2)
     return;
@@ -1865,7 +1869,7 @@ void DrawList::AddNgon(const Vec2 &center, float radius, U32 col,
 }
 
 // Guaranteed to honor 'num_segments'
-void DrawList::AddNgonFilled(const Vec2 &center, float radius, U32 col,
+void DrawList::AddNgonFilled(const Vec2 &center, float radius, unsigned int col,
                              int num_segments) {
   if ((col & COL32_A_MASK) == 0 || num_segments <= 2)
     return;
@@ -1880,7 +1884,7 @@ void DrawList::AddNgonFilled(const Vec2 &center, float radius, U32 col,
 
 // Ellipse
 void DrawList::AddEllipse(const Vec2 &center, float radius_x, float radius_y,
-                          U32 col, float rot, int num_segments,
+                          unsigned int col, float rot, int num_segments,
                           float thickness) {
   if ((col & COL32_A_MASK) == 0)
     return;
@@ -1900,7 +1904,7 @@ void DrawList::AddEllipse(const Vec2 &center, float radius_x, float radius_y,
 }
 
 void DrawList::AddEllipseFilled(const Vec2 &center, float radius_x,
-                                float radius_y, U32 col, float rot,
+                                float radius_y, unsigned int col, float rot,
                                 int num_segments) {
   if ((col & COL32_A_MASK) == 0)
     return;
@@ -1921,7 +1925,7 @@ void DrawList::AddEllipseFilled(const Vec2 &center, float radius_x,
 
 // Cubic Bezier takes 4 controls points
 void DrawList::AddBezierCubic(const Vec2 &p1, const Vec2 &p2, const Vec2 &p3,
-                              const Vec2 &p4, U32 col, float thickness,
+                              const Vec2 &p4, unsigned int col, float thickness,
                               int num_segments) {
   if ((col & COL32_A_MASK) == 0)
     return;
@@ -1933,8 +1937,8 @@ void DrawList::AddBezierCubic(const Vec2 &p1, const Vec2 &p2, const Vec2 &p3,
 
 // Quadratic Bezier takes 3 controls points
 void DrawList::AddBezierQuadratic(const Vec2 &p1, const Vec2 &p2,
-                                  const Vec2 &p3, U32 col, float thickness,
-                                  int num_segments) {
+                                  const Vec2 &p3, unsigned int col,
+                                  float thickness, int num_segments) {
   if ((col & COL32_A_MASK) == 0)
     return;
 
@@ -1944,8 +1948,9 @@ void DrawList::AddBezierQuadratic(const Vec2 &p1, const Vec2 &p2,
 }
 
 void DrawList::AddText(const Font *font, float font_size, const Vec2 &pos,
-                       U32 col, const char *text_begin, const char *text_end,
-                       float wrap_width, const Vec4 *cpu_fine_clip_rect) {
+                       unsigned int col, const char *text_begin,
+                       const char *text_end, float wrap_width,
+                       const Vec4 *cpu_fine_clip_rect) {
   if ((col & COL32_A_MASK) == 0)
     return;
 
@@ -1975,14 +1980,14 @@ void DrawList::AddText(const Font *font, float font_size, const Vec2 &pos,
                    wrap_width, cpu_fine_clip_rect != NULL);
 }
 
-void DrawList::AddText(const Vec2 &pos, U32 col, const char *text_begin,
-                       const char *text_end) {
+void DrawList::AddText(const Vec2 &pos, unsigned int col,
+                       const char *text_begin, const char *text_end) {
   AddText(NULL, 0.0f, pos, col, text_begin, text_end);
 }
 
 void DrawList::AddImage(TextureID user_texture_id, const Vec2 &p_min,
                         const Vec2 &p_max, const Vec2 &uv_min,
-                        const Vec2 &uv_max, U32 col) {
+                        const Vec2 &uv_max, unsigned int col) {
   if ((col & COL32_A_MASK) == 0)
     return;
 
@@ -2000,7 +2005,7 @@ void DrawList::AddImage(TextureID user_texture_id, const Vec2 &p_min,
 void DrawList::AddImageQuad(TextureID user_texture_id, const Vec2 &p1,
                             const Vec2 &p2, const Vec2 &p3, const Vec2 &p4,
                             const Vec2 &uv1, const Vec2 &uv2, const Vec2 &uv3,
-                            const Vec2 &uv4, U32 col) {
+                            const Vec2 &uv4, unsigned int col) {
   if ((col & COL32_A_MASK) == 0)
     return;
 
@@ -2017,8 +2022,8 @@ void DrawList::AddImageQuad(TextureID user_texture_id, const Vec2 &p1,
 
 void DrawList::AddImageRounded(TextureID user_texture_id, const Vec2 &p_min,
                                const Vec2 &p_max, const Vec2 &uv_min,
-                               const Vec2 &uv_max, U32 col, float rounding,
-                               DrawFlags flags) {
+                               const Vec2 &uv_max, unsigned int col,
+                               float rounding, int flags) {
   if ((col & COL32_A_MASK) == 0)
     return;
 
@@ -2343,7 +2348,7 @@ void DrawData::ScaleClipRects(const Vec2 &fb_scale) {
 // Generic linear color gradient, write to RGB fields, leave A untouched.
 void Gui::ShadeVertsLinearColorGradientKeepAlpha(
     DrawList *draw_list, int vert_start_idx, int vert_end_idx, Vec2 gradient_p0,
-    Vec2 gradient_p1, U32 col0, U32 col1) {
+    Vec2 gradient_p1, unsigned int col0, unsigned int col1) {
   Vec2 gradient_extent = gradient_p1 - gradient_p0;
   float gradient_inv_length2 = 1.0f / LengthSqr(gradient_extent);
   DrawVert *vert_start = draw_list->VtxBuffer.Data + vert_start_idx;
@@ -2807,7 +2812,7 @@ void FontAtlas::CalcCustomRectUV(const FontAtlasCustomRect *rect,
                      (float)(rect->Y + rect->Height) * TexUvScale.y);
 }
 
-bool FontAtlas::GetMouseCursorTexData(MouseCursor cursor_type, Vec2 *out_offset,
+bool FontAtlas::GetMouseCursorTexData(int cursor_type, Vec2 *out_offset,
                                       Vec2 *out_size, Vec2 out_uv_border[2],
                                       Vec2 out_uv_fill[2]) {
   if (cursor_type <= MouseCursor_None || cursor_type >= MouseCursor_COUNT)
@@ -2915,12 +2920,12 @@ struct FontBuildDstData {
 static void UnpackBitVectorToFlatIndexList(const BitVector *in,
                                            Vector<int> *out) {
   ASSERT(sizeof(in->Storage.Data[0]) == sizeof(int));
-  const U32 *it_begin = in->Storage.begin();
-  const U32 *it_end = in->Storage.end();
-  for (const U32 *it = it_begin; it < it_end; it++)
-    if (U32 entries_32 = *it)
-      for (U32 bit_n = 0; bit_n < 32; bit_n++)
-        if (entries_32 & ((U32)1 << bit_n))
+  const unsigned int *it_begin = in->Storage.begin();
+  const unsigned int *it_end = in->Storage.end();
+  for (const unsigned int *it = it_begin; it < it_end; it++)
+    if (unsigned int entries_32 = *it)
+      for (unsigned int bit_n = 0; bit_n < 32; bit_n++)
+        if (entries_32 & ((unsigned int)1 << bit_n))
           out->push_back((int)(((it - it_begin) << 5) + bit_n));
 }
 
@@ -4484,8 +4489,8 @@ Vec2 Font::CalcTextSizeA(float size, float max_width, float wrap_width,
 
 // Note: as with every DrawList drawing function, this expects that the font
 // atlas texture is bound.
-void Font::RenderChar(DrawList *draw_list, float size, const Vec2 &pos, U32 col,
-                      Wchar c) const {
+void Font::RenderChar(DrawList *draw_list, float size, const Vec2 &pos,
+                      unsigned int col, Wchar c) const {
   const FontGlyph *glyph = FindGlyph(c);
   if (!glyph || !glyph->Visible)
     return;
@@ -4503,10 +4508,10 @@ void Font::RenderChar(DrawList *draw_list, float size, const Vec2 &pos, U32 col,
 
 // Note: as with every DrawList drawing function, this expects that the font
 // atlas texture is bound.
-void Font::RenderText(DrawList *draw_list, float size, const Vec2 &pos, U32 col,
-                      const Vec4 &clip_rect, const char *text_begin,
-                      const char *text_end, float wrap_width,
-                      bool cpu_fine_clip) const {
+void Font::RenderText(DrawList *draw_list, float size, const Vec2 &pos,
+                      unsigned int col, const Vec4 &clip_rect,
+                      const char *text_begin, const char *text_end,
+                      float wrap_width, bool cpu_fine_clip) const {
   if (!text_end)
     text_end =
         text_begin +
@@ -4572,7 +4577,7 @@ void Font::RenderText(DrawList *draw_list, float size, const Vec2 &pos, U32 col,
   DrawIdx *idx_write = draw_list->_IdxWritePtr;
   unsigned int vtx_index = draw_list->_VtxCurrentIdx;
 
-  const U32 col_untinted = col | ~COL32_A_MASK;
+  const unsigned int col_untinted = col | ~COL32_A_MASK;
   const char *word_wrap_eol = NULL;
 
   while (s < text_end) {
@@ -4658,7 +4663,7 @@ void Font::RenderText(DrawList *draw_list, float size, const Vec2 &pos, U32 col,
         }
 
         // Support for untinted glyphs
-        U32 glyph_col = glyph->Colored ? col_untinted : col;
+        unsigned int glyph_col = glyph->Colored ? col_untinted : col;
 
         // We are NOT calling PrimRectUV() here because non-inlined causes too
         // much overhead in a debug builds. Inlined here:
@@ -4728,7 +4733,7 @@ void Font::RenderText(DrawList *draw_list, float size, const Vec2 &pos, U32 col,
 
 // Render an arrow aimed to be aligned with text (p_min is a position in the
 // same space text would be positioned). To e.g. denote expanded/collapsed state
-void Gui::RenderArrow(DrawList *draw_list, Vec2 pos, U32 col, Dir dir,
+void Gui::RenderArrow(DrawList *draw_list, Vec2 pos, unsigned int col, int dir,
                       float scale) {
   const float h = draw_list->_Data->FontSize * 1.00f;
   float r = h * 0.40f * scale;
@@ -4760,12 +4765,13 @@ void Gui::RenderArrow(DrawList *draw_list, Vec2 pos, U32 col, Dir dir,
   draw_list->AddTriangleFilled(center + a, center + b, center + c, col);
 }
 
-void Gui::RenderBullet(DrawList *draw_list, Vec2 pos, U32 col) {
+void Gui::RenderBullet(DrawList *draw_list, Vec2 pos, unsigned int col) {
   // FIXME-OPT: This should be baked in font.
   draw_list->AddCircleFilled(pos, draw_list->_Data->FontSize * 0.20f, col, 8);
 }
 
-void Gui::RenderCheckMark(DrawList *draw_list, Vec2 pos, U32 col, float sz) {
+void Gui::RenderCheckMark(DrawList *draw_list, Vec2 pos, unsigned int col,
+                          float sz) {
   float thickness = Max(sz / 5.0f, 1.0f);
   sz -= thickness * 0.5f;
   pos += Vec2(thickness * 0.25f, thickness * 0.25f);
@@ -4782,7 +4788,7 @@ void Gui::RenderCheckMark(DrawList *draw_list, Vec2 pos, U32 col, float sz) {
 // Render an arrow. 'pos' is position of the arrow tip. half_sz.x is length from
 // base to tip. half_sz.y is length on each side.
 void Gui::RenderArrowPointingAt(DrawList *draw_list, Vec2 pos, Vec2 half_sz,
-                                Dir direction, U32 col) {
+                                int direction, unsigned int col) {
   switch (direction) {
   case Dir_Left:
     draw_list->AddTriangleFilled(Vec2(pos.x + half_sz.x, pos.y - half_sz.y),
@@ -4815,7 +4821,7 @@ void Gui::RenderArrowPointingAt(DrawList *draw_list, Vec2 pos, Vec2 half_sz,
 // saved space means that the left-most tab label can stay at exactly the same
 // position as the label of a loose window.
 void Gui::RenderArrowDockMenu(DrawList *draw_list, Vec2 p_min, float sz,
-                              U32 col) {
+                              unsigned int col) {
   draw_list->AddRectFilled(p_min + Vec2(sz * 0.20f, sz * 0.15f),
                            p_min + Vec2(sz * 0.80f, sz * 0.30f), col);
   RenderArrowPointingAt(draw_list, p_min + Vec2(sz * 0.50f, sz * 0.85f),
@@ -4834,9 +4840,9 @@ static inline float Acos01(float x) {
 }
 
 // FIXME: Cleanup and move code to DrawList.
-void Gui::RenderRectFilledRangeH(DrawList *draw_list, const Rect &rect, U32 col,
-                                 float x_start_norm, float x_end_norm,
-                                 float rounding) {
+void Gui::RenderRectFilledRangeH(DrawList *draw_list, const Rect &rect,
+                                 unsigned int col, float x_start_norm,
+                                 float x_end_norm, float rounding) {
   if (x_end_norm == x_start_norm)
     return;
   if (x_start_norm > x_end_norm)
@@ -4894,7 +4900,8 @@ void Gui::RenderRectFilledRangeH(DrawList *draw_list, const Rect &rect, U32 col,
 }
 
 void Gui::RenderRectFilledWithHole(DrawList *draw_list, const Rect &outer,
-                                   const Rect &inner, U32 col, float rounding) {
+                                   const Rect &inner, unsigned int col,
+                                   float rounding) {
   const bool fill_L = (inner.Min.x > outer.Min.x);
   const bool fill_R = (inner.Max.x < outer.Max.x);
   const bool fill_U = (inner.Min.y > outer.Min.y);
@@ -4944,9 +4951,8 @@ void Gui::RenderRectFilledWithHole(DrawList *draw_list, const Rect &outer,
                              DrawFlags_RoundCornersBottomRight);
 }
 
-DrawFlags Gui::CalcRoundingFlagsForRectInRect(const Rect &r_in,
-                                              const Rect &r_outer,
-                                              float threshold) {
+int Gui::CalcRoundingFlagsForRectInRect(const Rect &r_in, const Rect &r_outer,
+                                        float threshold) {
   bool round_l = r_in.Min.x <= r_outer.Min.x + threshold;
   bool round_r = r_in.Max.x >= r_outer.Max.x - threshold;
   bool round_t = r_in.Min.y <= r_outer.Min.y + threshold;
@@ -4968,15 +4974,16 @@ DrawFlags Gui::CalcRoundingFlagsForRectInRect(const Rect &r_in,
 // disable rounding altogether.
 // FIXME: uses Gui::GetColorU32
 void Gui::RenderColorRectWithAlphaCheckerboard(DrawList *draw_list, Vec2 p_min,
-                                               Vec2 p_max, U32 col,
+                                               Vec2 p_max, unsigned int col,
                                                float grid_step, Vec2 grid_off,
-                                               float rounding,
-                                               DrawFlags flags) {
+                                               float rounding, int flags) {
   if ((flags & DrawFlags_RoundCornersMask_) == 0)
     flags = DrawFlags_RoundCornersDefault_;
   if (((col & COL32_A_MASK) >> COL32_A_SHIFT) < 0xFF) {
-    U32 col_bg1 = GetColorU32(AlphaBlendColors(COL32(204, 204, 204, 255), col));
-    U32 col_bg2 = GetColorU32(AlphaBlendColors(COL32(128, 128, 128, 255), col));
+    unsigned int col_bg1 =
+        GetColorU32(AlphaBlendColors(COL32(204, 204, 204, 255), col));
+    unsigned int col_bg2 =
+        GetColorU32(AlphaBlendColors(COL32(128, 128, 128, 255), col));
     draw_list->AddRectFilled(p_min, p_max, col_bg1, rounding, flags);
 
     int yi = 0;
@@ -4989,7 +4996,7 @@ void Gui::RenderColorRectWithAlphaCheckerboard(DrawList *draw_list, Vec2 p_min,
         float x1 = Clamp(x, p_min.x, p_max.x), x2 = Min(x + grid_step, p_max.x);
         if (x2 <= x1)
           continue;
-        DrawFlags cell_flags = DrawFlags_RoundCornersNone;
+        int cell_flags = DrawFlags_RoundCornersNone;
         if (y1 <= p_min.y) {
           if (x1 <= p_min.x)
             cell_flags |= DrawFlags_RoundCornersTopLeft;

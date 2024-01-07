@@ -342,8 +342,8 @@ void GLUT_KeyboardUpFunc(unsigned char c, int x, int y) {
 
 void GLUT_SpecialFunc(int key, int x, int y) {
   // printf("key_down_func %d\n", key);
-  Key key = GLUT_KeyToKey(key + 256);
-  GLUT_AddKeyEvent(key, true, key + 256);
+  Key _key = GLUT_KeyToKey(key + 256);
+  GLUT_AddKeyEvent(_key, true, key + 256);
   GLUT_UpdateKeyModifiers();
   (void)x;
   (void)y; // Unused
@@ -351,8 +351,8 @@ void GLUT_SpecialFunc(int key, int x, int y) {
 
 void GLUT_SpecialUpFunc(int key, int x, int y) {
   // printf("key_up_func %d\n", key);
-  Key key = GLUT_KeyToKey(key + 256);
-  GLUT_AddKeyEvent(key, false, key + 256);
+  Key _key = GLUT_KeyToKey(key + 256);
+  GLUT_AddKeyEvent(_key, false, key + 256);
   GLUT_UpdateKeyModifiers();
   (void)x;
   (void)y; // Unused

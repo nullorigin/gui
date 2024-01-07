@@ -520,8 +520,8 @@ bool Allegro5_Init(ALLEGRO_DISPLAY *display) {
   io.BackendPlatformUserData = (void *)bd;
   io.BackendPlatformName = io.BackendRendererName = "allegro5";
   io.BackendFlags |=
-      BackendFlags_HasMouseCursors; // We can honor GetMouseCursor() values
-                                    // (optional)
+      BackendFlags_HasMouseCursors; // We can honor GetMouseCursor()
+                                    // values (optional)
 
   bd->Display = display;
 
@@ -657,7 +657,7 @@ static void Allegro5_UpdateMouseCursor() {
     return;
 
   Allegro5_Data *bd = Allegro5_GetBackendData();
-  MouseCursor cursor = Gui::GetMouseCursor();
+  int cursor = Gui::GetMouseCursor();
   if (io.MouseDrawCursor || cursor == MouseCursor_None) {
     // Hide OS mouse cursor if imgui is drawing it or if it wants no cursor
     al_set_mouse_cursor(bd->Display, bd->MouseCursorInvisible);

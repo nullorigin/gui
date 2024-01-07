@@ -144,22 +144,24 @@ static const signed short S16_MIN = -32768;
 static const signed short S16_MAX = 32767;
 static const unsigned short U16_MIN = 0;
 static const unsigned short U16_MAX = 0xFFFF;
-static const S32 S32_MIN = INT_MIN; // (-2147483647 - 1), (0x80000000);
-static const S32 S32_MAX = INT_MAX; // (2147483647), (0x7FFFFFFF)
-static const U32 U32_MIN = 0;
-static const U32 U32_MAX = UINT_MAX; // (0xFFFFFFFF)
+static const signed int S32_MIN = INT_MIN; // (-2147483647 - 1), (0x80000000);
+static const signed int S32_MAX = INT_MAX; // (2147483647), (0x7FFFFFFF)
+static const unsigned int U32_MIN = 0;
+static const unsigned int U32_MAX = UINT_MAX; // (0xFFFFFFFF)
 #ifdef LLONG_MIN
-static const S64 S64_MIN = LLONG_MIN; // (-9223372036854775807ll - 1ll);
-static const S64 S64_MAX = LLONG_MAX; // (9223372036854775807ll);
+static const signed long long S64_MIN =
+    LLONG_MIN; // (-9223372036854775807ll - 1ll);
+static const signed long long S64_MAX = LLONG_MAX; // (9223372036854775807ll);
 #else
-static const S64 S64_MIN = -9223372036854775807LL - 1;
-static const S64 S64_MAX = 9223372036854775807LL;
+static const signed long long S64_MIN = -9223372036854775807LL - 1;
+static const signed long long S64_MAX = 9223372036854775807LL;
 #endif
-static const U64 U64_MIN = 0;
+static const unsigned long long U64_MIN = 0;
 #ifdef ULLONG_MAX
-static const U64 U64_MAX = ULLONG_MAX; // (0xFFFFFFFFFFFFFFFFull);
+static const unsigned long long U64_MAX =
+    ULLONG_MAX; // (0xFFFFFFFFFFFFFFFFull);
 #else
-static const U64 U64_MAX = (2ULL * 9223372036854775807LL + 1);
+static const unsigned long long U64_MAX = (2ULL * 9223372036854775807LL + 1);
 #endif
 
 //-------------------------------------------------------------------------
@@ -168,8 +170,7 @@ static const U64 U64_MAX = (2ULL * 9223372036854775807LL + 1);
 
 // For InputTextEx()
 static bool InputTextFilterCharacter(Context *ctx, unsigned int *p_char,
-                                     InputTextFlags flags,
-                                     InputTextCallback callback,
+                                     int flags, InputTextCallback callback,
                                      void *user_data, InputSource input_source);
 static int InputTextCalcTextLenAndLineCount(const char *text_begin,
                                             const char **out_text_end);
@@ -198,7 +199,7 @@ static Vec2 InputTextCalcTextSizeW(Context *ctx, const Wchar *text_begin,
 // - BulletTextV()
 //-------------------------------------------------------------------------
 
-void Gui::TextEx(const char *text, const char *text_end, TextFlags flags) {
+void Gui::TextEx(const char *text, const char *text_end, int flags) {
   Window *window = GetCurrentWindow();
   if (window->SkipItems)
     return;
@@ -453,7 +454,7 @@ void Gui::BulletTextV(const char *fmt, va_list args) {
     return;
 
   // Render
-  U32 text_col = GetColorU32(Col_Text);
+  unsigned int text_col = GetColorU32(Col_Text);
   RenderBullet(window->DrawList,
                bb.Min + Vec2(style.FramePadding.x + g.FontSize * 0.5f,
                              g.FontSize * 0.5f),
@@ -557,8 +558,8 @@ void Gui::BulletTextV(const char *fmt, va_list args) {
 //   N + RepeatDelay + RepeatRate*N   true                     true - true
 //-------------------------------------------------------------------------------------------------------------------------------------------------
 
-bool Gui::ButtonBehavior(const Rect &bb, ID id, bool *out_hovered,
-                         bool *out_held, ButtonFlags flags) {
+bool Gui::ButtonBehavior(const Rect &bb, int id, bool *out_hovered,
+                         bool *out_held, int flags) {
   Context &g = *GGui;
   Window *window = GetCurrentWindow();
 
@@ -571,9 +572,9 @@ bool Gui::ButtonBehavior(const Rect &bb, ID id, bool *out_hovered,
     flags |= ButtonFlags_PressedOnDefault_;
 
   // Default behavior inherited from item flags
-  // Note that _both_ ButtonFlags and ItemFlags are valid sources, so copy one
+  // Note that _both_ int and int are valid sources, so copy one
   // into the item_flags and only check that.
-  ItemFlags item_flags =
+  int item_flags =
       (g.LastItemData.ID == id ? g.LastItemData.InFlags : g.CurrentItemFlags);
   if (flags & ButtonFlags_AllowOverlap)
     item_flags |= ItemFlags_AllowOverlap;
@@ -615,7 +616,7 @@ bool Gui::ButtonBehavior(const Rect &bb, ID id, bool *out_hovered,
     g.HoveredWindow = backup_hovered_window;
 
   // Mouse handling
-  const ID test_owner_id =
+  const int test_owner_id =
       (flags & ButtonFlags_NoTestKeyOwner) ? KeyOwner_Any : id;
   if (hovered) {
     // Poll mouse buttons
@@ -661,7 +662,7 @@ bool Gui::ButtonBehavior(const Rect &bb, ID id, bool *out_hovered,
           if (flags & ButtonFlags_NoHoldingActiveId)
             ClearActiveID();
           else
-            SetActiveID(id, window); // Hold on ID
+            SetActiveID(id, window); // Hold on unsigned int
           if (!(flags & ButtonFlags_NoNavFocus))
             SetFocusID(id, window);
           g.ActiveIdMouseButton = mouse_button_clicked;
@@ -790,14 +791,14 @@ bool Gui::ButtonBehavior(const Rect &bb, ID id, bool *out_hovered,
   return pressed;
 }
 
-bool Gui::ButtonEx(const char *label, const Vec2 &size_arg, ButtonFlags flags) {
+bool Gui::ButtonEx(const char *label, const Vec2 &size_arg, int flags) {
   Window *window = GetCurrentWindow();
   if (window->SkipItems)
     return false;
 
   Context &g = *GGui;
   const Style &style = g.Style;
-  const ID id = window->GetID(label);
+  const int id = window->GetID(label);
   const Vec2 label_size = CalcTextSize(label, NULL, true);
 
   Vec2 pos = window->DC.CursorPos;
@@ -821,9 +822,9 @@ bool Gui::ButtonEx(const char *label, const Vec2 &size_arg, ButtonFlags flags) {
   bool pressed = ButtonBehavior(bb, id, &hovered, &held, flags);
 
   // Render
-  const U32 col = GetColorU32((held && hovered) ? Col_ButtonActive
-                              : hovered         ? Col_ButtonHovered
-                                                : Col_Button);
+  const unsigned int col = GetColorU32((held && hovered) ? Col_ButtonActive
+                                       : hovered         ? Col_ButtonHovered
+                                                         : Col_Button);
   RenderNavHighlight(bb, id);
   RenderFrame(bb.Min, bb.Max, col, true, style.FrameRounding);
 
@@ -855,11 +856,10 @@ bool Gui::SmallButton(const char *label) {
   return pressed;
 }
 
-// Tip: use Gui::PushID()/PopID() to push indices or pointers in the ID stack.
+// Tip: use Gui::PushID()/PopID() to push indices or pointers in the int stack.
 // Then you can keep 'str_id' empty or the same for all your buttons (instead of
 // creating a string based on a non-string id)
-bool Gui::InvisibleButton(const char *str_id, const Vec2 &size_arg,
-                          ButtonFlags flags) {
+bool Gui::InvisibleButton(const char *str_id, const Vec2 &size_arg, int flags) {
   Context &g = *GGui;
   Window *window = GetCurrentWindow();
   if (window->SkipItems)
@@ -869,7 +869,7 @@ bool Gui::InvisibleButton(const char *str_id, const Vec2 &size_arg,
   // way to fallback using the label size.
   ASSERT(size_arg.x != 0.0f && size_arg.y != 0.0f);
 
-  const ID id = window->GetID(str_id);
+  const int id = window->GetID(str_id);
   Vec2 size = CalcItemSize(size_arg, 0.0f, 0.0f);
   const Rect bb(window->DC.CursorPos, window->DC.CursorPos + size);
   ItemSize(size);
@@ -883,14 +883,13 @@ bool Gui::InvisibleButton(const char *str_id, const Vec2 &size_arg,
   return pressed;
 }
 
-bool Gui::ArrowButtonEx(const char *str_id, Dir dir, Vec2 size,
-                        ButtonFlags flags) {
+bool Gui::ArrowButtonEx(const char *str_id, int dir, Vec2 size, int flags) {
   Context &g = *GGui;
   Window *window = GetCurrentWindow();
   if (window->SkipItems)
     return false;
 
-  const ID id = window->GetID(str_id);
+  const int id = window->GetID(str_id);
   const Rect bb(window->DC.CursorPos, window->DC.CursorPos + size);
   const float default_size = GetFrameHeight();
   ItemSize(size, (size.y >= default_size) ? g.Style.FramePadding.y : -1.0f);
@@ -901,10 +900,10 @@ bool Gui::ArrowButtonEx(const char *str_id, Dir dir, Vec2 size,
   bool pressed = ButtonBehavior(bb, id, &hovered, &held, flags);
 
   // Render
-  const U32 bg_col = GetColorU32((held && hovered) ? Col_ButtonActive
-                                 : hovered         ? Col_ButtonHovered
-                                                   : Col_Button);
-  const U32 text_col = GetColorU32(Col_Text);
+  const unsigned int bg_col = GetColorU32((held && hovered) ? Col_ButtonActive
+                                          : hovered         ? Col_ButtonHovered
+                                                            : Col_Button);
+  const unsigned int text_col = GetColorU32(Col_Text);
   RenderNavHighlight(bb, id);
   RenderFrame(bb.Min, bb.Max, bg_col, true, g.Style.FrameRounding);
   RenderArrow(window->DrawList,
@@ -916,13 +915,13 @@ bool Gui::ArrowButtonEx(const char *str_id, Dir dir, Vec2 size,
   return pressed;
 }
 
-bool Gui::ArrowButton(const char *str_id, Dir dir) {
+bool Gui::ArrowButton(const char *str_id, int dir) {
   float sz = GetFrameHeight();
   return ArrowButtonEx(str_id, dir, Vec2(sz, sz), ButtonFlags_None);
 }
 
 // Button to close a window
-bool Gui::CloseButton(ID id, const Vec2 &pos) {
+bool Gui::CloseButton(int id, const Vec2 &pos) {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
 
@@ -951,14 +950,14 @@ bool Gui::CloseButton(ID id, const Vec2 &pos) {
 
   // Render
   // FIXME: Clarify this mess
-  U32 col = GetColorU32(held ? Col_ButtonActive : Col_ButtonHovered);
+  unsigned int col = GetColorU32(held ? Col_ButtonActive : Col_ButtonHovered);
   Vec2 center = bb.GetCenter();
   if (hovered)
     window->DrawList->AddCircleFilled(center,
                                       Max(2.0f, g.FontSize * 0.5f + 1.0f), col);
 
   float cross_extent = g.FontSize * 0.5f * 0.7071f - 1.0f;
-  U32 cross_col = GetColorU32(Col_Text);
+  unsigned int cross_col = GetColorU32(Col_Text);
   center -= Vec2(0.5f, 0.5f);
   window->DrawList->AddLine(center + Vec2(+cross_extent, +cross_extent),
                             center + Vec2(-cross_extent, -cross_extent),
@@ -971,7 +970,7 @@ bool Gui::CloseButton(ID id, const Vec2 &pos) {
 }
 
 // The Collapse button also functions as a Dock Menu button.
-bool Gui::CollapseButton(ID id, const Vec2 &pos, DockNode *dock_node) {
+bool Gui::CollapseButton(int id, const Vec2 &pos, DockNode *dock_node) {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
 
@@ -984,10 +983,10 @@ bool Gui::CollapseButton(ID id, const Vec2 &pos, DockNode *dock_node) {
 
   // Render
   // bool is_dock_menu = (window->DockNodeAsHost && !window->Collapsed);
-  U32 bg_col = GetColorU32((held && hovered) ? Col_ButtonActive
-                           : hovered         ? Col_ButtonHovered
-                                             : Col_Button);
-  U32 text_col = GetColorU32(Col_Text);
+  unsigned int bg_col = GetColorU32((held && hovered) ? Col_ButtonActive
+                                    : hovered         ? Col_ButtonHovered
+                                                      : Col_Button);
+  unsigned int text_col = GetColorU32(Col_Text);
   if (hovered || held)
     window->DrawList->AddCircleFilled(bb.GetCenter() + Vec2(0.0f, -0.5f),
                                       g.FontSize * 0.5f + 1.0f, bg_col);
@@ -1007,7 +1006,7 @@ bool Gui::CollapseButton(ID id, const Vec2 &pos, DockNode *dock_node) {
   return pressed;
 }
 
-ID Gui::GetWindowScrollbarID(Window *window, Axis axis) {
+int Gui::GetWindowScrollbarID(Window *window, Axis axis) {
   return window->GetID(axis == Axis_X ? "#SCROLLX" : "#SCROLLY");
 }
 
@@ -1037,11 +1036,11 @@ Rect Gui::GetWindowScrollbarRect(Window *window, Axis axis) {
 void Gui::Scrollbar(Axis axis) {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
-  const ID id = GetWindowScrollbarID(window, axis);
+  const int id = GetWindowScrollbarID(window, axis);
 
   // Calculate scrollbar bounding box
   Rect bb = GetWindowScrollbarRect(window, axis);
-  DrawFlags rounding_corners = DrawFlags_RoundCornersNone;
+  int rounding_corners = DrawFlags_RoundCornersNone;
   if (axis == Axis_X) {
     rounding_corners |= DrawFlags_RoundCornersBottomLeft;
     if (!window->ScrollbarY)
@@ -1056,9 +1055,9 @@ void Gui::Scrollbar(Axis axis) {
   float size_avail = window->InnerRect.Max[axis] - window->InnerRect.Min[axis];
   float size_contents =
       window->ContentSize[axis] + window->WindowPadding[axis] * 2.0f;
-  S64 scroll = (S64)window->Scroll[axis];
-  ScrollbarEx(bb, id, axis, &scroll, (S64)size_avail, (S64)size_contents,
-              rounding_corners);
+  signed long long scroll = (signed long long)window->Scroll[axis];
+  ScrollbarEx(bb, id, axis, &scroll, (signed long long)size_avail,
+              (signed long long)size_contents, rounding_corners);
   window->Scroll[axis] = (float)scroll;
 }
 
@@ -1070,8 +1069,10 @@ void Gui::Scrollbar(Axis axis) {
 // content to change while we are holding on a scrollbar
 // - We handle both horizontal and vertical scrollbars, which makes the
 // terminology not ideal. Still, the code should probably be made simpler..
-bool Gui::ScrollbarEx(const Rect &bb_frame, ID id, Axis axis, S64 *p_scroll_v,
-                      S64 size_avail_v, S64 size_contents_v, DrawFlags flags) {
+bool Gui::ScrollbarEx(const Rect &bb_frame, int id, Axis axis,
+                      signed long long *p_scroll_v,
+                      signed long long size_avail_v,
+                      signed long long size_contents_v, int flags) {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
   if (window->SkipItems)
@@ -1111,7 +1112,8 @@ bool Gui::ScrollbarEx(const Rect &bb_frame, ID id, Axis axis, S64 *p_scroll_v,
   ASSERT(Max(size_contents_v, size_avail_v) >
          0.0f); // Adding this assert to check if the Max(XXX,1.0f) is
                 // still needed. PLEASE CONTACT ME if this triggers.
-  const S64 win_size_v = Max(Max(size_contents_v, size_avail_v), (S64)1);
+  const signed long long win_size_v =
+      Max(Max(size_contents_v, size_avail_v), (signed long long)1);
   const float grab_h_pixels =
       Clamp(scrollbar_size_v * ((float)size_avail_v / (float)win_size_v),
             style.GrabMinSize, scrollbar_size_v);
@@ -1124,7 +1126,8 @@ bool Gui::ScrollbarEx(const Rect &bb_frame, ID id, Axis axis, S64 *p_scroll_v,
   ItemAdd(bb_frame, id, NULL, ItemFlags_NoNav);
   ButtonBehavior(bb, id, &hovered, &held, ButtonFlags_NoNavFocus);
 
-  const S64 scroll_max = Max((S64)1, size_contents_v - size_avail_v);
+  const signed long long scroll_max =
+      Max((signed long long)1, size_contents_v - size_avail_v);
   float scroll_ratio = Saturate((float)*p_scroll_v / (float)scroll_max);
   float grab_v_norm = scroll_ratio * (scrollbar_size_v - grab_h_pixels) /
                       scrollbar_size_v; // Grab position in normalized space
@@ -1158,7 +1161,7 @@ bool Gui::ScrollbarEx(const Rect &bb_frame, ID id, Axis axis, S64 *p_scroll_v,
         Saturate((clicked_v_norm - g.ScrollbarClickDeltaToGrabCenter -
                   grab_h_norm * 0.5f) /
                  (1.0f - grab_h_norm));
-    *p_scroll_v = (S64)(scroll_v_norm * scroll_max);
+    *p_scroll_v = (signed long long)(scroll_v_norm * scroll_max);
 
     // Update values for rendering
     scroll_ratio = Saturate((float)*p_scroll_v / (float)scroll_max);
@@ -1172,11 +1175,11 @@ bool Gui::ScrollbarEx(const Rect &bb_frame, ID id, Axis axis, S64 *p_scroll_v,
   }
 
   // Render
-  const U32 bg_col = GetColorU32(Col_ScrollbarBg);
-  const U32 grab_col = GetColorU32(held      ? Col_ScrollbarGrabActive
-                                   : hovered ? Col_ScrollbarGrabHovered
-                                             : Col_ScrollbarGrab,
-                                   alpha);
+  const unsigned int bg_col = GetColorU32(Col_ScrollbarBg);
+  const unsigned int grab_col = GetColorU32(held      ? Col_ScrollbarGrabActive
+                                            : hovered ? Col_ScrollbarGrabHovered
+                                                      : Col_ScrollbarGrab,
+                                            alpha);
   window->DrawList->AddRectFilled(bb_frame.Min, bb_frame.Max, bg_col,
                                   window->WindowRounding, flags);
   Rect grab_rect;
@@ -1219,9 +1222,9 @@ void Gui::Image(TextureID user_texture_id, const Vec2 &image_size,
 // ImageButton() is flawed as 'id' is always derived from 'texture_id' (see
 // #2464 #1390) We provide this internal helper to write your own variant while
 // we figure out how to redesign the public ImageButton() API.
-bool Gui::ImageButtonEx(ID id, TextureID texture_id, const Vec2 &image_size,
+bool Gui::ImageButtonEx(int id, TextureID texture_id, const Vec2 &image_size,
                         const Vec2 &uv0, const Vec2 &uv1, const Vec4 &bg_col,
-                        const Vec4 &tint_col, ButtonFlags flags) {
+                        const Vec4 &tint_col, int flags) {
   Context &g = *GGui;
   Window *window = GetCurrentWindow();
   if (window->SkipItems)
@@ -1238,9 +1241,9 @@ bool Gui::ImageButtonEx(ID id, TextureID texture_id, const Vec2 &image_size,
   bool pressed = ButtonBehavior(bb, id, &hovered, &held, flags);
 
   // Render
-  const U32 col = GetColorU32((held && hovered) ? Col_ButtonActive
-                              : hovered         ? Col_ButtonHovered
-                                                : Col_Button);
+  const unsigned int col = GetColorU32((held && hovered) ? Col_ButtonActive
+                                       : hovered         ? Col_ButtonHovered
+                                                         : Col_Button);
   RenderNavHighlight(bb, id);
   RenderFrame(
       bb.Min, bb.Max, col, true,
@@ -1272,7 +1275,8 @@ bool Gui::ImageButton(const char *str_id, TextureID user_texture_id,
 // Legacy API obsoleted in 1.89. Two differences with new ImageButton()
 // - new ImageButton() requires an explicit 'const char* str_id'    Old
 // ImageButton() used opaque imTextureId (created issue with: multiple buttons
-// with same image, transient texture id values, opaque computation of ID)
+// with same image, transient texture id values, opaque computation of unsigned
+// int)
 // - new ImageButton() always use style.FramePadding                Old
 // ImageButton() had an override argument. If you need to change padding with
 // new ImageButton() you can use PushStyleVar(StyleVar_FramePadding,
@@ -1285,10 +1289,10 @@ bool Gui::ImageButton(TextureID user_texture_id, const Vec2 &size,
   if (window->SkipItems)
     return false;
 
-  // Default to using texture ID as ID. User can still push string/integer
-  // prefixes.
+  // Default to using texture int as unsigned int. User can still push
+  // string/integer prefixes.
   PushID((void *)(intptr_t)user_texture_id);
-  const ID id = window->GetID("#image");
+  const int id = window->GetID("#image");
   PopID();
 
   if (frame_padding >= 0)
@@ -1309,7 +1313,7 @@ bool Gui::Checkbox(const char *label, bool *v) {
 
   Context &g = *GGui;
   const Style &style = g.Style;
-  const ID id = window->GetID(label);
+  const int id = window->GetID(label);
   const Vec2 label_size = CalcTextSize(label, NULL, true);
 
   const float square_sz = GetFrameHeight();
@@ -1342,7 +1346,7 @@ bool Gui::Checkbox(const char *label, bool *v) {
                           : hovered         ? Col_FrameBgHovered
                                             : Col_FrameBg),
               true, style.FrameRounding);
-  U32 check_col = GetColorU32(Col_CheckMark);
+  unsigned int check_col = GetColorU32(Col_CheckMark);
   bool mixed_value = (g.LastItemData.InFlags & ItemFlags_MixedValue) != 0;
   if (mixed_value) {
     // Undocumented tristate/mixed/indeterminate checkbox (#2644)
@@ -1401,11 +1405,13 @@ bool Gui::CheckboxFlags(const char *label, unsigned int *flags,
   return CheckboxFlagsT(label, flags, flags_value);
 }
 
-bool Gui::CheckboxFlags(const char *label, S64 *flags, S64 flags_value) {
+bool Gui::CheckboxFlags(const char *label, signed long long *flags,
+                        signed long long flags_value) {
   return CheckboxFlagsT(label, flags, flags_value);
 }
 
-bool Gui::CheckboxFlags(const char *label, U64 *flags, U64 flags_value) {
+bool Gui::CheckboxFlags(const char *label, unsigned long long *flags,
+                        unsigned long long flags_value) {
   return CheckboxFlagsT(label, flags, flags_value);
 }
 
@@ -1416,7 +1422,7 @@ bool Gui::RadioButton(const char *label, bool active) {
 
   Context &g = *GGui;
   const Style &style = g.Style;
-  const ID id = window->GetID(label);
+  const int id = window->GetID(label);
   const Vec2 label_size = CalcTextSize(label, NULL, true);
 
   const float square_sz = GetFrameHeight();
@@ -1549,7 +1555,7 @@ void Gui::Bullet() {
   }
 
   // Render and stay on same line
-  U32 text_col = GetColorU32(Col_Text);
+  unsigned int text_col = GetColorU32(Col_Text);
   RenderBullet(window->DrawList,
                bb.Min + Vec2(style.FramePadding.x + g.FontSize * 0.5f,
                              line_height * 0.5f),
@@ -1593,7 +1599,7 @@ void Gui::NewLine() {
     return;
 
   Context &g = *GGui;
-  const LayoutType backup_layout_type = window->DC.LayoutType;
+  const int backup_layout_type = window->DC.LayoutType;
   window->DC.LayoutType = LayoutType_Vertical;
   window->DC.IsSameLine = false;
   if (window->DC.CurrLineSize.y >
@@ -1621,7 +1627,7 @@ void Gui::AlignTextToFramePadding() {
 // FIXME: Surprisingly, this seemingly trivial widget is a victim of many
 // different legacy/tricky layout issues. Note how thickness == 1.0f is handled
 // specifically as not moving CursorPos by 'thickness', but other values are.
-void Gui::SeparatorEx(SeparatorFlags flags, float thickness) {
+void Gui::SeparatorEx(int flags, float thickness) {
   Window *window = GetCurrentWindow();
   if (window->SkipItems)
     return;
@@ -1704,9 +1710,9 @@ void Gui::Separator() {
   // FIXME: We cannot g.Style.SeparatorTextBorderSize for thickness as it
   // relates to SeparatorText() which is a decorated separator, not defaulting
   // to 1.0f.
-  SeparatorFlags flags = (window->DC.LayoutType == LayoutType_Horizontal)
-                             ? SeparatorFlags_Vertical
-                             : SeparatorFlags_Horizontal;
+  int flags = (window->DC.LayoutType == LayoutType_Horizontal)
+                  ? SeparatorFlags_Vertical
+                  : SeparatorFlags_Horizontal;
 
   // Only applies to legacy Columns() api as they relied on Separator() a lot.
   if (window->DC.CurrentColumns)
@@ -1715,7 +1721,7 @@ void Gui::Separator() {
   SeparatorEx(flags, 1.0f);
 }
 
-void Gui::SeparatorTextEx(ID id, const char *label, const char *label_end,
+void Gui::SeparatorTextEx(int id, const char *label, const char *label_end,
                           float extra_w) {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
@@ -1751,7 +1757,7 @@ void Gui::SeparatorTextEx(ID id, const char *label, const char *label_end,
   // This allows using SameLine() to position something in the 'extra_w'
   window->DC.CursorPosPrevLine.x = label_pos.x + label_size.x;
 
-  const U32 separator_col = GetColorU32(Col_Separator);
+  const unsigned int separator_col = GetColorU32(Col_Separator);
   if (label_size.x > 0.0f) {
     const float sep1_x2 = label_pos.x - style.ItemSpacing.x;
     const float sep2_x1 =
@@ -1783,10 +1789,10 @@ void Gui::SeparatorText(const char *label) {
 
   // The SeparatorText() vs SeparatorTextEx() distinction is designed to be
   // considerate that we may want:
-  // - allow separator-text to be draggable items (would require a stable ID + a
-  // noticeable highlight)
+  // - allow separator-text to be draggable items (would require a stable int +
+  // a noticeable highlight)
   // - this high-level entry point to allow formatting? (which in turns may
-  // require ID separate from formatted string)
+  // require int separate from formatted string)
   // - because of this we probably can't turn 'const char* label' into 'const
   // char* fmt, ...' Otherwise, we can decide that users wanting to drag this
   // would layout a dedicated drag-item, and then we can turn this into a format
@@ -1796,10 +1802,10 @@ void Gui::SeparatorText(const char *label) {
 
 // Using 'hover_visibility_delay' allows us to hide the highlight and mouse
 // cursor for a short time, which can be convenient to reduce visual noise.
-bool Gui::SplitterBehavior(const Rect &bb, ID id, Axis axis, float *size1,
+bool Gui::SplitterBehavior(const Rect &bb, int id, Axis axis, float *size1,
                            float *size2, float min_size1, float min_size2,
                            float hover_extend, float hover_visibility_delay,
-                           U32 bg_col) {
+                           unsigned int bg_col) {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
 
@@ -1810,7 +1816,7 @@ bool Gui::SplitterBehavior(const Rect &bb, ID id, Axis axis, float *size1,
   // ButtonFlags_AllowOverlap here is to allow caller of SplitterBehavior()
   // to call SetItemAllowOverlap() after the item. Nowadays we would instead
   // want to use SetNextItemAllowOverlap() before the item.
-  ButtonFlags button_flags = ButtonFlags_FlattenChildren;
+  int button_flags = ButtonFlags_FlattenChildren;
 #ifndef DISABLE_OBSOLETE_FUNCTIONS
   button_flags |= ButtonFlags_AllowOverlap;
 #endif
@@ -1856,7 +1862,7 @@ bool Gui::SplitterBehavior(const Rect &bb, ID id, Axis axis, float *size1,
   // Render at new position
   if (bg_col & COL32_A_MASK)
     window->DrawList->AddRectFilled(bb_render.Min, bb_render.Max, bg_col, 0.0f);
-  const U32 col =
+  const unsigned int col =
       GetColorU32(held ? Col_SeparatorActive
                   : (hovered && g.HoveredIdTimer >= hover_visibility_delay)
                       ? Col_SeparatorHovered
@@ -1939,25 +1945,24 @@ static float CalcMaxPopupHeightFromItemCount(int items_count) {
          g.Style.ItemSpacing.y + (g.Style.WindowPadding.y * 2);
 }
 
-bool Gui::BeginCombo(const char *label, const char *preview_value,
-                     ComboFlags flags) {
+bool Gui::BeginCombo(const char *label, const char *preview_value, int flags) {
   Context &g = *GGui;
   Window *window = GetCurrentWindow();
 
-  NextWindowDataFlags backup_next_window_data_flags = g.NextWindowData.Flags;
+  int backup_next_window_data_flags = g.NextWindowData.Flags;
   g.NextWindowData
       .ClearFlags(); // We behave like Begin() and need to consume those values
   if (window->SkipItems)
     return false;
 
   const Style &style = g.Style;
-  const ID id = window->GetID(label);
+  const int id = window->GetID(label);
   ASSERT((flags & (ComboFlags_NoArrowButton | ComboFlags_NoPreview)) !=
          (ComboFlags_NoArrowButton |
           ComboFlags_NoPreview)); // Can't use both flags together
   if (flags & ComboFlags_WidthFitPreview)
-    ASSERT((flags & (ComboFlags_NoPreview |
-                     (ComboFlags)ComboFlags_CustomPreview)) == 0);
+    ASSERT((flags & (ComboFlags_NoPreview | (int)ComboFlags_CustomPreview)) ==
+           0);
 
   const float arrow_size =
       (flags & ComboFlags_NoArrowButton) ? 0.0f : GetFrameHeight();
@@ -1987,7 +1992,7 @@ bool Gui::BeginCombo(const char *label, const char *preview_value,
   // Open on click
   bool hovered, held;
   bool pressed = ButtonBehavior(bb, id, &hovered, &held);
-  const ID popup_id = HashStr("##ComboPopup", 0, id);
+  const int popup_id = HashStr("##ComboPopup", 0, id);
   bool popup_open = IsPopupOpen(popup_id, PopupFlags_None);
   if (pressed && !popup_open) {
     OpenPopupEx(popup_id, PopupFlags_None);
@@ -1995,7 +2000,8 @@ bool Gui::BeginCombo(const char *label, const char *preview_value,
   }
 
   // Render shape
-  const U32 frame_col = GetColorU32(hovered ? Col_FrameBgHovered : Col_FrameBg);
+  const unsigned int frame_col =
+      GetColorU32(hovered ? Col_FrameBgHovered : Col_FrameBg);
   const float value_x2 = Max(bb.Min.x, bb.Max.x - arrow_size);
   RenderNavHighlight(bb, id);
   if (!(flags & ComboFlags_NoPreview))
@@ -2004,9 +2010,9 @@ bool Gui::BeginCombo(const char *label, const char *preview_value,
         (flags & ComboFlags_NoArrowButton) ? DrawFlags_RoundCornersAll
                                            : DrawFlags_RoundCornersLeft);
   if (!(flags & ComboFlags_NoArrowButton)) {
-    U32 bg_col =
+    unsigned int bg_col =
         GetColorU32((popup_open || hovered) ? Col_ButtonHovered : Col_Button);
-    U32 text_col = GetColorU32(Col_Text);
+    unsigned int text_col = GetColorU32(Col_Text);
     window->DrawList->AddRectFilled(
         Vec2(value_x2, bb.Min.y), bb.Max, bg_col, style.FrameRounding,
         (w <= arrow_size) ? DrawFlags_RoundCornersAll
@@ -2046,7 +2052,7 @@ bool Gui::BeginCombo(const char *label, const char *preview_value,
   return BeginComboPopup(popup_id, bb, flags);
 }
 
-bool Gui::BeginComboPopup(ID popup_id, const Rect &bb, ComboFlags flags) {
+bool Gui::BeginComboPopup(int popup_id, const Rect &bb, int flags) {
   Context &g = *GGui;
   if (!IsPopupOpen(popup_id, PopupFlags_None)) {
     g.NextWindowData.ClearFlags();
@@ -2111,9 +2117,9 @@ bool Gui::BeginComboPopup(ID popup_id, const Rect &bb, ComboFlags flags) {
 
   // We don't use BeginPopupEx() solely because we have a custom name string,
   // which we could make an argument to BeginPopupEx()
-  WindowFlags window_flags = WindowFlags_AlwaysAutoResize | WindowFlags_Popup |
-                             WindowFlags_NoTitleBar | WindowFlags_NoResize |
-                             WindowFlags_NoSavedSettings | WindowFlags_NoMove;
+  int window_flags = WindowFlags_AlwaysAutoResize | WindowFlags_Popup |
+                     WindowFlags_NoTitleBar | WindowFlags_NoResize |
+                     WindowFlags_NoSavedSettings | WindowFlags_NoMove;
   PushStyleVar(
       StyleVar_WindowPadding,
       Vec2(g.Style.FramePadding.x,
@@ -2343,18 +2349,20 @@ bool Gui::Combo(const char *label, int *current_item,
 //-------------------------------------------------------------------------
 
 static const DataTypeInfo GDataTypeInfo[] = {
-    {sizeof(char), "S8", "%d", "%d"}, // DataType_S8
-    {sizeof(unsigned char), "U8", "%u", "%u"},
-    {sizeof(short), "S16", "%d", "%d"}, // DataType_S16
-    {sizeof(unsigned short), "U16", "%u", "%u"},
-    {sizeof(int), "S32", "%d", "%d"}, // DataType_S32
-    {sizeof(unsigned int), "U32", "%u", "%u"},
+    {sizeof(char), "signed char", "%d", "%d"}, // DataType_S8
+    {sizeof(unsigned char), "unsigned char", "%u", "%u"},
+    {sizeof(short), "signed short", "%d", "%d"}, // DataType_S16
+    {sizeof(unsigned short), "unsigned short", "%u", "%u"},
+    {sizeof(int), "signed int", "%d", "%d"}, // DataType_S32
+    {sizeof(unsigned int), "unsigned int", "%u", "%u"},
 #ifdef _MSC_VER
-    {sizeof(S64), "S64", "%I64d", "%I64d"}, // DataType_S64
-    {sizeof(U64), "U64", "%I64u", "%I64u"},
+    {sizeof(signed long long), "signed long long", "%I64d",
+     "%I64d"}, // DataType_S64
+    {sizeof(unsigned long long), "unsigned long long", "%I64u", "%I64u"},
 #else
-    {sizeof(S64), "S64", "%lld", "%lld"}, // DataType_S64
-    {sizeof(U64), "U64", "%llu", "%llu"},
+    {sizeof(signed long long), "signed long long", "%lld",
+     "%lld"}, // DataType_S64
+    {sizeof(unsigned long long), "unsigned long long", "%llu", "%llu"},
 #endif
     {sizeof(float), "float", "%.3f",
      "%f"}, // DataType_Float (float are promoted to double in va_arg)
@@ -2362,116 +2370,133 @@ static const DataTypeInfo GDataTypeInfo[] = {
 };
 STATIC_ASSERT(ARRAYSIZE(GDataTypeInfo) == DataType_COUNT);
 
-const DataTypeInfo *Gui::DataTypeGetInfo(DataType data_type) {
+const DataTypeInfo *Gui::DataTypeGetInfo(int data_type) {
   ASSERT(data_type >= 0 && data_type < DataType_COUNT);
   return &GDataTypeInfo[data_type];
 }
 
-int Gui::DataTypeFormatString(char *buf, int buf_size, DataType data_type,
+int Gui::DataTypeFormatString(char *buf, int buf_size, int data_type,
                               const void *p_data, const char *format) {
   // Signedness doesn't matter when pushing integer arguments
   if (data_type == DataType_S32 || data_type == DataType_U32)
-    return FormatString(buf, buf_size, format, *(const U32 *)p_data);
+    return FormatString(buf, buf_size, format, *(const unsigned int *)p_data);
   if (data_type == DataType_S64 || data_type == DataType_U64)
-    return FormatString(buf, buf_size, format, *(const U64 *)p_data);
+    return FormatString(buf, buf_size, format,
+                        *(const unsigned long long *)p_data);
   if (data_type == DataType_Float)
     return FormatString(buf, buf_size, format, *(const float *)p_data);
   if (data_type == DataType_Double)
     return FormatString(buf, buf_size, format, *(const double *)p_data);
   if (data_type == DataType_S8)
-    return FormatString(buf, buf_size, format, *(const S8 *)p_data);
+    return FormatString(buf, buf_size, format, *(const signed char *)p_data);
   if (data_type == DataType_U8)
-    return FormatString(buf, buf_size, format, *(const U8 *)p_data);
+    return FormatString(buf, buf_size, format, *(const unsigned char *)p_data);
   if (data_type == DataType_S16)
-    return FormatString(buf, buf_size, format, *(const S16 *)p_data);
+    return FormatString(buf, buf_size, format, *(const signed short *)p_data);
   if (data_type == DataType_U16)
-    return FormatString(buf, buf_size, format, *(const U16 *)p_data);
+    return FormatString(buf, buf_size, format, *(const unsigned short *)p_data);
   ASSERT(0);
   return 0;
 }
 
-void Gui::DataTypeApplyOp(DataType data_type, int op, void *output,
-                          const void *arg1, const void *arg2) {
+void Gui::DataTypeApplyOp(int data_type, int op, void *output, const void *arg1,
+                          const void *arg2) {
   ASSERT(op == '+' || op == '-');
   switch (data_type) {
   case DataType_S8:
     if (op == '+') {
-      *(S8 *)output = AddClampOverflow(*(const S8 *)arg1, *(const S8 *)arg2,
-                                       S8_MIN, S8_MAX);
+      *(signed char *)output =
+          AddClampOverflow(*(const signed char *)arg1,
+                           *(const signed char *)arg2, S8_MIN, S8_MAX);
     }
     if (op == '-') {
-      *(S8 *)output = SubClampOverflow(*(const S8 *)arg1, *(const S8 *)arg2,
-                                       S8_MIN, S8_MAX);
+      *(signed char *)output =
+          SubClampOverflow(*(const signed char *)arg1,
+                           *(const signed char *)arg2, S8_MIN, S8_MAX);
     }
     return;
   case DataType_U8:
     if (op == '+') {
-      *(U8 *)output = AddClampOverflow(*(const U8 *)arg1, *(const U8 *)arg2,
-                                       U8_MIN, U8_MAX);
+      *(unsigned char *)output =
+          AddClampOverflow(*(const unsigned char *)arg1,
+                           *(const unsigned char *)arg2, U8_MIN, U8_MAX);
     }
     if (op == '-') {
-      *(U8 *)output = SubClampOverflow(*(const U8 *)arg1, *(const U8 *)arg2,
-                                       U8_MIN, U8_MAX);
+      *(unsigned char *)output =
+          SubClampOverflow(*(const unsigned char *)arg1,
+                           *(const unsigned char *)arg2, U8_MIN, U8_MAX);
     }
     return;
   case DataType_S16:
     if (op == '+') {
-      *(S16 *)output = AddClampOverflow(*(const S16 *)arg1, *(const S16 *)arg2,
-                                        S16_MIN, S16_MAX);
+      *(signed short *)output =
+          AddClampOverflow(*(const signed short *)arg1,
+                           *(const signed short *)arg2, S16_MIN, S16_MAX);
     }
     if (op == '-') {
-      *(S16 *)output = SubClampOverflow(*(const S16 *)arg1, *(const S16 *)arg2,
-                                        S16_MIN, S16_MAX);
+      *(signed short *)output =
+          SubClampOverflow(*(const signed short *)arg1,
+                           *(const signed short *)arg2, S16_MIN, S16_MAX);
     }
     return;
   case DataType_U16:
     if (op == '+') {
-      *(U16 *)output = AddClampOverflow(*(const U16 *)arg1, *(const U16 *)arg2,
-                                        U16_MIN, U16_MAX);
+      *(unsigned short *)output =
+          AddClampOverflow(*(const unsigned short *)arg1,
+                           *(const unsigned short *)arg2, U16_MIN, U16_MAX);
     }
     if (op == '-') {
-      *(U16 *)output = SubClampOverflow(*(const U16 *)arg1, *(const U16 *)arg2,
-                                        U16_MIN, U16_MAX);
+      *(unsigned short *)output =
+          SubClampOverflow(*(const unsigned short *)arg1,
+                           *(const unsigned short *)arg2, U16_MIN, U16_MAX);
     }
     return;
   case DataType_S32:
     if (op == '+') {
-      *(S32 *)output = AddClampOverflow(*(const S32 *)arg1, *(const S32 *)arg2,
-                                        S32_MIN, S32_MAX);
+      *(signed int *)output =
+          AddClampOverflow(*(const signed int *)arg1, *(const signed int *)arg2,
+                           S32_MIN, S32_MAX);
     }
     if (op == '-') {
-      *(S32 *)output = SubClampOverflow(*(const S32 *)arg1, *(const S32 *)arg2,
-                                        S32_MIN, S32_MAX);
+      *(signed int *)output =
+          SubClampOverflow(*(const signed int *)arg1, *(const signed int *)arg2,
+                           S32_MIN, S32_MAX);
     }
     return;
   case DataType_U32:
     if (op == '+') {
-      *(U32 *)output = AddClampOverflow(*(const U32 *)arg1, *(const U32 *)arg2,
-                                        U32_MIN, U32_MAX);
+      *(unsigned int *)output =
+          AddClampOverflow(*(const unsigned int *)arg1,
+                           *(const unsigned int *)arg2, U32_MIN, U32_MAX);
     }
     if (op == '-') {
-      *(U32 *)output = SubClampOverflow(*(const U32 *)arg1, *(const U32 *)arg2,
-                                        U32_MIN, U32_MAX);
+      *(unsigned int *)output =
+          SubClampOverflow(*(const unsigned int *)arg1,
+                           *(const unsigned int *)arg2, U32_MIN, U32_MAX);
     }
     return;
   case DataType_S64:
     if (op == '+') {
-      *(S64 *)output = AddClampOverflow(*(const S64 *)arg1, *(const S64 *)arg2,
-                                        S64_MIN, S64_MAX);
+      *(signed long long *)output =
+          AddClampOverflow(*(const signed long long *)arg1,
+                           *(const signed long long *)arg2, S64_MIN, S64_MAX);
     }
     if (op == '-') {
-      *(S64 *)output = SubClampOverflow(*(const S64 *)arg1, *(const S64 *)arg2,
-                                        S64_MIN, S64_MAX);
+      *(signed long long *)output =
+          SubClampOverflow(*(const signed long long *)arg1,
+                           *(const signed long long *)arg2, S64_MIN, S64_MAX);
     }
     return;
   case DataType_U64:
     if (op == '+') {
-      *(U64 *)output = AddClampOverflow(*(const U64 *)arg1, *(const U64 *)arg2,
-                                        U64_MIN, U64_MAX);
+      *(unsigned long long *)output =
+          AddClampOverflow(*(const unsigned long long *)arg1,
+                           *(const unsigned long long *)arg2, U64_MIN, U64_MAX);
     }
     if (op == '-') {
-      *(U64 *)output = SubClampOverflow(*(const U64 *)arg1, *(const U64 *)arg2,
-                                        U64_MIN, U64_MAX);
+      *(unsigned long long *)output =
+          SubClampOverflow(*(const unsigned long long *)arg1,
+                           *(const unsigned long long *)arg2, U64_MIN, U64_MAX);
     }
     return;
   case DataType_Float:
@@ -2499,8 +2524,8 @@ void Gui::DataTypeApplyOp(DataType data_type, int op, void *output,
 // User can input math operators (e.g. +100) to edit a numerical values.
 // NB: This is _not_ a full expression evaluator. We should probably add one and
 // replace this dumb mess..
-bool Gui::DataTypeApplyFromText(const char *buf, DataType data_type,
-                                void *p_data, const char *format) {
+bool Gui::DataTypeApplyFromText(const char *buf, int data_type, void *p_data,
+                                const char *format) {
   while (CharIsBlankA(*buf))
     buf++;
   if (!buf[0])
@@ -2531,13 +2556,17 @@ bool Gui::DataTypeApplyFromText(const char *buf, DataType data_type,
     return false;
   if (type_info->Size < 4) {
     if (data_type == DataType_S8)
-      *(S8 *)p_data = (S8)Clamp(v32, (int)S8_MIN, (int)S8_MAX);
+      *(signed char *)p_data =
+          (signed char)Clamp(v32, (int)S8_MIN, (int)S8_MAX);
     else if (data_type == DataType_U8)
-      *(U8 *)p_data = (U8)Clamp(v32, (int)U8_MIN, (int)U8_MAX);
+      *(unsigned char *)p_data =
+          (unsigned char)Clamp(v32, (int)U8_MIN, (int)U8_MAX);
     else if (data_type == DataType_S16)
-      *(S16 *)p_data = (S16)Clamp(v32, (int)S16_MIN, (int)S16_MAX);
+      *(signed short *)p_data =
+          (signed short)Clamp(v32, (int)S16_MIN, (int)S16_MAX);
     else if (data_type == DataType_U16)
-      *(U16 *)p_data = (U16)Clamp(v32, (int)U16_MIN, (int)U16_MAX);
+      *(unsigned short *)p_data =
+          (unsigned short)Clamp(v32, (int)U16_MIN, (int)U16_MAX);
     else
       ASSERT(0);
   }
@@ -2553,25 +2582,32 @@ template <typename T> static int DataTypeCompareT(const T *lhs, const T *rhs) {
   return 0;
 }
 
-int Gui::DataTypeCompare(DataType data_type, const void *arg_1,
-                         const void *arg_2) {
+int Gui::DataTypeCompare(int data_type, const void *arg_1, const void *arg_2) {
   switch (data_type) {
   case DataType_S8:
-    return DataTypeCompareT<S8>((const S8 *)arg_1, (const S8 *)arg_2);
+    return DataTypeCompareT<signed char>((const signed char *)arg_1,
+                                         (const signed char *)arg_2);
   case DataType_U8:
-    return DataTypeCompareT<U8>((const U8 *)arg_1, (const U8 *)arg_2);
+    return DataTypeCompareT<unsigned char>((const unsigned char *)arg_1,
+                                           (const unsigned char *)arg_2);
   case DataType_S16:
-    return DataTypeCompareT<S16>((const S16 *)arg_1, (const S16 *)arg_2);
+    return DataTypeCompareT<signed short>((const signed short *)arg_1,
+                                          (const signed short *)arg_2);
   case DataType_U16:
-    return DataTypeCompareT<U16>((const U16 *)arg_1, (const U16 *)arg_2);
+    return DataTypeCompareT<unsigned short>((const unsigned short *)arg_1,
+                                            (const unsigned short *)arg_2);
   case DataType_S32:
-    return DataTypeCompareT<S32>((const S32 *)arg_1, (const S32 *)arg_2);
+    return DataTypeCompareT<signed int>((const signed int *)arg_1,
+                                        (const signed int *)arg_2);
   case DataType_U32:
-    return DataTypeCompareT<U32>((const U32 *)arg_1, (const U32 *)arg_2);
+    return DataTypeCompareT<unsigned int>((const unsigned int *)arg_1,
+                                          (const unsigned int *)arg_2);
   case DataType_S64:
-    return DataTypeCompareT<S64>((const S64 *)arg_1, (const S64 *)arg_2);
+    return DataTypeCompareT<signed long long>((const signed long long *)arg_1,
+                                              (const signed long long *)arg_2);
   case DataType_U64:
-    return DataTypeCompareT<U64>((const U64 *)arg_1, (const U64 *)arg_2);
+    return DataTypeCompareT<unsigned long long>(
+        (const unsigned long long *)arg_1, (const unsigned long long *)arg_2);
   case DataType_Float:
     return DataTypeCompareT<float>((const float *)arg_1, (const float *)arg_2);
   case DataType_Double:
@@ -2598,33 +2634,41 @@ static bool DataTypeClampT(T *v, const T *v_min, const T *v_max) {
   return false;
 }
 
-bool Gui::DataTypeClamp(DataType data_type, void *p_data, const void *p_min,
+bool Gui::DataTypeClamp(int data_type, void *p_data, const void *p_min,
                         const void *p_max) {
   switch (data_type) {
   case DataType_S8:
-    return DataTypeClampT<S8>((S8 *)p_data, (const S8 *)p_min,
-                              (const S8 *)p_max);
+    return DataTypeClampT<signed char>((signed char *)p_data,
+                                       (const signed char *)p_min,
+                                       (const signed char *)p_max);
   case DataType_U8:
-    return DataTypeClampT<U8>((U8 *)p_data, (const U8 *)p_min,
-                              (const U8 *)p_max);
+    return DataTypeClampT<unsigned char>((unsigned char *)p_data,
+                                         (const unsigned char *)p_min,
+                                         (const unsigned char *)p_max);
   case DataType_S16:
-    return DataTypeClampT<S16>((S16 *)p_data, (const S16 *)p_min,
-                               (const S16 *)p_max);
+    return DataTypeClampT<signed short>((signed short *)p_data,
+                                        (const signed short *)p_min,
+                                        (const signed short *)p_max);
   case DataType_U16:
-    return DataTypeClampT<U16>((U16 *)p_data, (const U16 *)p_min,
-                               (const U16 *)p_max);
+    return DataTypeClampT<unsigned short>((unsigned short *)p_data,
+                                          (const unsigned short *)p_min,
+                                          (const unsigned short *)p_max);
   case DataType_S32:
-    return DataTypeClampT<S32>((S32 *)p_data, (const S32 *)p_min,
-                               (const S32 *)p_max);
+    return DataTypeClampT<signed int>((signed int *)p_data,
+                                      (const signed int *)p_min,
+                                      (const signed int *)p_max);
   case DataType_U32:
-    return DataTypeClampT<U32>((U32 *)p_data, (const U32 *)p_min,
-                               (const U32 *)p_max);
+    return DataTypeClampT<unsigned int>((unsigned int *)p_data,
+                                        (const unsigned int *)p_min,
+                                        (const unsigned int *)p_max);
   case DataType_S64:
-    return DataTypeClampT<S64>((S64 *)p_data, (const S64 *)p_min,
-                               (const S64 *)p_max);
+    return DataTypeClampT<signed long long>((signed long long *)p_data,
+                                            (const signed long long *)p_min,
+                                            (const signed long long *)p_max);
   case DataType_U64:
-    return DataTypeClampT<U64>((U64 *)p_data, (const U64 *)p_min,
-                               (const U64 *)p_max);
+    return DataTypeClampT<unsigned long long>(
+        (unsigned long long *)p_data, (const unsigned long long *)p_min,
+        (const unsigned long long *)p_max);
   case DataType_Float:
     return DataTypeClampT<float>((float *)p_data, (const float *)p_min,
                                  (const float *)p_max);
@@ -2650,8 +2694,7 @@ static float GetMinimumStepAtDecimalPrecision(int decimal_precision) {
 }
 
 template <typename TYPE>
-TYPE Gui::RoundScalarWithFormatT(const char *format, DataType data_type,
-                                 TYPE v) {
+TYPE Gui::RoundScalarWithFormatT(const char *format, int data_type, TYPE v) {
   UNUSED(data_type);
   ASSERT(data_type == DataType_Float || data_type == DataType_Double);
   const char *fmt_start = ParseFormatFindStart(format);
@@ -2699,9 +2742,8 @@ TYPE Gui::RoundScalarWithFormatT(const char *format, DataType data_type,
 // This is called by DragBehavior() when the widget is active (held by mouse or
 // being manipulated with Nav controls)
 template <typename TYPE, typename SIGNEDTYPE, typename FLOATTYPE>
-bool Gui::DragBehaviorT(DataType data_type, TYPE *v, float v_speed,
-                        const TYPE v_min, const TYPE v_max, const char *format,
-                        SliderFlags flags) {
+bool Gui::DragBehaviorT(int data_type, TYPE *v, float v_speed, const TYPE v_min,
+                        const TYPE v_max, const char *format, int flags) {
   Context &g = *GGui;
   const Axis axis = (flags & SliderFlags_Vertical) ? Axis_Y : Axis_X;
   const bool is_clamped = (v_min < v_max);
@@ -2839,13 +2881,13 @@ bool Gui::DragBehaviorT(DataType data_type, TYPE *v, float v_speed,
   return true;
 }
 
-bool Gui::DragBehavior(ID id, DataType data_type, void *p_v, float v_speed,
+bool Gui::DragBehavior(int id, int data_type, void *p_v, float v_speed,
                        const void *p_min, const void *p_max, const char *format,
-                       SliderFlags flags) {
+                       int flags) {
   // Read gui.cpp "API BREAKING CHANGES" section for 1.78 if you hit this
   // assert.
   ASSERT((flags == 1 || (flags & SliderFlags_InvalidMask_) == 0) &&
-         "Invalid SliderFlags flags! Has the 'float power' argument "
+         "Invalid int flags! Has the 'float power' argument "
          "been mistakenly cast to flags? Call function with "
          "SliderFlags_Logarithmic flags instead.");
 
@@ -2868,57 +2910,65 @@ bool Gui::DragBehavior(ID id, DataType data_type, void *p_v, float v_speed,
 
   switch (data_type) {
   case DataType_S8: {
-    S32 v32 = (S32) * (S8 *)p_v;
-    bool r = DragBehaviorT<S32, S32, float>(
-        DataType_S32, &v32, v_speed, p_min ? *(const S8 *)p_min : S8_MIN,
-        p_max ? *(const S8 *)p_max : S8_MAX, format, flags);
+    signed int v32 = (signed int)*(signed char *)p_v;
+    bool r = DragBehaviorT<signed int, signed int, float>(
+        DataType_S32, &v32, v_speed,
+        p_min ? *(const signed char *)p_min : S8_MIN,
+        p_max ? *(const signed char *)p_max : S8_MAX, format, flags);
     if (r)
-      *(S8 *)p_v = (S8)v32;
+      *(signed char *)p_v = (signed char)v32;
     return r;
   }
   case DataType_U8: {
-    U32 v32 = (U32) * (U8 *)p_v;
-    bool r = DragBehaviorT<U32, S32, float>(
-        DataType_U32, &v32, v_speed, p_min ? *(const U8 *)p_min : U8_MIN,
-        p_max ? *(const U8 *)p_max : U8_MAX, format, flags);
+    unsigned int v32 = (unsigned int)*(unsigned char *)p_v;
+    bool r = DragBehaviorT<unsigned int, signed int, float>(
+        DataType_U32, &v32, v_speed,
+        p_min ? *(const unsigned char *)p_min : U8_MIN,
+        p_max ? *(const unsigned char *)p_max : U8_MAX, format, flags);
     if (r)
-      *(U8 *)p_v = (U8)v32;
+      *(unsigned char *)p_v = (unsigned char)v32;
     return r;
   }
   case DataType_S16: {
-    S32 v32 = (S32) * (S16 *)p_v;
-    bool r = DragBehaviorT<S32, S32, float>(
-        DataType_S32, &v32, v_speed, p_min ? *(const S16 *)p_min : S16_MIN,
-        p_max ? *(const S16 *)p_max : S16_MAX, format, flags);
+    signed int v32 = (signed int)*(signed short *)p_v;
+    bool r = DragBehaviorT<signed int, signed int, float>(
+        DataType_S32, &v32, v_speed,
+        p_min ? *(const signed short *)p_min : S16_MIN,
+        p_max ? *(const signed short *)p_max : S16_MAX, format, flags);
     if (r)
-      *(S16 *)p_v = (S16)v32;
+      *(signed short *)p_v = (signed short)v32;
     return r;
   }
   case DataType_U16: {
-    U32 v32 = (U32) * (U16 *)p_v;
-    bool r = DragBehaviorT<U32, S32, float>(
-        DataType_U32, &v32, v_speed, p_min ? *(const U16 *)p_min : U16_MIN,
-        p_max ? *(const U16 *)p_max : U16_MAX, format, flags);
+    unsigned int v32 = (unsigned int)*(unsigned short *)p_v;
+    bool r = DragBehaviorT<unsigned int, signed int, float>(
+        DataType_U32, &v32, v_speed,
+        p_min ? *(const unsigned short *)p_min : U16_MIN,
+        p_max ? *(const unsigned short *)p_max : U16_MAX, format, flags);
     if (r)
-      *(U16 *)p_v = (U16)v32;
+      *(unsigned short *)p_v = (unsigned short)v32;
     return r;
   }
   case DataType_S32:
-    return DragBehaviorT<S32, S32, float>(
-        data_type, (S32 *)p_v, v_speed, p_min ? *(const S32 *)p_min : S32_MIN,
-        p_max ? *(const S32 *)p_max : S32_MAX, format, flags);
+    return DragBehaviorT<signed int, signed int, float>(
+        data_type, (signed int *)p_v, v_speed,
+        p_min ? *(const signed int *)p_min : S32_MIN,
+        p_max ? *(const signed int *)p_max : S32_MAX, format, flags);
   case DataType_U32:
-    return DragBehaviorT<U32, S32, float>(
-        data_type, (U32 *)p_v, v_speed, p_min ? *(const U32 *)p_min : U32_MIN,
-        p_max ? *(const U32 *)p_max : U32_MAX, format, flags);
+    return DragBehaviorT<unsigned int, signed int, float>(
+        data_type, (unsigned int *)p_v, v_speed,
+        p_min ? *(const unsigned int *)p_min : U32_MIN,
+        p_max ? *(const unsigned int *)p_max : U32_MAX, format, flags);
   case DataType_S64:
-    return DragBehaviorT<S64, S64, double>(
-        data_type, (S64 *)p_v, v_speed, p_min ? *(const S64 *)p_min : S64_MIN,
-        p_max ? *(const S64 *)p_max : S64_MAX, format, flags);
+    return DragBehaviorT<signed long long, signed long long, double>(
+        data_type, (signed long long *)p_v, v_speed,
+        p_min ? *(const signed long long *)p_min : S64_MIN,
+        p_max ? *(const signed long long *)p_max : S64_MAX, format, flags);
   case DataType_U64:
-    return DragBehaviorT<U64, S64, double>(
-        data_type, (U64 *)p_v, v_speed, p_min ? *(const U64 *)p_min : U64_MIN,
-        p_max ? *(const U64 *)p_max : U64_MAX, format, flags);
+    return DragBehaviorT<unsigned long long, signed long long, double>(
+        data_type, (unsigned long long *)p_v, v_speed,
+        p_min ? *(const unsigned long long *)p_min : U64_MIN,
+        p_max ? *(const unsigned long long *)p_max : U64_MAX, format, flags);
   case DataType_Float:
     return DragBehaviorT<float, float, float>(
         data_type, (float *)p_v, v_speed,
@@ -2940,16 +2990,16 @@ bool Gui::DragBehavior(ID id, DataType data_type, void *p_v, float v_speed,
 // data. For a Drag widget, p_min and p_max are optional. Read code of e.g.
 // DragFloat(), DragInt() etc. or examples in 'Demo->Widgets->Data Types' to
 // understand how to use this function directly.
-bool Gui::DragScalar(const char *label, DataType data_type, void *p_data,
+bool Gui::DragScalar(const char *label, int data_type, void *p_data,
                      float v_speed, const void *p_min, const void *p_max,
-                     const char *format, SliderFlags flags) {
+                     const char *format, int flags) {
   Window *window = GetCurrentWindow();
   if (window->SkipItems)
     return false;
 
   Context &g = *GGui;
   const Style &style = g.Style;
-  const ID id = window->GetID(label);
+  const int id = window->GetID(label);
   const float w = CalcItemWidth();
 
   const Vec2 label_size = CalcTextSize(label, NULL, true);
@@ -3020,9 +3070,10 @@ bool Gui::DragScalar(const char *label, DataType data_type, void *p_data,
   }
 
   // Draw frame
-  const U32 frame_col = GetColorU32(g.ActiveId == id ? Col_FrameBgActive
-                                    : hovered        ? Col_FrameBgHovered
-                                                     : Col_FrameBg);
+  const unsigned int frame_col =
+      GetColorU32(g.ActiveId == id ? Col_FrameBgActive
+                  : hovered        ? Col_FrameBgHovered
+                                   : Col_FrameBg);
   RenderNavHighlight(frame_bb, id);
   RenderFrame(frame_bb.Min, frame_bb.Max, frame_col, true, style.FrameRounding);
 
@@ -3055,10 +3106,9 @@ bool Gui::DragScalar(const char *label, DataType data_type, void *p_data,
   return value_changed;
 }
 
-bool Gui::DragScalarN(const char *label, DataType data_type, void *p_data,
+bool Gui::DragScalarN(const char *label, int data_type, void *p_data,
                       int components, float v_speed, const void *p_min,
-                      const void *p_max, const char *format,
-                      SliderFlags flags) {
+                      const void *p_max, const char *format, int flags) {
   Window *window = GetCurrentWindow();
   if (window->SkipItems)
     return false;
@@ -3092,25 +3142,25 @@ bool Gui::DragScalarN(const char *label, DataType data_type, void *p_data,
 }
 
 bool Gui::DragFloat(const char *label, float *v, float v_speed, float v_min,
-                    float v_max, const char *format, SliderFlags flags) {
+                    float v_max, const char *format, int flags) {
   return DragScalar(label, DataType_Float, v, v_speed, &v_min, &v_max, format,
                     flags);
 }
 
 bool Gui::DragFloat2(const char *label, float v[2], float v_speed, float v_min,
-                     float v_max, const char *format, SliderFlags flags) {
+                     float v_max, const char *format, int flags) {
   return DragScalarN(label, DataType_Float, v, 2, v_speed, &v_min, &v_max,
                      format, flags);
 }
 
 bool Gui::DragFloat3(const char *label, float v[3], float v_speed, float v_min,
-                     float v_max, const char *format, SliderFlags flags) {
+                     float v_max, const char *format, int flags) {
   return DragScalarN(label, DataType_Float, v, 3, v_speed, &v_min, &v_max,
                      format, flags);
 }
 
 bool Gui::DragFloat4(const char *label, float v[4], float v_speed, float v_min,
-                     float v_max, const char *format, SliderFlags flags) {
+                     float v_max, const char *format, int flags) {
   return DragScalarN(label, DataType_Float, v, 4, v_speed, &v_min, &v_max,
                      format, flags);
 }
@@ -3120,7 +3170,7 @@ bool Gui::DragFloat4(const char *label, float v[4], float v_speed, float v_min,
 bool Gui::DragFloatRange2(const char *label, float *v_current_min,
                           float *v_current_max, float v_speed, float v_min,
                           float v_max, const char *format,
-                          const char *format_max, SliderFlags flags) {
+                          const char *format_max, int flags) {
   Window *window = GetCurrentWindow();
   if (window->SkipItems)
     return false;
@@ -3133,8 +3183,7 @@ bool Gui::DragFloatRange2(const char *label, float *v_current_min,
   float min_min = (v_min >= v_max) ? -FLT_MAX : v_min;
   float min_max =
       (v_min >= v_max) ? *v_current_max : Min(v_max, *v_current_max);
-  SliderFlags min_flags =
-      flags | ((min_min == min_max) ? SliderFlags_ReadOnly : 0);
+  int min_flags = flags | ((min_min == min_max) ? SliderFlags_ReadOnly : 0);
   bool value_changed =
       DragScalar("##min", DataType_Float, v_current_min, v_speed, &min_min,
                  &min_max, format, min_flags);
@@ -3144,8 +3193,7 @@ bool Gui::DragFloatRange2(const char *label, float *v_current_min,
   float max_min =
       (v_min >= v_max) ? *v_current_min : Max(v_min, *v_current_min);
   float max_max = (v_min >= v_max) ? FLT_MAX : v_max;
-  SliderFlags max_flags =
-      flags | ((max_min == max_max) ? SliderFlags_ReadOnly : 0);
+  int max_flags = flags | ((max_min == max_max) ? SliderFlags_ReadOnly : 0);
   value_changed |=
       DragScalar("##max", DataType_Float, v_current_max, v_speed, &max_min,
                  &max_max, format_max ? format_max : format, max_flags);
@@ -3161,25 +3209,25 @@ bool Gui::DragFloatRange2(const char *label, float *v_current_min,
 
 // NB: v_speed is float to allow adjusting the drag speed with more precision
 bool Gui::DragInt(const char *label, int *v, float v_speed, int v_min,
-                  int v_max, const char *format, SliderFlags flags) {
+                  int v_max, const char *format, int flags) {
   return DragScalar(label, DataType_S32, v, v_speed, &v_min, &v_max, format,
                     flags);
 }
 
 bool Gui::DragInt2(const char *label, int v[2], float v_speed, int v_min,
-                   int v_max, const char *format, SliderFlags flags) {
+                   int v_max, const char *format, int flags) {
   return DragScalarN(label, DataType_S32, v, 2, v_speed, &v_min, &v_max, format,
                      flags);
 }
 
 bool Gui::DragInt3(const char *label, int v[3], float v_speed, int v_min,
-                   int v_max, const char *format, SliderFlags flags) {
+                   int v_max, const char *format, int flags) {
   return DragScalarN(label, DataType_S32, v, 3, v_speed, &v_min, &v_max, format,
                      flags);
 }
 
 bool Gui::DragInt4(const char *label, int v[4], float v_speed, int v_min,
-                   int v_max, const char *format, SliderFlags flags) {
+                   int v_max, const char *format, int flags) {
   return DragScalarN(label, DataType_S32, v, 4, v_speed, &v_min, &v_max, format,
                      flags);
 }
@@ -3188,8 +3236,7 @@ bool Gui::DragInt4(const char *label, int v[4], float v_speed, int v_min,
 // this.
 bool Gui::DragIntRange2(const char *label, int *v_current_min,
                         int *v_current_max, float v_speed, int v_min, int v_max,
-                        const char *format, const char *format_max,
-                        SliderFlags flags) {
+                        const char *format, const char *format_max, int flags) {
   Window *window = GetCurrentWindow();
   if (window->SkipItems)
     return false;
@@ -3201,8 +3248,7 @@ bool Gui::DragIntRange2(const char *label, int *v_current_min,
 
   int min_min = (v_min >= v_max) ? INT_MIN : v_min;
   int min_max = (v_min >= v_max) ? *v_current_max : Min(v_max, *v_current_max);
-  SliderFlags min_flags =
-      flags | ((min_min == min_max) ? SliderFlags_ReadOnly : 0);
+  int min_flags = flags | ((min_min == min_max) ? SliderFlags_ReadOnly : 0);
   bool value_changed = DragInt("##min", v_current_min, v_speed, min_min,
                                min_max, format, min_flags);
   PopItemWidth();
@@ -3210,8 +3256,7 @@ bool Gui::DragIntRange2(const char *label, int *v_current_min,
 
   int max_min = (v_min >= v_max) ? *v_current_min : Max(v_min, *v_current_min);
   int max_max = (v_min >= v_max) ? INT_MAX : v_max;
-  SliderFlags max_flags =
-      flags | ((max_min == max_max) ? SliderFlags_ReadOnly : 0);
+  int max_flags = flags | ((max_min == max_max) ? SliderFlags_ReadOnly : 0);
   value_changed |= DragInt("##max", v_current_max, v_speed, max_min, max_max,
                            format_max ? format_max : format, max_flags);
   PopItemWidth();
@@ -3250,8 +3295,8 @@ bool Gui::DragIntRange2(const char *label, int *v_current_min,
 // Convert a value v in the output space of a slider into a parametric position
 // on the slider itself (the logical opposite of ScaleValueFromRatioT)
 template <typename TYPE, typename SIGNEDTYPE, typename FLOATTYPE>
-float Gui::ScaleRatioFromValueT(DataType data_type, TYPE v, TYPE v_min,
-                                TYPE v_max, bool is_logarithmic,
+float Gui::ScaleRatioFromValueT(int data_type, TYPE v, TYPE v_min, TYPE v_max,
+                                bool is_logarithmic,
                                 float logarithmic_zero_epsilon,
                                 float zero_deadzone_halfsize) {
   if (v_min == v_max)
@@ -3334,8 +3379,8 @@ float Gui::ScaleRatioFromValueT(DataType data_type, TYPE v, TYPE v_min,
 // Convert a parametric position on a slider into a value v in the output space
 // (the logical opposite of ScaleRatioFromValueT)
 template <typename TYPE, typename SIGNEDTYPE, typename FLOATTYPE>
-TYPE Gui::ScaleValueFromRatioT(DataType data_type, float t, TYPE v_min,
-                               TYPE v_max, bool is_logarithmic,
+TYPE Gui::ScaleValueFromRatioT(int data_type, float t, TYPE v_min, TYPE v_max,
+                               bool is_logarithmic,
                                float logarithmic_zero_epsilon,
                                float zero_deadzone_halfsize) {
   // We special-case the extents because otherwise our logarithmic fudging can
@@ -3410,7 +3455,7 @@ TYPE Gui::ScaleValueFromRatioT(DataType data_type, float t, TYPE v_min,
       // - For integer values we want the clicking position to match the grab
       // box so we round above
       //   This code is carefully tuned to work with large values (e.g. high
-      //   ranges of U64) while preserving this property..
+      //   ranges of unsigned long long) while preserving this property..
       // - Not doing a *1.0 multiply at the end of a range as it tends to be
       // lossy. While absolute aiming at a large s64/u64
       //   range is going to be imprecise anyway, with this check we at least
@@ -3427,10 +3472,9 @@ TYPE Gui::ScaleValueFromRatioT(DataType data_type, float t, TYPE v_min,
 
 // FIXME: Try to move more of the code into shared SliderBehavior()
 template <typename TYPE, typename SIGNEDTYPE, typename FLOATTYPE>
-bool Gui::SliderBehaviorT(const Rect &bb, ID id, DataType data_type, TYPE *v,
+bool Gui::SliderBehaviorT(const Rect &bb, int id, int data_type, TYPE *v,
                           const TYPE v_min, const TYPE v_max,
-                          const char *format, SliderFlags flags,
-                          Rect *out_grab_bb) {
+                          const char *format, int flags, Rect *out_grab_bb) {
   Context &g = *GGui;
   const Style &style = g.Style;
 
@@ -3642,75 +3686,76 @@ bool Gui::SliderBehaviorT(const Rect &bb, ID id, DataType data_type, TYPE *v,
 // fail, but an integer Slider between INT_MAX/2-10 and INT_MAX/2 will be ok. It
 // would be possible to lift that limitation with some work but it doesn't seem
 // to be worth it for sliders.
-bool Gui::SliderBehavior(const Rect &bb, ID id, DataType data_type, void *p_v,
+bool Gui::SliderBehavior(const Rect &bb, int id, int data_type, void *p_v,
                          const void *p_min, const void *p_max,
-                         const char *format, SliderFlags flags,
-                         Rect *out_grab_bb) {
+                         const char *format, int flags, Rect *out_grab_bb) {
   // Read gui.cpp "API BREAKING CHANGES" section for 1.78 if you hit this
   // assert.
   ASSERT((flags == 1 || (flags & SliderFlags_InvalidMask_) == 0) &&
-         "Invalid SliderFlags flag!  Has the 'float power' argument "
+         "Invalid int flag!  Has the 'float power' argument "
          "been mistakenly cast to flags? Call function with "
          "SliderFlags_Logarithmic flags instead.");
 
   switch (data_type) {
   case DataType_S8: {
-    S32 v32 = (S32) * (S8 *)p_v;
-    bool r = SliderBehaviorT<S32, S32, float>(
-        bb, id, DataType_S32, &v32, *(const S8 *)p_min, *(const S8 *)p_max,
-        format, flags, out_grab_bb);
+    signed int v32 = (signed int)*(signed char *)p_v;
+    bool r = SliderBehaviorT<signed int, signed int, float>(
+        bb, id, DataType_S32, &v32, *(const signed char *)p_min,
+        *(const signed char *)p_max, format, flags, out_grab_bb);
     if (r)
-      *(S8 *)p_v = (S8)v32;
+      *(signed char *)p_v = (signed char)v32;
     return r;
   }
   case DataType_U8: {
-    U32 v32 = (U32) * (U8 *)p_v;
-    bool r = SliderBehaviorT<U32, S32, float>(
-        bb, id, DataType_U32, &v32, *(const U8 *)p_min, *(const U8 *)p_max,
-        format, flags, out_grab_bb);
+    unsigned int v32 = (unsigned int)*(unsigned char *)p_v;
+    bool r = SliderBehaviorT<unsigned int, signed int, float>(
+        bb, id, DataType_U32, &v32, *(const unsigned char *)p_min,
+        *(const unsigned char *)p_max, format, flags, out_grab_bb);
     if (r)
-      *(U8 *)p_v = (U8)v32;
+      *(unsigned char *)p_v = (unsigned char)v32;
     return r;
   }
   case DataType_S16: {
-    S32 v32 = (S32) * (S16 *)p_v;
-    bool r = SliderBehaviorT<S32, S32, float>(
-        bb, id, DataType_S32, &v32, *(const S16 *)p_min, *(const S16 *)p_max,
-        format, flags, out_grab_bb);
+    signed int v32 = (signed int)*(signed short *)p_v;
+    bool r = SliderBehaviorT<signed int, signed int, float>(
+        bb, id, DataType_S32, &v32, *(const signed short *)p_min,
+        *(const signed short *)p_max, format, flags, out_grab_bb);
     if (r)
-      *(S16 *)p_v = (S16)v32;
+      *(signed short *)p_v = (signed short)v32;
     return r;
   }
   case DataType_U16: {
-    U32 v32 = (U32) * (U16 *)p_v;
-    bool r = SliderBehaviorT<U32, S32, float>(
-        bb, id, DataType_U32, &v32, *(const U16 *)p_min, *(const U16 *)p_max,
-        format, flags, out_grab_bb);
+    unsigned int v32 = (unsigned int)*(unsigned short *)p_v;
+    bool r = SliderBehaviorT<unsigned int, signed int, float>(
+        bb, id, DataType_U32, &v32, *(const unsigned short *)p_min,
+        *(const unsigned short *)p_max, format, flags, out_grab_bb);
     if (r)
-      *(U16 *)p_v = (U16)v32;
+      *(unsigned short *)p_v = (unsigned short)v32;
     return r;
   }
   case DataType_S32:
-    ASSERT(*(const S32 *)p_min >= S32_MIN / 2 &&
-           *(const S32 *)p_max <= S32_MAX / 2);
-    return SliderBehaviorT<S32, S32, float>(
-        bb, id, data_type, (S32 *)p_v, *(const S32 *)p_min, *(const S32 *)p_max,
-        format, flags, out_grab_bb);
+    ASSERT(*(const signed int *)p_min >= S32_MIN / 2 &&
+           *(const signed int *)p_max <= S32_MAX / 2);
+    return SliderBehaviorT<signed int, signed int, float>(
+        bb, id, data_type, (signed int *)p_v, *(const signed int *)p_min,
+        *(const signed int *)p_max, format, flags, out_grab_bb);
   case DataType_U32:
-    ASSERT(*(const U32 *)p_max <= U32_MAX / 2);
-    return SliderBehaviorT<U32, S32, float>(
-        bb, id, data_type, (U32 *)p_v, *(const U32 *)p_min, *(const U32 *)p_max,
-        format, flags, out_grab_bb);
+    ASSERT(*(const unsigned int *)p_max <= U32_MAX / 2);
+    return SliderBehaviorT<unsigned int, signed int, float>(
+        bb, id, data_type, (unsigned int *)p_v, *(const unsigned int *)p_min,
+        *(const unsigned int *)p_max, format, flags, out_grab_bb);
   case DataType_S64:
-    ASSERT(*(const S64 *)p_min >= S64_MIN / 2 &&
-           *(const S64 *)p_max <= S64_MAX / 2);
-    return SliderBehaviorT<S64, S64, double>(
-        bb, id, data_type, (S64 *)p_v, *(const S64 *)p_min, *(const S64 *)p_max,
+    ASSERT(*(const signed long long *)p_min >= S64_MIN / 2 &&
+           *(const signed long long *)p_max <= S64_MAX / 2);
+    return SliderBehaviorT<signed long long, signed long long, double>(
+        bb, id, data_type, (signed long long *)p_v,
+        *(const signed long long *)p_min, *(const signed long long *)p_max,
         format, flags, out_grab_bb);
   case DataType_U64:
-    ASSERT(*(const U64 *)p_max <= U64_MAX / 2);
-    return SliderBehaviorT<U64, S64, double>(
-        bb, id, data_type, (U64 *)p_v, *(const U64 *)p_min, *(const U64 *)p_max,
+    ASSERT(*(const unsigned long long *)p_max <= U64_MAX / 2);
+    return SliderBehaviorT<unsigned long long, signed long long, double>(
+        bb, id, data_type, (unsigned long long *)p_v,
+        *(const unsigned long long *)p_min, *(const unsigned long long *)p_max,
         format, flags, out_grab_bb);
   case DataType_Float:
     ASSERT(*(const float *)p_min >= -FLT_MAX / 2.0f &&
@@ -3735,16 +3780,16 @@ bool Gui::SliderBehavior(const Rect &bb, ID id, DataType data_type, void *p_v,
 // data. For a slider, they are all required. Read code of e.g. SliderFloat(),
 // SliderInt() etc. or examples in 'Demo->Widgets->Data Types' to understand how
 // to use this function directly.
-bool Gui::SliderScalar(const char *label, DataType data_type, void *p_data,
+bool Gui::SliderScalar(const char *label, int data_type, void *p_data,
                        const void *p_min, const void *p_max, const char *format,
-                       SliderFlags flags) {
+                       int flags) {
   Window *window = GetCurrentWindow();
   if (window->SkipItems)
     return false;
 
   Context &g = *GGui;
   const Style &style = g.Style;
-  const ID id = window->GetID(label);
+  const int id = window->GetID(label);
   const float w = CalcItemWidth();
 
   const Vec2 label_size = CalcTextSize(label, NULL, true);
@@ -3799,9 +3844,10 @@ bool Gui::SliderScalar(const char *label, DataType data_type, void *p_data,
   }
 
   // Draw frame
-  const U32 frame_col = GetColorU32(g.ActiveId == id ? Col_FrameBgActive
-                                    : hovered        ? Col_FrameBgHovered
-                                                     : Col_FrameBg);
+  const unsigned int frame_col =
+      GetColorU32(g.ActiveId == id ? Col_FrameBgActive
+                  : hovered        ? Col_FrameBgHovered
+                                   : Col_FrameBg);
   RenderNavHighlight(frame_bb, id);
   RenderFrame(frame_bb.Min, frame_bb.Max, frame_col, true,
               g.Style.FrameRounding);
@@ -3844,9 +3890,9 @@ bool Gui::SliderScalar(const char *label, DataType data_type, void *p_data,
 }
 
 // Add multiple sliders on 1 line for compact edition of multiple components
-bool Gui::SliderScalarN(const char *label, DataType data_type, void *v,
+bool Gui::SliderScalarN(const char *label, int data_type, void *v,
                         int components, const void *v_min, const void *v_max,
-                        const char *format, SliderFlags flags) {
+                        const char *format, int flags) {
   Window *window = GetCurrentWindow();
   if (window->SkipItems)
     return false;
@@ -3880,31 +3926,30 @@ bool Gui::SliderScalarN(const char *label, DataType data_type, void *v,
 }
 
 bool Gui::SliderFloat(const char *label, float *v, float v_min, float v_max,
-                      const char *format, SliderFlags flags) {
+                      const char *format, int flags) {
   return SliderScalar(label, DataType_Float, v, &v_min, &v_max, format, flags);
 }
 
 bool Gui::SliderFloat2(const char *label, float v[2], float v_min, float v_max,
-                       const char *format, SliderFlags flags) {
+                       const char *format, int flags) {
   return SliderScalarN(label, DataType_Float, v, 2, &v_min, &v_max, format,
                        flags);
 }
 
 bool Gui::SliderFloat3(const char *label, float v[3], float v_min, float v_max,
-                       const char *format, SliderFlags flags) {
+                       const char *format, int flags) {
   return SliderScalarN(label, DataType_Float, v, 3, &v_min, &v_max, format,
                        flags);
 }
 
 bool Gui::SliderFloat4(const char *label, float v[4], float v_min, float v_max,
-                       const char *format, SliderFlags flags) {
+                       const char *format, int flags) {
   return SliderScalarN(label, DataType_Float, v, 4, &v_min, &v_max, format,
                        flags);
 }
 
 bool Gui::SliderAngle(const char *label, float *v_rad, float v_degrees_min,
-                      float v_degrees_max, const char *format,
-                      SliderFlags flags) {
+                      float v_degrees_max, const char *format, int flags) {
   if (format == NULL)
     format = "%.0f deg";
   float v_deg = (*v_rad) * 360.0f / (2 * PI);
@@ -3915,38 +3960,38 @@ bool Gui::SliderAngle(const char *label, float *v_rad, float v_degrees_min,
 }
 
 bool Gui::SliderInt(const char *label, int *v, int v_min, int v_max,
-                    const char *format, SliderFlags flags) {
+                    const char *format, int flags) {
   return SliderScalar(label, DataType_S32, v, &v_min, &v_max, format, flags);
 }
 
 bool Gui::SliderInt2(const char *label, int v[2], int v_min, int v_max,
-                     const char *format, SliderFlags flags) {
+                     const char *format, int flags) {
   return SliderScalarN(label, DataType_S32, v, 2, &v_min, &v_max, format,
                        flags);
 }
 
 bool Gui::SliderInt3(const char *label, int v[3], int v_min, int v_max,
-                     const char *format, SliderFlags flags) {
+                     const char *format, int flags) {
   return SliderScalarN(label, DataType_S32, v, 3, &v_min, &v_max, format,
                        flags);
 }
 
 bool Gui::SliderInt4(const char *label, int v[4], int v_min, int v_max,
-                     const char *format, SliderFlags flags) {
+                     const char *format, int flags) {
   return SliderScalarN(label, DataType_S32, v, 4, &v_min, &v_max, format,
                        flags);
 }
 
-bool Gui::VSliderScalar(const char *label, const Vec2 &size, DataType data_type,
+bool Gui::VSliderScalar(const char *label, const Vec2 &size, int data_type,
                         void *p_data, const void *p_min, const void *p_max,
-                        const char *format, SliderFlags flags) {
+                        const char *format, int flags) {
   Window *window = GetCurrentWindow();
   if (window->SkipItems)
     return false;
 
   Context &g = *GGui;
   const Style &style = g.Style;
-  const ID id = window->GetID(label);
+  const int id = window->GetID(label);
 
   const Vec2 label_size = CalcTextSize(label, NULL, true);
   const Rect frame_bb(window->DC.CursorPos, window->DC.CursorPos + size);
@@ -3977,9 +4022,10 @@ bool Gui::VSliderScalar(const char *label, const Vec2 &size, DataType data_type,
   }
 
   // Draw frame
-  const U32 frame_col = GetColorU32(g.ActiveId == id ? Col_FrameBgActive
-                                    : hovered        ? Col_FrameBgHovered
-                                                     : Col_FrameBg);
+  const unsigned int frame_col =
+      GetColorU32(g.ActiveId == id ? Col_FrameBgActive
+                  : hovered        ? Col_FrameBgHovered
+                                   : Col_FrameBg);
   RenderNavHighlight(frame_bb, id);
   RenderFrame(frame_bb.Min, frame_bb.Max, frame_col, true,
               g.Style.FrameRounding);
@@ -4019,13 +4065,13 @@ bool Gui::VSliderScalar(const char *label, const Vec2 &size, DataType data_type,
 
 bool Gui::VSliderFloat(const char *label, const Vec2 &size, float *v,
                        float v_min, float v_max, const char *format,
-                       SliderFlags flags) {
+                       int flags) {
   return VSliderScalar(label, size, DataType_Float, v, &v_min, &v_max, format,
                        flags);
 }
 
 bool Gui::VSliderInt(const char *label, const Vec2 &size, int *v, int v_min,
-                     int v_max, const char *format, SliderFlags flags) {
+                     int v_max, const char *format, int flags) {
   return VSliderScalar(label, size, DataType_S32, v, &v_min, &v_max, format,
                        flags);
 }
@@ -4199,8 +4245,8 @@ int ParseFormatPrecision(const char *fmt, int default_precision) {
 // Create text input in place of another active widget (e.g. used when doing a
 // CTRL+Click on drag/slider widgets)
 // FIXME: Facilitate using this in variety of other situations.
-bool Gui::TempInputText(const Rect &bb, ID id, const char *label, char *buf,
-                        int buf_size, InputTextFlags flags) {
+bool Gui::TempInputText(const Rect &bb, int id, const char *label, char *buf,
+                        int buf_size, int flags) {
   // On the first frame, g.TempInputTextId == 0, then on subsequent frames it
   // becomes == id. We clear ActiveID on the first frame to allow the
   // InputText() taking it back.
@@ -4226,8 +4272,8 @@ bool Gui::TempInputText(const Rect &bb, ID id, const char *label, char *buf,
 // intended: this way we allow CTRL+Click manual input to set a value out of
 // bounds, for maximum flexibility. However this may not be ideal for all uses,
 // as some user code may break on out of bound values.
-bool Gui::TempInputScalar(const Rect &bb, ID id, const char *label,
-                          DataType data_type, void *p_data, const char *format,
+bool Gui::TempInputScalar(const Rect &bb, int id, const char *label,
+                          int data_type, void *p_data, const char *format,
                           const void *p_clamp_min, const void *p_clamp_max) {
   // FIXME: May need to clarify display behavior if format doesn't contain %.
   // "%d" -> "%d" / "There are %d items" -> "%d" / "items" -> "%d" (fallback).
@@ -4242,8 +4288,7 @@ bool Gui::TempInputScalar(const Rect &bb, ID id, const char *label,
                        format);
   StrTrimBlanks(data_buf);
 
-  InputTextFlags flags = InputTextFlags_AutoSelectAll |
-                         (InputTextFlags)InputTextFlags_NoMarkEdited;
+  int flags = InputTextFlags_AutoSelectAll | (int)InputTextFlags_NoMarkEdited;
 
   bool value_changed = false;
   if (TempInputText(bb, id, label, data_buf, ARRAYSIZE(data_buf), flags)) {
@@ -4273,9 +4318,9 @@ bool Gui::TempInputScalar(const Rect &bb, ID id, const char *label,
 // the data. For an Input widget, p_step and p_step_fast are optional. Read code
 // of e.g. InputFloat(), InputInt() etc. or examples in 'Demo->Widgets->Data
 // Types' to understand how to use this function directly.
-bool Gui::InputScalar(const char *label, DataType data_type, void *p_data,
+bool Gui::InputScalar(const char *label, int data_type, void *p_data,
                       const void *p_step, const void *p_step_fast,
-                      const char *format, InputTextFlags flags) {
+                      const char *format, int flags) {
   Window *window = GetCurrentWindow();
   if (window->SkipItems)
     return false;
@@ -4289,11 +4334,11 @@ bool Gui::InputScalar(const char *label, DataType data_type, void *p_data,
   char buf[64];
   DataTypeFormatString(buf, ARRAYSIZE(buf), data_type, p_data, format);
 
-  flags |= InputTextFlags_AutoSelectAll |
-           (InputTextFlags)
-               InputTextFlags_NoMarkEdited; // We call MarkItemEdited()
-                                            // ourselves by comparing the actual
-                                            // data rather than the string.
+  flags |=
+      InputTextFlags_AutoSelectAll |
+      (int)InputTextFlags_NoMarkEdited; // We call MarkItemEdited()
+                                        // ourselves by comparing the actual
+                                        // data rather than the string.
 
   bool value_changed = false;
   if (p_step == NULL) {
@@ -4308,7 +4353,7 @@ bool Gui::InputScalar(const char *label, DataType data_type, void *p_data,
     SetNextItemWidth(Max(
         1.0f, CalcItemWidth() - (button_size + style.ItemInnerSpacing.x) * 2));
     if (InputText("", buf, ARRAYSIZE(buf),
-                  flags)) // PushId(label) + "" gives us the expected ID from
+                  flags)) // PushId(label) + "" gives us the expected int from
                           // outside point of view
       value_changed = DataTypeApplyFromText(buf, data_type, p_data, format);
     TEST_ENGINE_ITEM_INFO(g.LastItemData.ID, label,
@@ -4318,7 +4363,7 @@ bool Gui::InputScalar(const char *label, DataType data_type, void *p_data,
     // Step buttons
     const Vec2 backup_frame_padding = style.FramePadding;
     style.FramePadding.x = style.FramePadding.y;
-    ButtonFlags button_flags = ButtonFlags_Repeat | ButtonFlags_DontClosePopups;
+    int button_flags = ButtonFlags_Repeat | ButtonFlags_DontClosePopups;
     if (flags & InputTextFlags_ReadOnly)
       BeginDisabled();
     SameLine(0, style.ItemInnerSpacing.x);
@@ -4352,10 +4397,9 @@ bool Gui::InputScalar(const char *label, DataType data_type, void *p_data,
   return value_changed;
 }
 
-bool Gui::InputScalarN(const char *label, DataType data_type, void *p_data,
+bool Gui::InputScalarN(const char *label, int data_type, void *p_data,
                        int components, const void *p_step,
-                       const void *p_step_fast, const char *format,
-                       InputTextFlags flags) {
+                       const void *p_step_fast, const char *format, int flags) {
   Window *window = GetCurrentWindow();
   if (window->SkipItems)
     return false;
@@ -4389,29 +4433,29 @@ bool Gui::InputScalarN(const char *label, DataType data_type, void *p_data,
 }
 
 bool Gui::InputFloat(const char *label, float *v, float step, float step_fast,
-                     const char *format, InputTextFlags flags) {
+                     const char *format, int flags) {
   return InputScalar(
       label, DataType_Float, (void *)v, (void *)(step > 0.0f ? &step : NULL),
       (void *)(step_fast > 0.0f ? &step_fast : NULL), format, flags);
 }
 
 bool Gui::InputFloat2(const char *label, float v[2], const char *format,
-                      InputTextFlags flags) {
+                      int flags) {
   return InputScalarN(label, DataType_Float, v, 2, NULL, NULL, format, flags);
 }
 
 bool Gui::InputFloat3(const char *label, float v[3], const char *format,
-                      InputTextFlags flags) {
+                      int flags) {
   return InputScalarN(label, DataType_Float, v, 3, NULL, NULL, format, flags);
 }
 
 bool Gui::InputFloat4(const char *label, float v[4], const char *format,
-                      InputTextFlags flags) {
+                      int flags) {
   return InputScalarN(label, DataType_Float, v, 4, NULL, NULL, format, flags);
 }
 
 bool Gui::InputInt(const char *label, int *v, int step, int step_fast,
-                   InputTextFlags flags) {
+                   int flags) {
   // Hexadecimal input provided as a convenience but the flag name is awkward.
   // Typically you'd use InputText() to parse your own data, if you want to
   // handle prefixes.
@@ -4422,21 +4466,20 @@ bool Gui::InputInt(const char *label, int *v, int step, int step_fast,
       (void *)(step_fast > 0 ? &step_fast : NULL), format, flags);
 }
 
-bool Gui::InputInt2(const char *label, int v[2], InputTextFlags flags) {
+bool Gui::InputInt2(const char *label, int v[2], int flags) {
   return InputScalarN(label, DataType_S32, v, 2, NULL, NULL, "%d", flags);
 }
 
-bool Gui::InputInt3(const char *label, int v[3], InputTextFlags flags) {
+bool Gui::InputInt3(const char *label, int v[3], int flags) {
   return InputScalarN(label, DataType_S32, v, 3, NULL, NULL, "%d", flags);
 }
 
-bool Gui::InputInt4(const char *label, int v[4], InputTextFlags flags) {
+bool Gui::InputInt4(const char *label, int v[4], int flags) {
   return InputScalarN(label, DataType_S32, v, 4, NULL, NULL, "%d", flags);
 }
 
 bool Gui::InputDouble(const char *label, double *v, double step,
-                      double step_fast, const char *format,
-                      InputTextFlags flags) {
+                      double step_fast, const char *format, int flags) {
   return InputScalar(
       label, DataType_Double, (void *)v, (void *)(step > 0.0 ? &step : NULL),
       (void *)(step_fast > 0.0 ? &step_fast : NULL), format, flags);
@@ -4455,23 +4498,22 @@ bool Gui::InputDouble(const char *label, double *v, double step,
 // - DebugNodeInputTextState() [Internal]
 //-------------------------------------------------------------------------
 
-bool Gui::InputText(const char *label, char *buf, size_t buf_size,
-                    InputTextFlags flags, InputTextCallback callback,
-                    void *user_data) {
+bool Gui::InputText(const char *label, char *buf, size_t buf_size, int flags,
+                    InputTextCallback callback, void *user_data) {
   ASSERT(!(flags & InputTextFlags_Multiline)); // call InputTextMultiline()
   return InputTextEx(label, NULL, buf, (int)buf_size, Vec2(0, 0), flags,
                      callback, user_data);
 }
 
 bool Gui::InputTextMultiline(const char *label, char *buf, size_t buf_size,
-                             const Vec2 &size, InputTextFlags flags,
+                             const Vec2 &size, int flags,
                              InputTextCallback callback, void *user_data) {
   return InputTextEx(label, NULL, buf, (int)buf_size, size,
                      flags | InputTextFlags_Multiline, callback, user_data);
 }
 
 bool Gui::InputTextWithHint(const char *label, const char *hint, char *buf,
-                            size_t buf_size, InputTextFlags flags,
+                            size_t buf_size, int flags,
                             InputTextCallback callback, void *user_data) {
   ASSERT(!(flags & InputTextFlags_Multiline)); // call InputTextMultiline() or
                                                // InputTextEx() manually if
@@ -4548,7 +4590,7 @@ static Vec2 InputTextCalcTextSizeW(Context *ctx, const Wchar *text_begin,
 // Wrapper for textedit.h to edit text (our wrapper is for: statically sized
 // buffer, single-line, wchar characters. InputText converts between UTF-8 and
 // wchar)
-namespace Stb {
+namespace Gui {
 
 static int TEXTEDIT_STRINGLEN(const InputTextState *obj) {
   return obj->CurLenW;
@@ -4731,11 +4773,11 @@ static bool TEXTEDIT_INSERTCHARS(InputTextState *obj, int pos,
 static void textedit_replace(InputTextState *str, TexteditState *state,
                              const TEXTEDIT_CHARTYPE *text, int text_len) {
   text_makeundo_replace(str, state, 0, str->CurLenW, text_len);
-  Stb::TEXTEDIT_DELETECHARS(str, 0, str->CurLenW);
+  Gui::TEXTEDIT_DELETECHARS(str, 0, str->CurLenW);
   state->cursor = state->select_start = state->select_end = 0;
   if (text_len <= 0)
     return;
-  if (Stb::TEXTEDIT_INSERTCHARS(str, 0, text, text_len)) {
+  if (Gui::TEXTEDIT_INSERTCHARS(str, 0, text, text_len)) {
     state->cursor = state->select_start = state->select_end = text_len;
     state->has_preferred_x = 0;
     return;
@@ -4744,7 +4786,7 @@ static void textedit_replace(InputTextState *str, TexteditState *state,
              // of how we currently use textedit_replace()
 }
 
-} // namespace Stb
+} // namespace Gui
 
 void InputTextState::OnKeyPressed(int key) {
   textedit_key(this, &Stb, key);
@@ -4792,8 +4834,8 @@ void InputTextCallbackData::InsertChars(int pos, const char *new_text,
       return;
 
     // Contrary to TEXTEDIT_INSERTCHARS() this is working in the UTF8
-    // buffer, hence the mildly similar code (until we remove the U16 buffer
-    // altogether!)
+    // buffer, hence the mildly similar code (until we remove the unsigned short
+    // buffer altogether!)
     Context &g = *Ctx;
     InputTextState *edit_state = &g.InputTextState;
     ASSERT(edit_state->ID != 0 && g.ActiveId == edit_state->ID);
@@ -4819,8 +4861,7 @@ void InputTextCallbackData::InsertChars(int pos, const char *new_text,
 
 // Return false to discard a character.
 static bool InputTextFilterCharacter(Context *ctx, unsigned int *p_char,
-                                     InputTextFlags flags,
-                                     InputTextCallback callback,
+                                     int flags, InputTextCallback callback,
                                      void *user_data,
                                      InputSource input_source) {
   ASSERT(input_source == InputSource_Keyboard ||
@@ -4981,7 +5022,7 @@ static void InputTextReconcileUndoStateAfterUserCallback(InputTextState *state,
     if (TEXTEDIT_CHARTYPE *p = text_createundo(
             &state->Stb.undostate, first_diff, delete_len, insert_len))
       for (int i = 0; i < delete_len; i++)
-        p[i] = Stb::TEXTEDIT_GETCHAR(state, first_diff + i);
+        p[i] = Gui::TEXTEDIT_GETCHAR(state, first_diff + i);
 }
 
 // As InputText() retain textual data and we currently provide a path for user
@@ -4990,7 +5031,7 @@ static void InputTextReconcileUndoStateAfterUserCallback(InputTextState *state,
 // desirable that we discourage users from taking advantage of the "user not
 // retaining data" trick, but that more likely be attractive when we do have
 // _NoLiveEdit flag available.
-void Gui::InputTextDeactivateHook(ID id) {
+void Gui::InputTextDeactivateHook(int id) {
   Context &g = *GGui;
   InputTextState *state = &g.InputTextState;
   if (id == 0 || state->ID != id)
@@ -5019,11 +5060,11 @@ void Gui::InputTextDeactivateHook(ID id) {
 // misc/cpp/stdlib.h (FIXME: Rather confusing and messy function, among
 // the worse part of our codebase, expecting to rewrite a V2 at some point..
 // Partly because we are
-//  doing UTF8 > U16 > UTF8 conversions on the go to easily interface with
-//  textedit. Ideally should stay in UTF-8 all the time. See
+//  doing UTF8 > unsigned short > UTF8 conversions on the go to easily interface
+//  with textedit. Ideally should stay in UTF-8 all the time. See
 //  https://github.com/nothings/stb/issues/188)
 bool Gui::InputTextEx(const char *label, const char *hint, char *buf,
-                      int buf_size, const Vec2 &size_arg, InputTextFlags flags,
+                      int buf_size, const Vec2 &size_arg, int flags,
                       InputTextCallback callback, void *callback_user_data) {
   Window *window = GetCurrentWindow();
   if (window->SkipItems)
@@ -5047,7 +5088,7 @@ bool Gui::InputTextEx(const char *label, const char *hint, char *buf,
   if (is_multiline) // Open group before calling GetID() because groups tracks
                     // id created within their scope (including the scrollbar)
     BeginGroup();
-  const ID id = window->GetID(label);
+  const int id = window->GetID(label);
   const Vec2 label_size = CalcTextSize(label, NULL, true);
   const Vec2 frame_size = CalcItemSize(
       size_arg, CalcItemWidth(),
@@ -5085,7 +5126,7 @@ bool Gui::InputTextEx(const char *label, const char *hint, char *buf,
 
     // Prevent NavActivate reactivating in BeginChild() when we are already
     // active.
-    const ID backup_activate_id = g.NavActivateId;
+    const int backup_activate_id = g.NavActivateId;
     if (g.ActiveId == id) // Prevent reactivation
       g.NavActivateId = 0;
 
@@ -5117,7 +5158,7 @@ bool Gui::InputTextEx(const char *label, const char *hint, char *buf,
     inner_size.x -= draw_window->ScrollbarSizes.x;
   } else {
     // Support for internal InputTextFlags_MergedItem flag, which could be
-    // redesigned as an ItemFlags if needed (with test performed in ItemAdd)
+    // redesigned as an int if needed (with test performed in ItemAdd)
     ItemSize(total_bb, style.FramePadding.y);
     if (!(flags & InputTextFlags_MergedItem))
       if (!ItemAdd(total_bb, id, &frame_bb, ItemFlags_Inputable))
@@ -5361,20 +5402,20 @@ bool Gui::InputTextEx(const char *label, const char *hint, char *buf,
         // there's no "right" behavior (depends on use-case, software, OS)
         const bool is_bol =
             (state->Stb.cursor == 0) ||
-            Stb::TEXTEDIT_GETCHAR(state, state->Stb.cursor - 1) == '\n';
+            Gui::TEXTEDIT_GETCHAR(state, state->Stb.cursor - 1) == '\n';
         if (TEXT_HAS_SELECTION(&state->Stb) || !is_bol)
           state->OnKeyPressed(TEXTEDIT_K_WORDLEFT);
         // state->OnKeyPressed(TEXTEDIT_K_WORDRIGHT | TEXTEDIT_K_SHIFT);
         if (!TEXT_HAS_SELECTION(&state->Stb))
-          Stb::textedit_prep_selection_at_cursor(&state->Stb);
+          Gui::textedit_prep_selection_at_cursor(&state->Stb);
         state->Stb.cursor =
-            Stb::TEXTEDIT_MOVEWORDRIGHT_MAC(state, state->Stb.cursor);
+            Gui::TEXTEDIT_MOVEWORDRIGHT_MAC(state, state->Stb.cursor);
         state->Stb.select_end = state->Stb.cursor;
-        Stb::textedit_clamp(state, &state->Stb);
+        Gui::textedit_clamp(state, &state->Stb);
       } else {
         // Triple-click: Select line
         const bool is_eol =
-            Stb::TEXTEDIT_GETCHAR(state, state->Stb.cursor) == '\n';
+            Gui::TEXTEDIT_GETCHAR(state, state->Stb.cursor) == '\n';
         state->OnKeyPressed(TEXTEDIT_K_LINESTART);
         state->OnKeyPressed(TEXTEDIT_K_LINEEND | TEXTEDIT_K_SHIFT);
         state->OnKeyPressed(TEXTEDIT_K_RIGHT | TEXTEDIT_K_SHIFT);
@@ -5460,7 +5501,7 @@ bool Gui::InputTextEx(const char *label, const char *hint, char *buf,
     // allow routing operations for other code (e.g. calling window trying to
     // use CTRL+A and CTRL+B: formet would be handled by InputText) Otherwise we
     // could simply assume that we own the keys as we are active.
-    const InputFlags f_repeat = InputFlags_Repeat;
+    const int f_repeat = InputFlags_Repeat;
     const bool is_cut = (Shortcut(Mod_Shortcut | Key_X, id, f_repeat) ||
                          Shortcut(Mod_Shift | Key_Delete, id, f_repeat)) &&
                         !is_readonly && !is_password &&
@@ -5721,7 +5762,7 @@ bool Gui::InputTextEx(const char *label, const char *hint, char *buf,
 
         // The reason we specify the usage semantic (Completion/History) is that
         // Completion needs to disable keyboard TABBING at the moment.
-        InputTextFlags event_flag = 0;
+        int event_flag = 0;
         Key event_key = Key_None;
         if ((flags & InputTextFlags_CallbackCompletion) != 0 &&
             Shortcut(Key_Tab, id)) {
@@ -5885,9 +5926,9 @@ bool Gui::InputTextEx(const char *label, const char *hint, char *buf,
     Strncpy(buf, apply_new_text, Min(apply_new_text_length + 1, buf_size));
   }
 
-  // Release active ID at the end of the function (so e.g. pressing Return still
-  // does a final application of the value) Otherwise request text input ahead
-  // for next frame.
+  // Release active int at the end of the function (so e.g. pressing Return
+  // still does a final application of the value) Otherwise request text input
+  // ahead for next frame.
   if (g.ActiveId == id && clear_active_id)
     ClearActiveID();
   else if (g.ActiveId == id)
@@ -6061,7 +6102,7 @@ bool Gui::InputTextEx(const char *label, const char *hint, char *buf,
       const Wchar *text_selected_end =
           text_begin + Max(state->Stb.select_start, state->Stb.select_end);
 
-      U32 bg_color = GetColorU32(
+      unsigned int bg_color = GetColorU32(
           Col_TextSelectedBg,
           render_cursor ? 1.0f
                         : 0.6f); // FIXME: current code flow mandate that
@@ -6105,7 +6146,8 @@ bool Gui::InputTextEx(const char *label, const char *hint, char *buf,
     // cases (e.g. single-line 1 MB string) which would make DrawList crash.
     if (is_multiline ||
         (buf_display_end - buf_display) < buf_display_max_length) {
-      U32 col = GetColorU32(is_displaying_hint ? Col_TextDisabled : Col_Text);
+      unsigned int col =
+          GetColorU32(is_displaying_hint ? Col_TextDisabled : Col_Text);
       draw_window->DrawList->AddText(g.Font, g.FontSize, draw_pos - draw_scroll,
                                      col, buf_display, buf_display_end, 0.0f,
                                      is_multiline ? NULL : &clip_rect);
@@ -6150,7 +6192,8 @@ bool Gui::InputTextEx(const char *label, const char *hint, char *buf,
 
     if (is_multiline ||
         (buf_display_end - buf_display) < buf_display_max_length) {
-      U32 col = GetColorU32(is_displaying_hint ? Col_TextDisabled : Col_Text);
+      unsigned int col =
+          GetColorU32(is_displaying_hint ? Col_TextDisabled : Col_Text);
       draw_window->DrawList->AddText(g.Font, g.FontSize, draw_pos, col,
                                      buf_display, buf_display_end, 0.0f,
                                      is_multiline ? NULL : &clip_rect);
@@ -6207,9 +6250,9 @@ bool Gui::InputTextEx(const char *label, const char *hint, char *buf,
 void Gui::DebugNodeInputTextState(InputTextState *state) {
 #ifndef DISABLE_DEBUG_TOOLS
   Context &g = *GGui;
-  Stb::TexteditState *stb_state = &state->Stb;
-  Stb::StbUndoState *undo_state = &stb_state->undostate;
-  Text("ID: 0x%08X, ActiveID: 0x%08X", state->ID, g.ActiveId);
+  Gui::TexteditState *stb_state = &state->Stb;
+  Gui::StbUndoState *undo_state = &stb_state->undostate;
+  Text("unsigned int: 0x%08X, ActiveID: 0x%08X", state->ID, g.ActiveId);
   DebugLocateItemOnHover(state->ID);
   Text("CurLenW: %d, CurLenA: %d, Cursor: %d, Selection: %d..%d",
        state->CurLenW, state->CurLenA, stb_state->cursor,
@@ -6225,7 +6268,7 @@ void Gui::DebugNodeInputTextState(InputTextState *state) {
   {
     PushStyleVar(StyleVar_ItemSpacing, Vec2(0, 0));
     for (int n = 0; n < TEXTEDIT_UNDOSTATECOUNT; n++) {
-      Stb::StbUndoRecord *undo_rec = &undo_state->undo_rec[n];
+      Gui::StbUndoRecord *undo_rec = &undo_state->undo_rec[n];
       const char undo_rec_type = (n < undo_state->undo_point)    ? 'u'
                                  : (n >= undo_state->redo_point) ? 'r'
                                                                  : ' ';
@@ -6267,7 +6310,7 @@ void Gui::DebugNodeInputTextState(InputTextState *state) {
 // - ColorPickerOptionsPopup() [Internal]
 //-------------------------------------------------------------------------
 
-bool Gui::ColorEdit3(const char *label, float col[3], ColorEditFlags flags) {
+bool Gui::ColorEdit3(const char *label, float col[3], int flags) {
   return ColorEdit4(label, col, flags | ColorEditFlags_NoAlpha);
 }
 
@@ -6308,7 +6351,7 @@ static void ColorEditRestoreHS(const float *col, float *H, float *S, float *V) {
 // floats if ColorEditFlags_NoAlpha flag is set. With typical options:
 // Left-click on color square to open color picker. Right-click to open option
 // menu. CTRL-Click over input fields to edit them and TAB to go to next item.
-bool Gui::ColorEdit4(const char *label, float col[4], ColorEditFlags flags) {
+bool Gui::ColorEdit4(const char *label, float col[4], int flags) {
   Window *window = GetCurrentWindow();
   if (window->SkipItems)
     return false;
@@ -6328,7 +6371,7 @@ bool Gui::ColorEdit4(const char *label, float col[4], ColorEditFlags flags) {
 
   // If we're not showing any slider there's no point in doing any HSV
   // conversions
-  const ColorEditFlags flags_untouched = flags;
+  const int flags_untouched = flags;
   if (flags & ColorEditFlags_NoInputs)
     flags = (flags & (~ColorEditFlags_DisplayMask_)) |
             ColorEditFlags_DisplayRGB | ColorEditFlags_NoOptions;
@@ -6494,14 +6537,14 @@ bool Gui::ColorEdit4(const char *label, float col[4], ColorEditFlags flags) {
           TextEx(label, label_display_end);
           Spacing();
         }
-        ColorEditFlags picker_flags_to_forward =
+        int picker_flags_to_forward =
             ColorEditFlags_DataTypeMask_ | ColorEditFlags_PickerMask_ |
             ColorEditFlags_InputMask_ | ColorEditFlags_HDR |
             ColorEditFlags_NoAlpha | ColorEditFlags_AlphaBar;
-        ColorEditFlags picker_flags =
-            (flags_untouched & picker_flags_to_forward) |
-            ColorEditFlags_DisplayMask_ | ColorEditFlags_NoLabel |
-            ColorEditFlags_AlphaPreviewHalf;
+        int picker_flags = (flags_untouched & picker_flags_to_forward) |
+                           ColorEditFlags_DisplayMask_ |
+                           ColorEditFlags_NoLabel |
+                           ColorEditFlags_AlphaPreviewHalf;
         SetNextItemWidth(square_sz * 12.0f); // Use 256 + bar sizes?
         value_changed |=
             ColorPicker4("##picker", col, picker_flags, &g.ColorPickerRef.x);
@@ -6582,14 +6625,14 @@ bool Gui::ColorEdit4(const char *label, float col[4], ColorEditFlags flags) {
     g.LastItemData.ID = g.ActiveId;
 
   if (value_changed &&
-      g.LastItemData.ID != 0) // In case of ID collision, the second EndGroup()
-                              // won't catch g.ActiveId
+      g.LastItemData.ID != 0) // In case of int collision, the second
+                              // EndGroup() won't catch g.ActiveId
     MarkItemEdited(g.LastItemData.ID);
 
   return value_changed;
 }
 
-bool Gui::ColorPicker3(const char *label, float col[3], ColorEditFlags flags) {
+bool Gui::ColorPicker3(const char *label, float col[3], int flags) {
   float col4[4] = {col[0], col[1], col[2], 1.0f};
   if (!ColorPicker4(label, col4, flags | ColorEditFlags_NoAlpha))
     return false;
@@ -6602,7 +6645,7 @@ bool Gui::ColorPicker3(const char *label, float col[3], ColorEditFlags flags) {
 // Helper for ColorPicker4()
 static void RenderArrowsForVerticalBar(DrawList *draw_list, Vec2 pos,
                                        Vec2 half_sz, float bar_w, float alpha) {
-  U32 alpha8 = F32_TO_INT8_SAT(alpha);
+  unsigned int alpha8 = F32_TO_INT8_SAT(alpha);
   Gui::RenderArrowPointingAt(draw_list, Vec2(pos.x + half_sz.x + 1, pos.y),
                              Vec2(half_sz.x + 2, half_sz.y + 1), Dir_Right,
                              COL32(0, 0, 0, alpha8));
@@ -6624,7 +6667,7 @@ static void RenderArrowsForVerticalBar(DrawList *draw_list, Vec2 pos,
 // scrollbar appears, affecting automatic width..)
 // FIXME: this is trying to be aware of style.Alpha but not fully correct. Also,
 // the color wheel will have overlapping glitches with (style.Alpha < 1.0)
-bool Gui::ColorPicker4(const char *label, float col[4], ColorEditFlags flags,
+bool Gui::ColorPicker4(const char *label, float col[4], int flags,
                        const float *ref_col) {
   Context &g = *GGui;
   Window *window = GetCurrentWindow();
@@ -6816,10 +6859,10 @@ bool Gui::ColorPicker4(const char *label, float col[4], ColorEditFlags flags,
     if ((flags & ColorEditFlags_NoLabel))
       Text("Current");
 
-    ColorEditFlags sub_flags_to_forward =
-        ColorEditFlags_InputMask_ | ColorEditFlags_HDR |
-        ColorEditFlags_AlphaPreview | ColorEditFlags_AlphaPreviewHalf |
-        ColorEditFlags_NoTooltip;
+    int sub_flags_to_forward = ColorEditFlags_InputMask_ | ColorEditFlags_HDR |
+                               ColorEditFlags_AlphaPreview |
+                               ColorEditFlags_AlphaPreviewHalf |
+                               ColorEditFlags_NoTooltip;
     ColorButton("##current", col_v4, (flags & sub_flags_to_forward),
                 Vec2(square_sz * 3, square_sz * 2));
     if (ref_col != NULL) {
@@ -6857,13 +6900,12 @@ bool Gui::ColorPicker4(const char *label, float col[4], ColorEditFlags flags,
   if ((flags & ColorEditFlags_NoInputs) == 0) {
     PushItemWidth((alpha_bar ? bar1_pos_x : bar0_pos_x) + bars_width -
                   picker_pos.x);
-    ColorEditFlags sub_flags_to_forward =
+    int sub_flags_to_forward =
         ColorEditFlags_DataTypeMask_ | ColorEditFlags_InputMask_ |
         ColorEditFlags_HDR | ColorEditFlags_NoAlpha | ColorEditFlags_NoOptions |
         ColorEditFlags_NoTooltip | ColorEditFlags_NoSmallPreview |
         ColorEditFlags_AlphaPreview | ColorEditFlags_AlphaPreviewHalf;
-    ColorEditFlags sub_flags =
-        (flags & sub_flags_to_forward) | ColorEditFlags_NoPicker;
+    int sub_flags = (flags & sub_flags_to_forward) | ColorEditFlags_NoPicker;
     if (flags & ColorEditFlags_DisplayRGB ||
         (flags & ColorEditFlags_DisplayMask_) == 0)
       if (ColorEdit4("##rgb", col, sub_flags | ColorEditFlags_DisplayRGB)) {
@@ -6918,10 +6960,10 @@ bool Gui::ColorPicker4(const char *label, float col[4], ColorEditFlags flags,
   }
 
   const int style_alpha8 = F32_TO_INT8_SAT(style.Alpha);
-  const U32 col_black = COL32(0, 0, 0, style_alpha8);
-  const U32 col_white = COL32(255, 255, 255, style_alpha8);
-  const U32 col_midgrey = COL32(128, 128, 128, style_alpha8);
-  const U32 col_hues[6 + 1] = {
+  const unsigned int col_black = COL32(0, 0, 0, style_alpha8);
+  const unsigned int col_white = COL32(255, 255, 255, style_alpha8);
+  const unsigned int col_midgrey = COL32(128, 128, 128, style_alpha8);
+  const unsigned int col_hues[6 + 1] = {
       COL32(255, 0, 0, style_alpha8), COL32(255, 255, 0, style_alpha8),
       COL32(0, 255, 0, style_alpha8), COL32(0, 255, 255, style_alpha8),
       COL32(0, 0, 255, style_alpha8), COL32(255, 0, 255, style_alpha8),
@@ -6929,8 +6971,8 @@ bool Gui::ColorPicker4(const char *label, float col[4], ColorEditFlags flags,
 
   Vec4 hue_color_f(1, 1, 1, style.Alpha);
   ColorConvertHSVtoRGB(H, 1, 1, hue_color_f.x, hue_color_f.y, hue_color_f.z);
-  U32 hue_color32 = ColorConvertFloat4ToU32(hue_color_f);
-  U32 user_col32_striped_of_alpha = ColorConvertFloat4ToU32(
+  unsigned int hue_color32 = ColorConvertFloat4ToU32(hue_color_f);
+  unsigned int user_col32_striped_of_alpha = ColorConvertFloat4ToU32(
       Vec4(R, G, B, style.Alpha)); // Important: this is still including the
                                    // main rendering/style alpha!!
 
@@ -7064,8 +7106,8 @@ bool Gui::ColorPicker4(const char *label, float col[4], ColorEditFlags flags,
       memcmp(backup_initial_col, col, components * sizeof(float)) == 0)
     value_changed = false;
   if (value_changed &&
-      g.LastItemData.ID != 0) // In case of ID collision, the second EndGroup()
-                              // won't catch g.ActiveId
+      g.LastItemData.ID != 0) // In case of int collision, the second
+                              // EndGroup() won't catch g.ActiveId
     MarkItemEdited(g.LastItemData.ID);
 
   if (set_current_color_edit_id)
@@ -7080,14 +7122,14 @@ bool Gui::ColorPicker4(const char *label, float col[4], ColorEditFlags flags,
 // Yet show it in the tooltip. 'desc_id' is not called 'label' because we don't
 // display it next to the button, but only in the tooltip. Note that 'col' may
 // be encoded in HSV if ColorEditFlags_InputHSV is set.
-bool Gui::ColorButton(const char *desc_id, const Vec4 &col,
-                      ColorEditFlags flags, const Vec2 &size_arg) {
+bool Gui::ColorButton(const char *desc_id, const Vec4 &col, int flags,
+                      const Vec2 &size_arg) {
   Window *window = GetCurrentWindow();
   if (window->SkipItems)
     return false;
 
   Context &g = *GGui;
-  const ID id = window->GetID(desc_id);
+  const int id = window->GetID(desc_id);
   const float default_size = GetFrameHeight();
   const Vec2 size(size_arg.x == 0.0f ? default_size : size_arg.x,
                   size_arg.y == 0.0f ? default_size : size_arg.y);
@@ -7179,7 +7221,7 @@ bool Gui::ColorButton(const char *desc_id, const Vec4 &col,
 }
 
 // Initialize/override default color options
-void Gui::SetColorEditOptions(ColorEditFlags flags) {
+void Gui::SetColorEditOptions(int flags) {
   Context &g = *GGui;
   if ((flags & ColorEditFlags_DisplayMask_) == 0)
     flags |= ColorEditFlags_DefaultOptions_ & ColorEditFlags_DisplayMask_;
@@ -7201,8 +7243,7 @@ void Gui::SetColorEditOptions(ColorEditFlags flags) {
 }
 
 // Note: only access 3 floats if ColorEditFlags_NoAlpha flag is set.
-void Gui::ColorTooltip(const char *text, const float *col,
-                       ColorEditFlags flags) {
+void Gui::ColorTooltip(const char *text, const float *col, int flags) {
   Context &g = *GGui;
 
   if (!BeginTooltipEx(TooltipFlags_OverridePrevious, WindowFlags_None))
@@ -7246,14 +7287,14 @@ void Gui::ColorTooltip(const char *text, const float *col,
   EndTooltip();
 }
 
-void Gui::ColorEditOptionsPopup(const float *col, ColorEditFlags flags) {
+void Gui::ColorEditOptionsPopup(const float *col, int flags) {
   bool allow_opt_inputs = !(flags & ColorEditFlags_DisplayMask_);
   bool allow_opt_datatype = !(flags & ColorEditFlags_DataTypeMask_);
   if ((!allow_opt_inputs && !allow_opt_datatype) || !BeginPopup("context"))
     return;
   Context &g = *GGui;
   g.LockMarkEdited++;
-  ColorEditFlags opts = g.ColorEditOptions;
+  int opts = g.ColorEditOptions;
   if (allow_opt_inputs) {
     if (RadioButton("RGB", (opts & ColorEditFlags_DisplayRGB) != 0))
       opts = (opts & ~ColorEditFlags_DisplayMask_) | ColorEditFlags_DisplayRGB;
@@ -7304,7 +7345,7 @@ void Gui::ColorEditOptionsPopup(const float *col, ColorEditFlags flags) {
   g.LockMarkEdited--;
 }
 
-void Gui::ColorPickerOptionsPopup(const float *ref_col, ColorEditFlags flags) {
+void Gui::ColorPickerOptionsPopup(const float *ref_col, int flags) {
   bool allow_opt_picker = !(flags & ColorEditFlags_PickerMask_);
   bool allow_opt_alpha_bar =
       !(flags & ColorEditFlags_NoAlpha) && !(flags & ColorEditFlags_AlphaBar);
@@ -7324,10 +7365,9 @@ void Gui::ColorPickerOptionsPopup(const float *ref_col, ColorEditFlags flags) {
       if (picker_type > 0)
         Separator();
       PushID(picker_type);
-      ColorEditFlags picker_flags =
-          ColorEditFlags_NoInputs | ColorEditFlags_NoOptions |
-          ColorEditFlags_NoLabel | ColorEditFlags_NoSidePreview |
-          (flags & ColorEditFlags_NoAlpha);
+      int picker_flags = ColorEditFlags_NoInputs | ColorEditFlags_NoOptions |
+                         ColorEditFlags_NoLabel | ColorEditFlags_NoSidePreview |
+                         (flags & ColorEditFlags_NoAlpha);
       if (picker_type == 0)
         picker_flags |= ColorEditFlags_PickerHueBar;
       if (picker_type == 1)
@@ -7402,7 +7442,7 @@ bool Gui::TreeNodeV(const void *ptr_id, const char *fmt, va_list args) {
   return TreeNodeExV(ptr_id, 0, fmt, args);
 }
 
-bool Gui::TreeNodeEx(const char *label, TreeNodeFlags flags) {
+bool Gui::TreeNodeEx(const char *label, int flags) {
   Window *window = GetCurrentWindow();
   if (window->SkipItems)
     return false;
@@ -7410,8 +7450,7 @@ bool Gui::TreeNodeEx(const char *label, TreeNodeFlags flags) {
   return TreeNodeBehavior(window->GetID(label), flags, label, NULL);
 }
 
-bool Gui::TreeNodeEx(const char *str_id, TreeNodeFlags flags, const char *fmt,
-                     ...) {
+bool Gui::TreeNodeEx(const char *str_id, int flags, const char *fmt, ...) {
   va_list args;
   va_start(args, fmt);
   bool is_open = TreeNodeExV(str_id, flags, fmt, args);
@@ -7419,8 +7458,7 @@ bool Gui::TreeNodeEx(const char *str_id, TreeNodeFlags flags, const char *fmt,
   return is_open;
 }
 
-bool Gui::TreeNodeEx(const void *ptr_id, TreeNodeFlags flags, const char *fmt,
-                     ...) {
+bool Gui::TreeNodeEx(const void *ptr_id, int flags, const char *fmt, ...) {
   va_list args;
   va_start(args, fmt);
   bool is_open = TreeNodeExV(ptr_id, flags, fmt, args);
@@ -7428,7 +7466,7 @@ bool Gui::TreeNodeEx(const void *ptr_id, TreeNodeFlags flags, const char *fmt,
   return is_open;
 }
 
-bool Gui::TreeNodeExV(const char *str_id, TreeNodeFlags flags, const char *fmt,
+bool Gui::TreeNodeExV(const char *str_id, int flags, const char *fmt,
                       va_list args) {
   Window *window = GetCurrentWindow();
   if (window->SkipItems)
@@ -7439,7 +7477,7 @@ bool Gui::TreeNodeExV(const char *str_id, TreeNodeFlags flags, const char *fmt,
   return TreeNodeBehavior(window->GetID(str_id), flags, label, label_end);
 }
 
-bool Gui::TreeNodeExV(const void *ptr_id, TreeNodeFlags flags, const char *fmt,
+bool Gui::TreeNodeExV(const void *ptr_id, int flags, const char *fmt,
                       va_list args) {
   Window *window = GetCurrentWindow();
   if (window->SkipItems)
@@ -7450,13 +7488,13 @@ bool Gui::TreeNodeExV(const void *ptr_id, TreeNodeFlags flags, const char *fmt,
   return TreeNodeBehavior(window->GetID(ptr_id), flags, label, label_end);
 }
 
-void Gui::TreeNodeSetOpen(ID id, bool open) {
+void Gui::TreeNodeSetOpen(int id, bool open) {
   Context &g = *GGui;
   Storage *storage = g.CurrentWindow->DC.StateStorage;
   storage->SetInt(id, open ? 1 : 0);
 }
 
-bool Gui::TreeNodeUpdateNextOpen(ID id, TreeNodeFlags flags) {
+bool Gui::TreeNodeUpdateNextOpen(int id, int flags) {
   if (flags & TreeNodeFlags_Leaf)
     return true;
 
@@ -7497,7 +7535,7 @@ bool Gui::TreeNodeUpdateNextOpen(ID id, TreeNodeFlags flags) {
   return is_open;
 }
 
-bool Gui::TreeNodeBehavior(ID id, TreeNodeFlags flags, const char *label,
+bool Gui::TreeNodeBehavior(int id, int flags, const char *label,
                            const char *label_end) {
   Window *window = GetCurrentWindow();
   if (window->SkipItems)
@@ -7621,7 +7659,7 @@ bool Gui::TreeNodeBehavior(ID id, TreeNodeFlags flags, const char *label,
     g.LastItemData.ClipRect = window->ClipRect;
   }
 
-  ButtonFlags button_flags = TreeNodeFlags_None;
+  int button_flags = TreeNodeFlags_None;
   if ((flags & TreeNodeFlags_AllowOverlap) ||
       (g.LastItemData.InFlags & ItemFlags_AllowOverlap))
     button_flags |= ButtonFlags_AllowOverlap;
@@ -7720,13 +7758,13 @@ bool Gui::TreeNodeBehavior(ID id, TreeNodeFlags flags, const char *label,
     g.LastItemData.StatusFlags |= ItemStatusFlags_ToggledSelection;
 
   // Render
-  const U32 text_col = GetColorU32(Col_Text);
-  NavHighlightFlags nav_highlight_flags = NavHighlightFlags_TypeThin;
+  const unsigned int text_col = GetColorU32(Col_Text);
+  int nav_highlight_flags = NavHighlightFlags_TypeThin;
   if (display_frame) {
     // Framed type
-    const U32 bg_col = GetColorU32((held && hovered) ? Col_HeaderActive
-                                   : hovered         ? Col_HeaderHovered
-                                                     : Col_Header);
+    const unsigned int bg_col = GetColorU32((held && hovered) ? Col_HeaderActive
+                                            : hovered ? Col_HeaderHovered
+                                                      : Col_Header);
     RenderFrame(frame_bb.Min, frame_bb.Max, bg_col, true, style.FrameRounding);
     RenderNavHighlight(frame_bb, id, nav_highlight_flags);
     if (flags & TreeNodeFlags_Bullet)
@@ -7752,9 +7790,10 @@ bool Gui::TreeNodeBehavior(ID id, TreeNodeFlags flags, const char *label,
   } else {
     // Unframed typed for tree nodes
     if (hovered || selected) {
-      const U32 bg_col = GetColorU32((held && hovered) ? Col_HeaderActive
-                                     : hovered         ? Col_HeaderHovered
-                                                       : Col_Header);
+      const unsigned int bg_col =
+          GetColorU32((held && hovered) ? Col_HeaderActive
+                      : hovered         ? Col_HeaderHovered
+                                        : Col_Header);
       RenderFrame(frame_bb.Min, frame_bb.Max, bg_col, false);
     }
     RenderNavHighlight(frame_bb, id, nav_highlight_flags);
@@ -7808,7 +7847,7 @@ void Gui::TreePush(const void *ptr_id) {
   PushID(ptr_id);
 }
 
-void Gui::TreePushOverrideID(ID id) {
+void Gui::TreePushOverrideID(int id) {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
   Indent();
@@ -7822,7 +7861,7 @@ void Gui::TreePop() {
   Unindent();
 
   window->DC.TreeDepth--;
-  U32 tree_depth_mask = (1 << window->DC.TreeDepth);
+  unsigned int tree_depth_mask = (1 << window->DC.TreeDepth);
 
   // Handle Left arrow to move to parent tree node (when
   // TreeNodeFlags_NavLeftJumpsBackHere is enabled)
@@ -7853,7 +7892,7 @@ float Gui::GetTreeNodeToLabelSpacing() {
 }
 
 // Set next TreeNode/CollapsingHeader open state.
-void Gui::SetNextItemOpen(bool is_open, Cond cond) {
+void Gui::SetNextItemOpen(bool is_open, int cond) {
   Context &g = *GGui;
   if (g.CurrentWindow->SkipItems)
     return;
@@ -7863,11 +7902,11 @@ void Gui::SetNextItemOpen(bool is_open, Cond cond) {
 }
 
 // CollapsingHeader returns true when opened but do not indent nor push into the
-// ID stack (because of the TreeNodeFlags_NoTreePushOnOpen flag). This is
+// int stack (because of the TreeNodeFlags_NoTreePushOnOpen flag). This is
 // basically the same as calling TreeNodeEx(label,
 // TreeNodeFlags_CollapsingHeader). You can remove the _NoTreePushOnOpen
 // flag if you want behavior closer to normal TreeNode().
-bool Gui::CollapsingHeader(const char *label, TreeNodeFlags flags) {
+bool Gui::CollapsingHeader(const char *label, int flags) {
   Window *window = GetCurrentWindow();
   if (window->SkipItems)
     return false;
@@ -7882,8 +7921,7 @@ bool Gui::CollapsingHeader(const char *label, TreeNodeFlags flags) {
 // p_visible != NULL && *p_visible == false : do not show the header at all
 // Do not mistake this with the Open state of the header itself, which you can
 // adjust with SetNextItemOpen() or TreeNodeFlags_DefaultOpen.
-bool Gui::CollapsingHeader(const char *label, bool *p_visible,
-                           TreeNodeFlags flags) {
+bool Gui::CollapsingHeader(const char *label, bool *p_visible, int flags) {
   Window *window = GetCurrentWindow();
   if (window->SkipItems)
     return false;
@@ -7891,11 +7929,11 @@ bool Gui::CollapsingHeader(const char *label, bool *p_visible,
   if (p_visible && !*p_visible)
     return false;
 
-  ID id = window->GetID(label);
+  int id = window->GetID(label);
   flags |= TreeNodeFlags_CollapsingHeader;
   if (p_visible)
     flags |= TreeNodeFlags_AllowOverlap |
-             (TreeNodeFlags)TreeNodeFlags_ClipLabelForTrailingButton;
+             (int)TreeNodeFlags_ClipLabelForTrailingButton;
   bool is_open = TreeNodeBehavior(id, flags, label);
   if (p_visible != NULL) {
     // Create a small overlapping close button
@@ -7910,7 +7948,7 @@ bool Gui::CollapsingHeader(const char *label, bool *p_visible,
         Max(g.LastItemData.Rect.Min.x,
             g.LastItemData.Rect.Max.x - g.Style.FramePadding.x - button_size);
     float button_y = g.LastItemData.Rect.Min.y + g.Style.FramePadding.y;
-    ID close_button_id = GetIDWithSeed("#CLOSE", NULL, id);
+    int close_button_id = GetIDWithSeed("#CLOSE", NULL, id);
     if (CloseButton(close_button_id, Vec2(button_x, button_y)))
       *p_visible = false;
     g.LastItemData = last_item_backup;
@@ -7926,13 +7964,13 @@ bool Gui::CollapsingHeader(const char *label, bool *p_visible,
 //-------------------------------------------------------------------------
 
 // Tip: pass a non-visible label (e.g. "##hello") then you can use the space to
-// draw other text or image. But you need to make sure the ID is unique, e.g.
+// draw other text or image. But you need to make sure the int is unique, e.g.
 // enclose calls in PushID/PopID or use ##unique_id. With this scheme,
 // SelectableFlags_SpanAllColumns and SelectableFlags_AllowOverlap are
 // also frequently used flags.
 // FIXME: Selectable() with (size.x == 0.0f) and (SelectableTextAlign.x > 0.0f)
 // followed by SameLine() is currently not supported.
-bool Gui::Selectable(const char *label, bool selected, SelectableFlags flags,
+bool Gui::Selectable(const char *label, bool selected, int flags,
                      const Vec2 &size_arg) {
   Window *window = GetCurrentWindow();
   if (window->SkipItems)
@@ -7943,7 +7981,7 @@ bool Gui::Selectable(const char *label, bool selected, SelectableFlags flags,
 
   // Submit label or explicit size to ItemSize(), whereas ItemAdd() will submit
   // a larger/spanning rectangle.
-  ID id = window->GetID(label);
+  int id = window->GetID(label);
   Vec2 label_size = CalcTextSize(label, NULL, true);
   Vec2 size(size_arg.x != 0.0f ? size_arg.x : label_size.x,
             size_arg.y != 0.0f ? size_arg.y : label_size.y);
@@ -8021,7 +8059,7 @@ bool Gui::Selectable(const char *label, bool selected, SelectableFlags flags,
 
   // We use NoHoldingActiveID on menus so user can click and _hold_ on a menu
   // then drag to browse child entries
-  ButtonFlags button_flags = 0;
+  int button_flags = 0;
   if (flags & SelectableFlags_NoHoldingActiveID) {
     button_flags |= ButtonFlags_NoHoldingActiveId;
   }
@@ -8084,9 +8122,9 @@ bool Gui::Selectable(const char *label, bool selected, SelectableFlags flags,
 
   // Render
   if (hovered || selected) {
-    const U32 col = GetColorU32((held && hovered) ? Col_HeaderActive
-                                : hovered         ? Col_HeaderHovered
-                                                  : Col_Header);
+    const unsigned int col = GetColorU32((held && hovered) ? Col_HeaderActive
+                                         : hovered         ? Col_HeaderHovered
+                                                           : Col_Header);
     RenderFrame(bb.Min, bb.Max, col, false, 0.0f);
   }
   if (g.NavId == id)
@@ -8116,7 +8154,7 @@ bool Gui::Selectable(const char *label, bool selected, SelectableFlags flags,
   return pressed; //-V1020
 }
 
-bool Gui::Selectable(const char *label, bool *p_selected, SelectableFlags flags,
+bool Gui::Selectable(const char *label, bool *p_selected, int flags,
                      const Vec2 &size_arg) {
   if (Selectable(label, *p_selected, flags, size_arg)) {
     *p_selected = !*p_selected;
@@ -8139,7 +8177,7 @@ bool Gui::Selectable(const char *label, bool *p_selected, SelectableFlags flags,
 //           [](void*, int n) { return my_items[n]->Name; }, &my_items, -1);
 // However the code is written in a way where calling it from multiple locations
 // is safe (e.g. to obtain buffer).
-TypingSelectRequest *Gui::GetTypingSelectRequest(TypingSelectFlags flags) {
+TypingSelectRequest *Gui::GetTypingSelectRequest(int flags) {
   Context &g = *GGui;
   TypingSelectState *data = &g.TypingSelectState;
   TypingSelectRequest *out_request = &data->Request;
@@ -8235,7 +8273,7 @@ TypingSelectRequest *Gui::GetTypingSelectRequest(TypingSelectFlags flags) {
         (p == buf_end) ? (out_request->SearchBufferLen / c0_len) : 0;
     out_request->SingleCharMode =
         (single_char_count > 0 || data->SingleCharModeLock);
-    out_request->SingleCharSize = (S8)c0_len;
+    out_request->SingleCharSize = (signed char)c0_len;
     data->SingleCharModeLock |=
         (single_char_count >=
          TYPING_SELECT_SINGLE_CHAR_COUNT_FOR_LOCK); // From now on we stop
@@ -8380,7 +8418,7 @@ bool Gui::BeginListBox(const char *label, const Vec2 &size_arg) {
     return false;
 
   const Style &style = g.Style;
-  const ID id = GetID(label);
+  const int id = GetID(label);
   const Vec2 label_size = CalcTextSize(label, NULL, true);
 
   // Size default to hold ~7.25 items.
@@ -8516,7 +8554,7 @@ int Gui::PlotEx(PlotType plot_type, const char *label,
     return -1;
 
   const Style &style = g.Style;
-  const ID id = window->GetID(label);
+  const int id = window->GetID(label);
 
   const Vec2 label_size = CalcTextSize(label, NULL, true);
   const Vec2 frame_size = CalcItemSize(
@@ -8598,9 +8636,9 @@ int Gui::PlotEx(PlotType plot_type, const char *label,
             : (scale_min < 0.0f ? 0.0f
                                 : 1.0f); // Where does the zero line stands
 
-    const U32 col_base = GetColorU32(
+    const unsigned int col_base = GetColorU32(
         (plot_type == PlotType_Lines) ? Col_PlotLines : Col_PlotHistogram);
-    const U32 col_hovered =
+    const unsigned int col_hovered =
         GetColorU32((plot_type == PlotType_Lines) ? Col_PlotLinesHovered
                                                   : Col_PlotHistogramHovered);
 
@@ -8751,7 +8789,7 @@ void Gui::Value(const char *prefix, float v, const char *float_format) {
 void MenuColumns::Update(float spacing, bool window_reappearing) {
   if (window_reappearing)
     memset(Widths, 0, sizeof(Widths));
-  Spacing = (U16)spacing;
+  Spacing = (unsigned short)spacing;
   CalcNextTotalWidth(true);
   memset(Widths, 0, sizeof(Widths));
   TotalWidth = NextTotalWidth;
@@ -8759,10 +8797,10 @@ void MenuColumns::Update(float spacing, bool window_reappearing) {
 }
 
 void MenuColumns::CalcNextTotalWidth(bool update_offsets) {
-  U16 offset = 0;
+  unsigned short offset = 0;
   bool want_spacing = false;
   for (int i = 0; i < ARRAYSIZE(Widths); i++) {
-    U16 width = Widths[i];
+    unsigned short width = Widths[i];
     if (want_spacing && width > 0)
       offset += Spacing;
     want_spacing |= (width > 0);
@@ -8784,10 +8822,10 @@ void MenuColumns::CalcNextTotalWidth(bool update_offsets) {
 
 float MenuColumns::DeclColumns(float w_icon, float w_label, float w_shortcut,
                                float w_mark) {
-  Widths[0] = Max(Widths[0], (U16)w_icon);
-  Widths[1] = Max(Widths[1], (U16)w_label);
-  Widths[2] = Max(Widths[2], (U16)w_shortcut);
-  Widths[3] = Max(Widths[3], (U16)w_mark);
+  Widths[0] = Max(Widths[0], (unsigned short)w_icon);
+  Widths[1] = Max(Widths[1], (unsigned short)w_label);
+  Widths[2] = Max(Widths[2], (unsigned short)w_shortcut);
+  Widths[3] = Max(Widths[3], (unsigned short)w_mark);
   CalcNextTotalWidth(false);
   return (float)Max(TotalWidth, NextTotalWidth);
 }
@@ -8910,8 +8948,8 @@ void Gui::EndMenuBar() {
 // FIXME: Somehow overlapping with docking tech.
 // FIXME: The "rect-cut" aspect of this could be formalized into a lower-level
 // helper (rect-cut: https://halt.software/dead-simple-layouts)
-bool Gui::BeginViewportSideBar(const char *name, Viewport *viewport_p, Dir dir,
-                               float axis_size, WindowFlags window_flags) {
+bool Gui::BeginViewportSideBar(const char *name, Viewport *viewport_p, int dir,
+                               float axis_size, int window_flags) {
   ASSERT(dir != Dir_None);
 
   Window *bar_window = FindWindowByName(name);
@@ -8939,8 +8977,8 @@ bool Gui::BeginViewportSideBar(const char *name, Viewport *viewport_p, Dir dir,
   window_flags |= WindowFlags_NoTitleBar | WindowFlags_NoResize |
                   WindowFlags_NoMove | WindowFlags_NoDocking;
   SetNextWindowViewport(
-      viewport->ID); // Enforce viewport so we don't create our own viewport
-                     // when ConfigFlags_ViewportsNoMerge is set.
+      viewport->ID); // Enforce viewport so we don't create our own
+                     // viewport when ConfigFlags_ViewportsNoMerge is set.
   PushStyleVar(StyleVar_WindowRounding, 0.0f);
   PushStyleVar(StyleVar_WindowMinSize,
                Vec2(0, 0)); // Lift normal size constraint
@@ -8967,8 +9005,8 @@ bool Gui::BeginMainMenuBar() {
   g.NextWindowData.MenuBarOffsetMinVal = Vec2(
       g.Style.DisplaySafeAreaPadding.x,
       Max(g.Style.DisplaySafeAreaPadding.y - g.Style.FramePadding.y, 0.0f));
-  WindowFlags window_flags = WindowFlags_NoScrollbar |
-                             WindowFlags_NoSavedSettings | WindowFlags_MenuBar;
+  int window_flags = WindowFlags_NoScrollbar | WindowFlags_NoSavedSettings |
+                     WindowFlags_MenuBar;
   float height = GetFrameHeight();
   bool is_open = BeginViewportSideBar("##MainMenuBar", viewport, Dir_Up, height,
                                       window_flags);
@@ -9006,16 +9044,16 @@ static bool IsRootOfOpenMenuSet() {
 
   // Initially we used 'upper_popup->OpenParentId == window->IDStack.back()' to
   // differentiate multiple menu sets from each others (e.g. inside menu bar vs
-  // loose menu items) based on parent ID. This would however prevent the use of
-  // e.g. PushID() user code submitting menus. Previously this worked between
-  // popup and a first child menu because the first child menu always had the
-  // _ChildWindow flag, making hovering on parent popup possible while first
-  // child menu was focused - but this was generally a bug with other side
+  // loose menu items) based on parent unsigned int. This would however prevent
+  // the use of e.g. PushID() user code submitting menus. Previously this worked
+  // between popup and a first child menu because the first child menu always
+  // had the _ChildWindow flag, making hovering on parent popup possible while
+  // first child menu was focused - but this was generally a bug with other side
   // effects. Instead we don't treat Popup specifically (in order to
   // consistently support menu features in them), maybe the first child menu of
   // a Popup doesn't have the _ChildWindow flag, and we rely on this
   // IsRootOfOpenMenuSet() check to allow hovering between root window/popup and
-  // first child menu. In the end, lack of ID check made it so we could no
+  // first child menu. In the end, lack of int check made it so we could no
   // longer differentiate between separate menu sets. To compensate for that, we
   // at least check parent window nav layer. This fixes the most common case of
   // menu opening on hover when moving between window content and menu bar.
@@ -9038,7 +9076,7 @@ bool Gui::BeginMenuEx(const char *label, const char *icon, bool enabled) {
 
   Context &g = *GGui;
   const Style &style = g.Style;
-  const ID id = window->GetID(label);
+  const int id = window->GetID(label);
   bool menu_is_open = IsPopupOpen(id, PopupFlags_None);
 
   // Sub-menus are ChildWindow so that mouse can be hovering across them
@@ -9047,14 +9085,13 @@ bool Gui::BeginMenuEx(const char *label, const char *icon, bool enabled) {
   // across (otherwise e.g. resizing borders with
   // ButtonFlags_FlattenChildren would react), but top-most BeginMenu()
   // will bypass that limitation.
-  WindowFlags window_flags =
-      WindowFlags_ChildMenu | WindowFlags_AlwaysAutoResize |
-      WindowFlags_NoMove | WindowFlags_NoTitleBar |
-      WindowFlags_NoSavedSettings | WindowFlags_NoNavFocus;
+  int window_flags = WindowFlags_ChildMenu | WindowFlags_AlwaysAutoResize |
+                     WindowFlags_NoMove | WindowFlags_NoTitleBar |
+                     WindowFlags_NoSavedSettings | WindowFlags_NoNavFocus;
   if (window->Flags & WindowFlags_ChildMenu)
     window_flags |= WindowFlags_ChildWindow;
 
-  // If a menu with same the ID was already submitted, we will append to it,
+  // If a menu with same the int was already submitted, we will append to it,
   // matching the behavior of Begin(). We are relying on a O(N) search - so O(N
   // log N) over the frame - which seems like the most efficient for the
   // expected small amount of BeginMenu() calls per frame. If somehow this is
@@ -9071,7 +9108,7 @@ bool Gui::BeginMenuEx(const char *label, const char *icon, bool enabled) {
     return menu_is_open;
   }
 
-  // Tag menu as used. Next time BeginMenu() with same ID is called it will
+  // Tag menu as used. Next time BeginMenu() with same int is called it will
   // append to existing menu
   g.MenusIdSubmittedThisFrame.push_back(id);
 
@@ -9097,7 +9134,7 @@ bool Gui::BeginMenuEx(const char *label, const char *icon, bool enabled) {
 
   // We use SelectableFlags_NoSetKeyOwner to allow down on one menu item,
   // move, up on another.
-  const SelectableFlags selectable_flags =
+  const int selectable_flags =
       SelectableFlags_NoHoldingActiveID | SelectableFlags_NoSetKeyOwner |
       SelectableFlags_SelectOnClick | SelectableFlags_DontClosePopups;
   if (window->DC.LayoutType == LayoutType_Horizontal) {
@@ -9349,9 +9386,9 @@ bool Gui::MenuItemEx(const char *label, const char *icon, const char *shortcut,
 
   // We use SelectableFlags_NoSetKeyOwner to allow down on one menu item,
   // move, up on another.
-  const SelectableFlags selectable_flags = SelectableFlags_SelectOnRelease |
-                                           SelectableFlags_NoSetKeyOwner |
-                                           SelectableFlags_SetNavIdOnHover;
+  const int selectable_flags = SelectableFlags_SelectOnRelease |
+                               SelectableFlags_NoSetKeyOwner |
+                               SelectableFlags_SetNavIdOnHover;
   const MenuColumns *offsets = &window->DC.MenuColumns;
   if (window->DC.LayoutType == LayoutType_Horizontal) {
     // Mimic the exact layout spacing of BeginMenu() to allow MenuItem() inside
@@ -9473,11 +9510,11 @@ struct TabBarSection {
 
 namespace Gui {
 static void TabBarLayout(TabBar *tab_bar);
-static U32 TabBarCalcTabID(TabBar *tab_bar, const char *label,
-                           Window *docked_window);
+static unsigned int TabBarCalcTabID(TabBar *tab_bar, const char *label,
+                                    Window *docked_window);
 static float TabBarCalcMaxTabWidth();
 static float TabBarScrollClamp(TabBar *tab_bar, float scrolling);
-static void TabBarScrollToTab(TabBar *tab_bar, ID tab_id,
+static void TabBarScrollToTab(TabBar *tab_bar, int tab_id,
                               TabBarSection *sections);
 static TabItem *TabBarScrollingButtons(TabBar *tab_bar);
 static TabItem *TabBarTabListPopupButton(TabBar *tab_bar);
@@ -9523,13 +9560,13 @@ static PtrOrIndex GetTabBarRefFromTabBar(TabBar *tab_bar) {
   return PtrOrIndex(tab_bar);
 }
 
-bool Gui::BeginTabBar(const char *str_id, TabBarFlags flags) {
+bool Gui::BeginTabBar(const char *str_id, int flags) {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
   if (window->SkipItems)
     return false;
 
-  ID id = window->GetID(str_id);
+  int id = window->GetID(str_id);
   TabBar *tab_bar = g.TabBars.GetOrAddByKey(id);
   Rect tab_bar_bb = Rect(
       window->DC.CursorPos.x, window->DC.CursorPos.y, window->WorkRect.Max.x,
@@ -9542,8 +9579,7 @@ bool Gui::BeginTabBar(const char *str_id, TabBarFlags flags) {
   return BeginTabBarEx(tab_bar, tab_bar_bb, flags | TabBarFlags_IsFocused);
 }
 
-bool Gui::BeginTabBarEx(TabBar *tab_bar, const Rect &tab_bar_bb,
-                        TabBarFlags flags) {
+bool Gui::BeginTabBarEx(TabBar *tab_bar, const Rect &tab_bar_bb, int flags) {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
   if (window->SkipItems)
@@ -9603,7 +9639,7 @@ bool Gui::BeginTabBarEx(TabBar *tab_bar, const Rect &tab_bar_bb,
   // Draw separator
   // (it would be misleading to draw this in EndTabBar() suggesting that it may
   // be drawn over tabs, as tab bar are appendable)
-  const U32 col = GetColorU32(
+  const unsigned int col = GetColorU32(
       (flags & TabBarFlags_IsFocused) ? Col_TabActive : Col_TabUnfocusedActive);
   if (g.Style.TabBarBorderSize > 0.0f) {
     const float y = tab_bar->BarRect.Max.y;
@@ -9698,7 +9734,7 @@ static void Gui::TabBarLayout(TabBar *tab_bar) {
       tab_bar->Tabs[tab_dst_n] = tab_bar->Tabs[tab_src_n];
 
     tab = &tab_bar->Tabs[tab_dst_n];
-    tab->IndexDuringLayout = (S16)tab_dst_n;
+    tab->IndexDuringLayout = (signed short)tab_dst_n;
 
     // We will need sorting if tabs have changed section (e.g. moved from one of
     // Leading/Central/Trailing to another)
@@ -9732,7 +9768,7 @@ static void Gui::TabBarLayout(TabBar *tab_bar) {
                             : 0.0f;
 
   // Setup next selected tab
-  ID scroll_to_tab_id = 0;
+  int scroll_to_tab_id = 0;
   if (tab_bar->NextSelectedTabId) {
     tab_bar->SelectedTabId = tab_bar->NextSelectedTabId;
     tab_bar->NextSelectedTabId = 0;
@@ -9979,14 +10015,14 @@ static void Gui::TabBarLayout(TabBar *tab_bar) {
           tab_bar->BarRect.Min.x + tab_bar->WidthAllTabsIdeal);
 }
 
-// Dockable windows uses Name/ID in the global namespace. Non-dockable items use
-// the ID stack.
-static U32 Gui::TabBarCalcTabID(TabBar *tab_bar, const char *label,
-                                Window *docked_window) {
+// Dockable windows uses Name/unsigned int in the global namespace. Non-dockable
+// items use the int stack.
+static unsigned int Gui::TabBarCalcTabID(TabBar *tab_bar, const char *label,
+                                         Window *docked_window) {
   if (docked_window != NULL) {
     UNUSED(tab_bar);
     ASSERT(tab_bar->Flags & TabBarFlags_DockNode);
-    ID id = docked_window->TabId;
+    int id = docked_window->TabId;
     KeepAliveID(id);
     return id;
   } else {
@@ -10000,7 +10036,7 @@ static float Gui::TabBarCalcMaxTabWidth() {
   return g.FontSize * 20.0f;
 }
 
-TabItem *Gui::TabBarFindTabByID(TabBar *tab_bar, ID tab_id) {
+TabItem *Gui::TabBarFindTabByID(TabBar *tab_bar, int tab_id) {
   if (tab_id != 0)
     for (int n = 0; n < tab_bar->Tabs.Size; n++)
       if (tab_bar->Tabs[n].ID == tab_id)
@@ -10048,8 +10084,7 @@ const char *Gui::TabBarGetTabName(TabBar *tab_bar, TabItem *tab) {
 // The purpose of this call is to register tab in advance so we can control
 // their order at the time they appear. Otherwise calling this is unnecessary as
 // tabs are appending as needed by the BeginTabItem() function.
-void Gui::TabBarAddTab(TabBar *tab_bar, TabItemFlags tab_flags,
-                       Window *window) {
+void Gui::TabBarAddTab(TabBar *tab_bar, int tab_flags, Window *window) {
   Context &g = *GGui;
   ASSERT(TabBarFindTabByID(tab_bar, window->TabId) == NULL);
   ASSERT(g.CurrentTabBar !=
@@ -10080,7 +10115,7 @@ void Gui::TabBarAddTab(TabBar *tab_bar, TabItemFlags tab_flags,
 
 // The *TabId fields are already set by the docking system _before_ the actual
 // TabItem was created, so we clear them regardless.
-void Gui::TabBarRemoveTab(TabBar *tab_bar, ID tab_id) {
+void Gui::TabBarRemoveTab(TabBar *tab_bar, int tab_id) {
   if (TabItem *tab = TabBarFindTabByID(tab_bar, tab_id))
     tab_bar->Tabs.erase(tab);
   if (tab_bar->VisibleTabId == tab_id) {
@@ -10125,7 +10160,7 @@ static float Gui::TabBarScrollClamp(TabBar *tab_bar, float scrolling) {
 
 // Note: we may scroll to tab that are not selected! e.g. using keyboard arrow
 // keys
-static void Gui::TabBarScrollToTab(TabBar *tab_bar, ID tab_id,
+static void Gui::TabBarScrollToTab(TabBar *tab_bar, int tab_id,
                                    TabBarSection *sections) {
   TabItem *tab = TabBarFindTabByID(tab_bar, tab_id);
   if (tab == NULL)
@@ -10174,7 +10209,7 @@ void Gui::TabBarQueueReorder(TabBar *tab_bar, TabItem *tab, int offset) {
   ASSERT(offset != 0);
   ASSERT(tab_bar->ReorderRequestTabId == 0);
   tab_bar->ReorderRequestTabId = tab->ID;
-  tab_bar->ReorderRequestOffset = (S16)offset;
+  tab_bar->ReorderRequestOffset = (signed short)offset;
 }
 
 void Gui::TabBarQueueReorderFromMousePos(TabBar *tab_bar, TabItem *src_tab,
@@ -10378,7 +10413,7 @@ static TabItem *Gui::TabBarTabListPopupButton(TabBar *tab_bar) {
 // - TabItemLabelAndCloseButton() [Internal]
 //-------------------------------------------------------------------------
 
-bool Gui::BeginTabItem(const char *label, bool *p_open, TabItemFlags flags) {
+bool Gui::BeginTabItem(const char *label, bool *p_open, int flags) {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
   if (window->SkipItems)
@@ -10397,9 +10432,9 @@ bool Gui::BeginTabItem(const char *label, bool *p_open, TabItemFlags flags) {
   bool ret = TabItemEx(tab_bar, label, p_open, flags, NULL);
   if (ret && !(flags & TabItemFlags_NoPushId)) {
     TabItem *tab = &tab_bar->Tabs[tab_bar->LastTabItemIdx];
-    PushOverrideID(tab->ID); // We already hashed 'label' so push into the ID
-                             // stack directly instead of doing another hash
-                             // through PushID(label)
+    PushOverrideID(tab->ID); // We already hashed 'label' so push into the
+                             // unsigned int stack directly instead of doing
+                             // another hash through PushID(label)
   }
   return ret;
 }
@@ -10423,7 +10458,7 @@ void Gui::EndTabItem() {
     PopID();
 }
 
-bool Gui::TabItemButton(const char *label, TabItemFlags flags) {
+bool Gui::TabItemButton(const char *label, int flags) {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
   if (window->SkipItems)
@@ -10440,8 +10475,8 @@ bool Gui::TabItemButton(const char *label, TabItemFlags flags) {
                    flags | TabItemFlags_Button | TabItemFlags_NoReorder, NULL);
 }
 
-bool Gui::TabItemEx(TabBar *tab_bar, const char *label, bool *p_open,
-                    TabItemFlags flags, Window *docked_window) {
+bool Gui::TabItemEx(TabBar *tab_bar, const char *label, bool *p_open, int flags,
+                    Window *docked_window) {
   // Layout whole tab bar if not already done
   Context &g = *GGui;
   if (tab_bar->WantLayout) {
@@ -10454,11 +10489,11 @@ bool Gui::TabItemEx(TabBar *tab_bar, const char *label, bool *p_open,
     return false;
 
   const Style &style = g.Style;
-  const ID id = TabBarCalcTabID(tab_bar, label, docked_window);
+  const int id = TabBarCalcTabID(tab_bar, label, docked_window);
 
   // If the user called us with *p_open == false, we early out and don't render.
   // We make a call to ItemAdd() so that attempts to use a contextual popup menu
-  // with an implicit ID won't use an older ID.
+  // with an implicit int won't use an older unsigned int.
   TEST_ENGINE_ITEM_INFO(id, label, g.LastItemData.StatusFlags);
   if (p_open && !*p_open) {
     ItemAdd(Rect(), id, NULL, ItemFlags_NoNav);
@@ -10486,7 +10521,7 @@ bool Gui::TabItemEx(TabBar *tab_bar, const char *label, bool *p_open,
     tab->ID = id;
     tab_bar->TabsAddedNew = tab_is_new = true;
   }
-  tab_bar->LastTabItemIdx = (S16)tab_bar->Tabs.index_from_ptr(tab);
+  tab_bar->LastTabItemIdx = (signed short)tab_bar->Tabs.index_from_ptr(tab);
 
   // Calculate tab contents size
   Vec2 size = TabItemCalcSize(
@@ -10516,7 +10551,7 @@ bool Gui::TabItemEx(TabBar *tab_bar, const char *label, bool *p_open,
     ASSERT(tab_bar->Flags & TabBarFlags_DockNode);
     tab->NameOffset = -1;
   } else {
-    tab->NameOffset = (S32)tab_bar->TabsNames.size();
+    tab->NameOffset = (signed int)tab_bar->TabsNames.size();
     tab_bar->TabsNames.append(label, label + strlen(label) + 1);
   }
 
@@ -10597,9 +10632,9 @@ bool Gui::TabItemEx(TabBar *tab_bar, const char *label, bool *p_open,
   }
 
   // Click to Select a tab
-  ButtonFlags button_flags = ((is_tab_button ? ButtonFlags_PressedOnClickRelease
-                                             : ButtonFlags_PressedOnClick) |
-                              ButtonFlags_AllowOverlap);
+  int button_flags = ((is_tab_button ? ButtonFlags_PressedOnClickRelease
+                                     : ButtonFlags_PressedOnClick) |
+                      ButtonFlags_AllowOverlap);
   if (g.DragDropActive &&
       !g.DragDropPayload.IsDataType(
           PAYLOAD_TYPE_WINDOW)) // FIXME: May be an opt-in property of the
@@ -10700,7 +10735,7 @@ bool Gui::TabItemEx(TabBar *tab_bar, const char *label, bool *p_open,
 
   // Render tab shape
   DrawList *display_draw_list = window->DrawList;
-  const U32 tab_col = GetColorU32(
+  const unsigned int tab_col = GetColorU32(
       (held || hovered) ? Col_TabHovered
       : tab_contents_visible
           ? (tab_bar_focused ? Col_TabActive : Col_TabUnfocusedActive)
@@ -10720,7 +10755,7 @@ bool Gui::TabItemEx(TabBar *tab_bar, const char *label, bool *p_open,
     flags |= TabItemFlags_NoCloseWithMiddleMouseButton;
 
   // Render tab label, process close button
-  const ID close_button_id =
+  const int close_button_id =
       p_open ? GetIDWithSeed("#CLOSE", NULL,
                              docked_window ? docked_window->ID : id)
              : 0;
@@ -10777,13 +10812,13 @@ void Gui::SetTabItemClosed(const char *label) {
       g.CurrentTabBar && !(g.CurrentTabBar->Flags & TabBarFlags_DockNode);
   if (is_within_manual_tab_bar) {
     TabBar *tab_bar = g.CurrentTabBar;
-    ID tab_id = TabBarCalcTabID(tab_bar, label, NULL);
+    int tab_id = TabBarCalcTabID(tab_bar, label, NULL);
     if (TabItem *tab = TabBarFindTabByID(tab_bar, tab_id))
       tab->WantClose = true; // Will be processed by next call to TabBarLayout()
   } else if (Window *window = FindWindowByName(label)) {
     if (window->DockIsActive)
       if (DockNode *node = window->DockNode) {
-        ID tab_id = TabBarCalcTabID(node->TabBar, label, window);
+        int tab_id = TabBarCalcTabID(node->TabBar, label, window);
         TabBarRemoveTab(node->TabBar, tab_id);
         window->DockTabWantClose = true;
       }
@@ -10812,8 +10847,8 @@ Vec2 Gui::TabItemCalcSize(Window *window) {
                              (window->Flags & WindowFlags_UnsavedDocument));
 }
 
-void Gui::TabItemBackground(DrawList *draw_list, const Rect &bb,
-                            TabItemFlags flags, U32 col) {
+void Gui::TabItemBackground(DrawList *draw_list, const Rect &bb, int flags,
+                            unsigned int col) {
   // While rendering tabs, we trim 1 pixel off the top of our bounding box so
   // they can fit within a regular frame height while looking "detached" from
   // it.
@@ -10850,9 +10885,9 @@ void Gui::TabItemBackground(DrawList *draw_list, const Rect &bb,
 // Button logic We tend to lock style.FramePadding for a given tab-bar, hence
 // the 'frame_padding' parameter.
 void Gui::TabItemLabelAndCloseButton(
-    DrawList *draw_list, const Rect &bb, TabItemFlags flags, Vec2 frame_padding,
-    const char *label, ID tab_id, ID close_button_id, bool is_contents_visible,
-    bool *out_just_closed, bool *out_text_clipped) {
+    DrawList *draw_list, const Rect &bb, int flags, Vec2 frame_padding,
+    const char *label, int tab_id, int close_button_id,
+    bool is_contents_visible, bool *out_just_closed, bool *out_text_clipped) {
   Context &g = *GGui;
   Vec2 label_size = CalcTextSize(label, NULL, true);
 

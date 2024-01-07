@@ -699,8 +699,8 @@ static bool Glfw_Init(GLFWwindow *window, bool install_callbacks,
   io.BackendPlatformUserData = (void *)bd;
   io.BackendPlatformName = "glfw";
   io.BackendFlags |=
-      BackendFlags_HasMouseCursors; // We can honor GetMouseCursor() values
-                                    // (optional)
+      BackendFlags_HasMouseCursors; // We can honor GetMouseCursor()
+                                    // values (optional)
   io.BackendFlags |=
       BackendFlags_HasSetMousePos; // We can honor io.WantSetMousePos
                                    // requests (optional, rarely used)
@@ -838,7 +838,7 @@ void Glfw_Shutdown() {
                                 false, nullptr);
 #endif
 
-  for (MouseCursor cursor_n = 0; cursor_n < MouseCursor_COUNT; cursor_n++)
+  for (int cursor_n = 0; cursor_n < MouseCursor_COUNT; cursor_n++)
     glfwDestroyCursor(bd->MouseCursors[cursor_n]);
 
     // Windows: restore our WndProc hook
@@ -863,7 +863,7 @@ static void Glfw_UpdateMouseData() {
   IO &io = Gui::GetIO();
   PlatformIO &platform_io = Gui::GetPlatformIO();
 
-  ID mouse_viewport_id = 0;
+  int mouse_viewport_id = 0;
   const Vec2 mouse_pos_prev = io.MousePos;
   for (int n = 0; n < platform_io.Viewports.Size; n++) {
     Viewport *viewport = platform_io.Viewports[n];
@@ -952,7 +952,7 @@ static void Glfw_UpdateMouseCursor() {
       glfwGetInputMode(bd->Window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED)
     return;
 
-  MouseCursor cursor = Gui::GetMouseCursor();
+  int cursor = Gui::GetMouseCursor();
   PlatformIO &platform_io = Gui::GetPlatformIO();
   for (int n = 0; n < platform_io.Viewports.Size; n++) {
     GLFWwindow *window = (GLFWwindow *)platform_io.Viewports[n]->PlatformHandle;
@@ -1471,8 +1471,10 @@ extern GLFWAPI VkResult glfwCreateWindowSurface(
     VkInstance instance, GLFWwindow *window,
     const VkAllocationCallbacks *allocator, VkSurfaceKHR *surface);
 }
-static int Glfw_CreateVkSurface(Viewport *viewport, U64 vk_instance,
-                                const void *vk_allocator, U64 *out_vk_surface) {
+static int Glfw_CreateVkSurface(Viewport *viewport,
+                                unsigned long long vk_instance,
+                                const void *vk_allocator,
+                                unsigned long long *out_vk_surface) {
   Glfw_Data *bd = Glfw_GetBackendData();
   Glfw_ViewportData *vd = (Glfw_ViewportData *)viewport->PlatformUserData;
   UNUSED(bd);

@@ -11,19 +11,19 @@
 //      an existing hosted viewport tends to flicker.
 
 // Important: to compile on 32-bit systems, this backend requires code to be
-// compiled with '#define TextureID U64'. This is because we need
+// compiled with '#define TextureID unsigned long long'. This is because we need
 // TextureID to carry a 64-bit value and by default TextureID is defined as
 // void*. To build this on 32-bit systems:
 // - [Solution 1] IDE/msbuild: in "Properties/C++/Preprocessor Definitions" add
-// 'TextureID=U64' (this is what we do in the
+// 'TextureID=unsigned long long' (this is what we do in the
 // 'example_win32_direct12/example_win32_direct12.vcxproj' project file)
 // - [Solution 2] IDE/msbuild: in "Properties/C++/Preprocessor Definitions" add
 // 'USER_CONFIG="my_config.h"' and inside 'my_config.h' add '#define
-// TextureID U64' and as many other options as you like.
+// TextureID unsigned long long' and as many other options as you like.
 // - [Solution 3] IDE/msbuild: edit config.hpp and add '#define TextureID
-// U64' (prefer solution 2 to create your own config file!)
-// - [Solution 4] command-line: add '/D TextureID=U64' to your cl.exe
-// command-line (this is what we do in the
+// unsigned long long' (prefer solution 2 to create your own config file!)
+// - [Solution 4] command-line: add '/D TextureID=unsigned long long' to your
+// cl.exe command-line (this is what we do in the
 // example_win32_direct12/build_win32.bat file)
 
 #include "../gui.hpp"
@@ -511,18 +511,19 @@ static void DX12_CreateFontsTexture() {
   // Store our identifier
   // READ THIS IF THE STATIC_ASSERT() TRIGGERS:
   // - Important: to compile on 32-bit systems, this backend requires code to be
-  // compiled with '#define TextureID U64'.
+  // compiled with '#define TextureID unsigned long long'.
   // - This is because we need TextureID to carry a 64-bit value and by
   // default TextureID is defined as void*. [Solution 1] IDE/msbuild: in
-  // "Properties/C++/Preprocessor Definitions" add 'TextureID=U64' (this is
-  // what we do in the 'example_win32_direct12/example_win32_direct12.vcxproj'
-  // project file) [Solution 2] IDE/msbuild: in "Properties/C++/Preprocessor
-  // Definitions" add 'USER_CONFIG="my_config.h"' and inside
-  // 'my_config.h' add '#define TextureID U64' and as many other
-  // options as you like. [Solution 3] IDE/msbuild: edit config.hpp and add
-  // '#define TextureID U64' (prefer solution 2 to create your own config
-  // file!) [Solution 4] command-line: add '/D TextureID=U64' to your cl.exe
-  // command-line (this is what we do in the
+  // "Properties/C++/Preprocessor Definitions" add 'TextureID=unsigned long
+  // long' (this is what we do in the
+  // 'example_win32_direct12/example_win32_direct12.vcxproj' project file)
+  // [Solution 2] IDE/msbuild: in "Properties/C++/Preprocessor Definitions" add
+  // 'USER_CONFIG="my_config.h"' and inside 'my_config.h' add '#define TextureID
+  // unsigned long long' and as many other options as you like. [Solution 3]
+  // IDE/msbuild: edit config.hpp and add
+  // '#define TextureID unsigned long long' (prefer solution 2 to create your
+  // own config file!) [Solution 4] command-line: add '/D TextureID=unsigned
+  // long long' to your cl.exe command-line (this is what we do in the
   // example_win32_direct12/build_win32.bat file)
   static_assert(
       sizeof(TextureID) >= sizeof(bd->hFontSrvGpuDescHandle.ptr),

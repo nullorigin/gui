@@ -1,9 +1,9 @@
 // Gui: standalone example application for DirectX 12
 
 // Important: to compile on 32-bit systems, the DirectX12 backend requires code
-// to be compiled with '#define TextureID U64'. This is because we need
-// TextureID to carry a 64-bit value and by default TextureID is defined as
-// void*. This define is set in the example .vcxproj file and need to be
+// to be compiled with '#define TextureID unsigned long long'. This is because
+// we need TextureID to carry a 64-bit value and by default TextureID is defined
+// as void*. This define is set in the example .vcxproj file and need to be
 // replicated in your app or by adding it to your config.hpp file.
 
 #include "dx12.hpp"

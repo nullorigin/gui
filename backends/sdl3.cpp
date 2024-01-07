@@ -549,16 +549,16 @@ static bool SDL3_Init(SDL_Window *window, SDL_Renderer *renderer,
   io.BackendPlatformUserData = (void *)bd;
   io.BackendPlatformName = "sdl3";
   io.BackendFlags |=
-      BackendFlags_HasMouseCursors; // We can honor GetMouseCursor() values
-                                    // (optional)
+      BackendFlags_HasMouseCursors; // We can honor GetMouseCursor()
+                                    // values (optional)
   io.BackendFlags |=
       BackendFlags_HasSetMousePos; // We can honor io.WantSetMousePos
                                    // requests (optional, rarely used)
   if (mouse_can_use_global_state)
     io.BackendFlags |=
-        BackendFlags_PlatformHasViewports; // We can create multi-viewports
-                                           // on the Platform side
-                                           // (optional)
+        BackendFlags_PlatformHasViewports; // We can create
+                                           // multi-viewports on the
+                                           // Platform side (optional)
 
   bd->Window = window;
   bd->Renderer = renderer;
@@ -759,7 +759,7 @@ static void SDL3_UpdateMouseData() {
   // behind focused and dragged from (we need this to find a useful drag and
   // drop target).
   if (io.BackendFlags & BackendFlags_HasMouseHoveredViewport) {
-    ID mouse_viewport_id = 0;
+    int mouse_viewport_id = 0;
     if (SDL_Window *sdl_mouse_window = SDL_GetWindowFromID(bd->MouseWindowID))
       if (Viewport *mouse_viewport =
               Gui::FindViewportByPlatformHandle((void *)sdl_mouse_window))
@@ -774,7 +774,7 @@ static void SDL3_UpdateMouseCursor() {
     return;
   SDL3_Data *bd = SDL3_GetBackendData();
 
-  MouseCursor cursor = Gui::GetMouseCursor();
+  int cursor = Gui::GetMouseCursor();
   if (io.MouseDrawCursor || cursor == MouseCursor_None) {
     // Hide OS mouse cursor if imgui is drawing it or if it wants no cursor
     SDL_HideCursor();
@@ -1125,8 +1125,10 @@ static void SDL3_SwapBuffers(Viewport *viewport, void *) {
 // function to create the surface) SDL is graceful enough to _not_ need
 // <vulkan/vulkan.h> so we can safely include this.
 #include <SDL3/SDL_vulkan.h>
-static int SDL3_CreateVkSurface(Viewport *viewport, U64 vk_instance,
-                                const void *vk_allocator, U64 *out_vk_surface) {
+static int SDL3_CreateVkSurface(Viewport *viewport,
+                                unsigned long long vk_instance,
+                                const void *vk_allocator,
+                                unsigned long long *out_vk_surface) {
   SDL3_ViewportData *vd = (SDL3_ViewportData *)viewport->PlatformUserData;
   (void)vk_allocator;
   SDL_bool ret = SDL_Vulkan_CreateSurface(vd->Window, (VkInstance)vk_instance,

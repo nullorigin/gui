@@ -7,8 +7,8 @@
 
 @set OUT_DIR=Debug
 mkdir %OUT_DIR%
-cl /nologo /Zi /MD /utf-8 %INCLUDES% /D TextureID=U64 %SOURCES% /Fe%OUT_DIR%/%OUT_EXE%.exe /Fo%OUT_DIR%/ /link %LIBS%
+cl /nologo /Zi /MD /utf-8 %INCLUDES% /D TextureID=unsigned long long %SOURCES% /Fe%OUT_DIR%/%OUT_EXE%.exe /Fo%OUT_DIR%/ /link %LIBS%
 
 @set OUT_DIR=Release
 mkdir %OUT_DIR%
-cl /nologo /Zi /MD /utf-8 /Ox /Oi %INCLUDES% /D TextureID=U64 %SOURCES% /Fe%OUT_DIR%/%OUT_EXE%.exe /Fo%OUT_DIR%/ /link %LIBS%
+cl /nologo /Zi /MD /utf-8 /Ox /Oi %INCLUDES% /D TextureID=unsigned long long %SOURCES% /Fe%OUT_DIR%/%OUT_EXE%.exe /Fo%OUT_DIR%/ /link %LIBS%

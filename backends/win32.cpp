@@ -52,7 +52,7 @@ struct Win32_Data {
   int MouseButtonsDown;
   INT64 Time;
   INT64 TicksPerSecond;
-  MouseCursor LastMouseCursor;
+  int LastMouseCursor;
   UINT32 KeyboardCodePage;
   bool WantUpdateMonitors;
 
@@ -110,8 +110,8 @@ static bool Win32_InitEx(void *hwnd, bool platform_has_own_dc) {
   io.BackendPlatformUserData = (void *)bd;
   io.BackendPlatformName = "win32";
   io.BackendFlags |=
-      BackendFlags_HasMouseCursors; // We can honor GetMouseCursor() values
-                                    // (optional)
+      BackendFlags_HasMouseCursors; // We can honor GetMouseCursor()
+                                    // values (optional)
   io.BackendFlags |=
       BackendFlags_HasSetMousePos; // We can honor io.WantSetMousePos
                                    // requests (optional, rarely used)
@@ -197,7 +197,7 @@ static bool Win32_UpdateMouseCursor() {
   if (io.ConfigFlags & ConfigFlags_NoMouseCursorChange)
     return false;
 
-  MouseCursor cursor = Gui::GetMouseCursor();
+  int cursor = Gui::GetMouseCursor();
   if (cursor == MouseCursor_None || io.MouseDrawCursor) {
     // Hide OS mouse cursor if imgui is drawing it or if it wants no cursor
     ::SetCursor(nullptr);
@@ -341,7 +341,7 @@ static void Win32_UpdateMouseData() {
   // - [X] Win32 backend correctly reports this regardless of another viewport
   // behind focused and dragged from (we need this to find a useful drag and
   // drop target).
-  ID mouse_viewport_id = 0;
+  int mouse_viewport_id = 0;
   if (has_mouse_screen_pos)
     if (HWND hovered_hwnd = ::WindowFromPoint(mouse_screen_pos))
       if (Viewport *viewport =
@@ -483,7 +483,7 @@ void Win32_NewFrame() {
   Win32_ProcessKeyEventsWorkarounds();
 
   // Update OS mouse cursor with the cursor requested by imgui
-  MouseCursor mouse_cursor =
+  int mouse_cursor =
       io.MouseDrawCursor ? MouseCursor_None : Gui::GetMouseCursor();
   if (bd->LastMouseCursor != mouse_cursor) {
     bd->LastMouseCursor = mouse_cursor;
@@ -1216,8 +1216,7 @@ struct Win32_ViewportData {
   ~Win32_ViewportData() { ASSERT(Hwnd == nullptr); }
 };
 
-static void Win32_GetWin32StyleFromViewportFlags(ViewportFlags flags,
-                                                 DWORD *out_style,
+static void Win32_GetWin32StyleFromViewportFlags(int flags, DWORD *out_style,
                                                  DWORD *out_ex_style) {
   if (flags & ViewportFlags_NoDecoration)
     *out_style = WS_POPUP;
@@ -1233,7 +1232,7 @@ static void Win32_GetWin32StyleFromViewportFlags(ViewportFlags flags,
     *out_ex_style |= WS_EX_TOPMOST;
 }
 
-static HWND Win32_GetHwndFromViewportID(ID viewport_id) {
+static HWND Win32_GetHwndFromViewportID(int viewport_id) {
   if (viewport_id != 0)
     if (Viewport *viewport = Gui::FindViewportByID(viewport_id))
       return (HWND)viewport->PlatformHandle;

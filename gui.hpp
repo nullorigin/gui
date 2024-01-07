@@ -11,16 +11,16 @@
 // [SECTION] Forward declarations and basic types
 // [SECTION] Gui end-user API functions
 // [SECTION] Flags & Enumerations
-// [SECTION] Tables API flags and structures (TableFlags, TableColumnFlags,
-// TableRowFlags, TableBgTarget, TableSortSpecs, TableColumnSortSpecs) [SECTION]
+// [SECTION] Tables API flags and structures (TableFlags, int,
+// int, TableBgTarget, TableSortSpecs, TableColumnSortSpecs) [SECTION]
 // Helpers: Memory allocations macros, Vector<> [SECTION] Style [SECTION] IO
 // [SECTION] Misc data structures (InputTextCallbackData, SizeCallbackData,
 // WindowClass, Payload) [SECTION] Helpers (OnceUponAFrame, TextFilter,
 // TextBuffer, Storage, ListClipper, Math Operators, Color) [SECTION] Drawing
 // API (DrawCallback, DrawCmd, DrawIdx, DrawVert, DrawChannel, DrawListSplitter,
 // DrawFlags, DrawListFlags, DrawList, DrawData) [SECTION] Font API (FontConfig,
-// FontGlyph, FontGlyphRangesBuilder, FontAtlasFlags, FontAtlas, Font) [SECTION]
-// Viewports (ViewportFlags, Viewport) [SECTION] Platform Dependent Interfaces
+// FontGlyph, FontGlyphRangesBuilder, int, FontAtlas, Font) [SECTION]
+// Viewports (int, Viewport) [SECTION] Platform Dependent Interfaces
 // (PlatformIO, PlatformMonitor, PlatformImeData) [SECTION] Obsolete functions
 // and types
 
@@ -229,89 +229,7 @@ enum Key : int;         // -> enum Key              // Enum: A key identifier
 enum MouseSource : int; // -> enum MouseSource      // Enum; A mouse
                         // input source identifier (Mouse, TouchScreen,
                         // Pen)
-typedef int Col;        // -> enum Col_             // Enum: A color
-                        // identifier for styling
-typedef int Cond;       // -> enum Cond_            // Enum: A condition for
-                        // many Set*() functions
-typedef int DataType;   // -> enum DataType_        // Enum: A primary data type
-typedef int Dir; // -> enum Dir_             // Enum: A cardinal direction
-typedef int MouseButton;   // -> enum MouseButton_     // Enum: A mouse
-                           // button identifier (0=left, 1=right, 2=middle)
-typedef int MouseCursor;   // -> enum MouseCursor_     // Enum: A mouse
-                           // cursor shape
-typedef int SortDirection; // -> enum SortDirection_   // Enum: A
-                           // sorting direction (ascending or descending)
-typedef int StyleVar;      // -> enum StyleVar_        // Enum: A variable
-                           // identifier for styling
-typedef int TableBgTarget; // -> enum TableBgTarget_   // Enum: A
-                           // color target for TableSetBgColor()
 
-// Flags (declared as int to allow using as flags without overhead, and to not
-// pollute the top of this file)
-// - Tip: Use your programming IDE navigation facilities on the names in the
-// _central column_ below to find the actual flags/enum lists!
-//   In Visual Studio IDE: CTRL+comma ("Edit.GoToAll") can follow symbols in
-//   comments, whereas CTRL+F12 ("Edit.GoToImplementation") cannot. With Visual
-//   Assist installed: ALT+G ("VAssistX.GoToImplementation") can also follow
-//   symbols in comments.
-typedef int DrawFlags;      // -> enum DrawFlags_          // Flags: for
-                            // DrawList functions
-typedef int DrawListFlags;  // -> enum DrawListFlags_      // Flags: for
-                            // DrawList instance
-typedef int FontAtlasFlags; // -> enum FontAtlasFlags_     // Flags: for
-                            // FontAtlas build
-typedef int BackendFlags;   // -> enum BackendFlags_    // Flags: for
-                            // io.BackendFlags
-typedef int ButtonFlags;    // -> enum ButtonFlags_     // Flags: for
-                            // InvisibleButton()
-typedef int ChildFlags; // -> enum ChildFlags_      // Flags: for BeginChild()
-typedef int ColorEditFlags; // -> enum ColorEditFlags_  // Flags: for
-                            // ColorEdit4(), ColorPicker4() etc.
-typedef int ConfigFlags;    // -> enum ConfigFlags_     // Flags: for
-                            // io.ConfigFlags
-typedef int ComboFlags; // -> enum ComboFlags_      // Flags: for BeginCombo()
-typedef int DockNodeFlags;  // -> enum DockNodeFlags_   // Flags: for
-                            // DockSpace()
-typedef int DragDropFlags;  // -> enum DragDropFlags_   // Flags: for
-                            // BeginDragDropSource(), AcceptDragDropPayload()
-typedef int FocusedFlags;   // -> enum FocusedFlags_    // Flags: for
-                            // IsWindowFocused()
-typedef int HoveredFlags;   // -> enum HoveredFlags_    // Flags: for
-                            // IsItemHovered(), IsWindowHovered() etc.
-typedef int InputTextFlags; // -> enum InputTextFlags_  // Flags: for
-                            // InputText(), InputTextMultiline()
-typedef int KeyChord;       // -> Key | Mod_XXX    // Flags: for
-                            // IsKeyChordPressed(), Shortcut() etc. an Key
-// optionally OR-ed with one or more Mod_XXX values.
-typedef int PopupFlags; // -> enum PopupFlags_      // Flags: for
-                        // OpenPopup*(), BeginPopupContext*(), IsPopupOpen()
-typedef int SelectableFlags; // -> enum SelectableFlags_ // Flags: for
-                             // Selectable()
-typedef int
-    SliderFlags; // -> enum SliderFlags_     // Flags: for
-                 // DragFloat(), DragInt(), SliderFloat(), SliderInt() etc.
-typedef int TabBarFlags;  // -> enum TabBarFlags_     // Flags: for
-                          // BeginTabBar()
-typedef int TabItemFlags; // -> enum TabItemFlags_    // Flags: for
-                          // BeginTabItem()
-typedef int TableFlags;   // -> enum TableFlags_      // Flags: For BeginTable()
-typedef int TableColumnFlags; // -> enum TableColumnFlags_// Flags:
-                              // For TableSetupColumn()
-typedef int TableRowFlags;    // -> enum TableRowFlags_   // Flags: For
-                              // TableNextRow()
-typedef int TreeNodeFlags;    // -> enum TreeNodeFlags_   // Flags: for
-                              // TreeNode(), TreeNodeEx(), CollapsingHeader()
-typedef int ViewportFlags;    // -> enum ViewportFlags_   // Flags: for
-                              // Viewport
-typedef int WindowFlags;      // -> enum WindowFlags_     // Flags: for
-                              // Begin(), BeginChild()
-
-// Texture: user data for renderer backend to identify a texture [Compile-time
-// configurable type]
-// - To use something else than an opaque void* pointer: override with e.g.
-// '#define TextureID MyTextureType*' in your config.hpp file.
-// - This can be whatever to you want it to be! read the FAQ about TextureID
-// for details.
 #ifndef TextureID
 typedef void *TextureID; // Default: store a pointer or an integer fitting in a
                          // pointer (most renderer backends are ok with that)
@@ -328,28 +246,15 @@ typedef unsigned short DrawIdx; // Default: 16-bit (for maximum compatibility
                                 // with renderer backends)
 #endif
 
-// Scalar data types
-typedef unsigned int ID;    // A unique ID used by widgets (typically the
-                            // result of hashing a stack of string)
-typedef signed char S8;     // 8-bit signed integer
-typedef unsigned char U8;   // 8-bit unsigned integer
-typedef signed short S16;   // 16-bit signed integer
-typedef unsigned short U16; // 16-bit unsigned integer
-typedef signed int S32;     // 32-bit signed integer == int
-typedef unsigned int
-    U32; // 32-bit unsigned integer (often used to store packed colors)
-typedef signed long long S64;   // 64-bit signed integer
-typedef unsigned long long U64; // 64-bit unsigned integer
-
 // Character types
 // (we generally use UTF-8 encoded string in the API. This is storage
 // specifically for a decoded character used for keyboard input and display)
 typedef unsigned int
-    Wchar32; // A single decoded U32 character/code point. We encode them as
-             // multi bytes UTF-8 when used in strings.
+    Wchar32; // A single decoded unsigned int character/code point. We encode
+             // them as multi bytes UTF-8 when used in strings.
 typedef unsigned short
-    Wchar16; // A single decoded U16 character/code point. We encode them as
-             // multi bytes UTF-8 when used in strings.
+    Wchar16; // A single decoded unsigned short character/code point. We encode
+             // them as multi bytes UTF-8 when used in strings.
 #ifdef USE_WCHAR32 // Wchar [configurable type: override in config.hpp with
                    // '#define USE_WCHAR32' to support Unicode planes 1-16]
 typedef Wchar32 Wchar;
@@ -462,7 +367,7 @@ API void ShowDebugLogWindow(
 API void ShowIDStackToolWindow(
     bool *p_open =
         NULL); // create Stack Tool window. hover items with mouse to query
-               // information about the source of their unique ID.
+               // information about the source of their unique unsigned int.
 API void ShowAboutWindow(
     bool *p_open = NULL); // create About window. display Gui version,
                           // credits and build/system information.
@@ -510,7 +415,7 @@ API void StyleColorsClassic(Style *dst = NULL); // classic imgui style
 //    future update.]
 // - Note that the bottom of window stack always contains a window called
 // "Debug".
-API bool Begin(const char *name, bool *p_open = NULL, WindowFlags flags = 0);
+API bool Begin(const char *name, bool *p_open = NULL, int flags = 0);
 API void End();
 
 // Child Windows
@@ -546,9 +451,9 @@ API void End();
 //    true. Begin and BeginChild are the only odd ones out. Will be fixed in a
 //    future update.]
 API bool BeginChild(const char *str_id, const Vec2 &size = Vec2(0, 0),
-                    ChildFlags child_flags = 0, WindowFlags window_flags = 0);
-API bool BeginChild(ID id, const Vec2 &size = Vec2(0, 0),
-                    ChildFlags child_flags = 0, WindowFlags window_flags = 0);
+                    int child_flags = 0, int window_flags = 0);
+API bool BeginChild(int id, const Vec2 &size = Vec2(0, 0), int child_flags = 0,
+                    int window_flags = 0);
 API void EndChild();
 
 // Windows Utilities
@@ -556,11 +461,11 @@ API void EndChild();
 // Begin()/End() block. 'next window' = next window we will Begin() into.
 API bool IsWindowAppearing();
 API bool IsWindowCollapsed();
-API bool IsWindowFocused(
-    FocusedFlags flags = 0); // is current window focused? or its root/child,
-                             // depending on flags. see flags for options.
+API bool
+IsWindowFocused(int flags = 0); // is current window focused? or its root/child,
+                                // depending on flags. see flags for options.
 API bool IsWindowHovered(
-    HoveredFlags flags =
+    int flags =
         0); // is current window hovered and hoverable (e.g. not blocked by a
             // popup/modal)? See HoveredFlags_ for options. IMPORTANT: If
             // you are trying to check whether your mouse should be dispatched
@@ -591,14 +496,14 @@ GetWindowViewport(); // get viewport currently associated to the current window.
 // - Prefer using SetNextXXX functions (before Begin) rather that SetXXX
 // functions (after Begin).
 API void SetNextWindowPos(
-    const Vec2 &pos, Cond cond = 0,
+    const Vec2 &pos, int cond = 0,
     const Vec2 &pivot =
         Vec2(0, 0)); // set next window position. call before Begin(). use
                      // pivot=(0.5f,0.5f) to center on given point, etc.
 API void SetNextWindowSize(
     const Vec2 &size,
-    Cond cond = 0); // set next window size. set axis to 0.0f to force an
-                    // auto-fit on this axis. call before Begin()
+    int cond = 0); // set next window size. set axis to 0.0f to force an
+                   // auto-fit on this axis. call before Begin()
 API void SetNextWindowSizeConstraints(
     const Vec2 &size_min, const Vec2 &size_max,
     SizeCallback custom_callback = NULL,
@@ -615,7 +520,7 @@ API void SetNextWindowContentSize(
                // an axis to 0.0f to leave it automatic. call before Begin()
 API void SetNextWindowCollapsed(
     bool collapsed,
-    Cond cond = 0); // set next window collapsed state. call before Begin()
+    int cond = 0); // set next window collapsed state. call before Begin()
 API void SetNextWindowFocus(); // set next window to be focused / top-most. call
                                // before Begin()
 API void
@@ -626,21 +531,21 @@ SetNextWindowBgAlpha(float alpha); // set next window background color alpha.
                                    // helper to easily override the Alpha
                                    // component of Col_WindowBg/ChildBg/PopupBg.
                                    // you may also use WindowFlags_NoBackground.
-API void SetNextWindowViewport(ID viewport_id); // set next window viewport
+API void SetNextWindowViewport(int viewport_id); // set next window viewport
 API void SetWindowPos(
     const Vec2 &pos,
-    Cond cond = 0); // (not recommended) set current window position - call
-                    // within Begin()/End(). prefer using SetNextWindowPos(),
-                    // as this may incur tearing and side-effects.
+    int cond = 0); // (not recommended) set current window position - call
+                   // within Begin()/End(). prefer using SetNextWindowPos(),
+                   // as this may incur tearing and side-effects.
 API void SetWindowSize(
     const Vec2 &size,
-    Cond cond = 0); // (not recommended) set current window size - call
-                    // within Begin()/End(). set to Vec2(0, 0) to force
-                    // an auto-fit. prefer using SetNextWindowSize(), as
-                    // this may incur tearing and minor side-effects.
+    int cond = 0); // (not recommended) set current window size - call
+                   // within Begin()/End(). set to Vec2(0, 0) to force
+                   // an auto-fit. prefer using SetNextWindowSize(), as
+                   // this may incur tearing and minor side-effects.
 API void SetWindowCollapsed(
     bool collapsed,
-    Cond cond = 0);        // (not recommended) set current window collapsed
+    int cond = 0);         // (not recommended) set current window collapsed
                            // state. prefer using SetNextWindowCollapsed().
 API void SetWindowFocus(); // (not recommended) set current window to be focused
                            // / top-most. prefer using SetNextWindowFocus().
@@ -650,13 +555,12 @@ API void SetWindowFontScale(
                   // scaling, prefer to reload font + rebuild FontAtlas + call
                   // style.ScaleAllSizes().
 API void SetWindowPos(const char *name, const Vec2 &pos,
-                      Cond cond = 0); // set named window position.
-API void
-SetWindowSize(const char *name, const Vec2 &size,
-              Cond cond = 0); // set named window size. set axis to 0.0f to
-                              // force an auto-fit on this axis.
+                      int cond = 0); // set named window position.
+API void SetWindowSize(const char *name, const Vec2 &size,
+                       int cond = 0); // set named window size. set axis to 0.0f
+                                      // to force an auto-fit on this axis.
 API void SetWindowCollapsed(const char *name, bool collapsed,
-                            Cond cond = 0); // set named window collapsed state
+                            int cond = 0); // set named window collapsed state
 API void
 SetWindowFocus(const char *name); // set named window to be focused / top-most.
                                   // use NULL to remove focus.
@@ -723,17 +627,18 @@ SetScrollFromPosY(float local_y,
 // Parameters stacks (shared)
 API void PushFont(Font *font); // use NULL as a shortcut to push default font
 API void PopFont();
-API void PushStyleColor(Col idx,
-                        U32 col); // modify a style color. always use this if
+API void
+PushStyleColor(int idx,
+               unsigned int col); // modify a style color. always use this if
                                   // you modify the style after NewFrame().
-API void PushStyleColor(Col idx, const Vec4 &col);
+API void PushStyleColor(int idx, const Vec4 &col);
 API void PopStyleColor(int count = 1);
 API void
-PushStyleVar(StyleVar idx,
+PushStyleVar(int idx,
              float val); // modify a style float variable. always use this if
                          // you modify the style after NewFrame().
 API void
-PushStyleVar(StyleVar idx,
+PushStyleVar(int idx,
              const Vec2 &val); // modify a style Vec2 variable. always use this
                                // if you modify the style after NewFrame().
 API void PopStyleVar(int count = 1);
@@ -779,18 +684,19 @@ API float GetFontSize(); // get current font size (= height in pixels) of
 API Vec2
 GetFontTexUvWhitePixel(); // get UV coordinate for a while pixel, useful to draw
                           // custom shapes via the DrawList API
-API U32 GetColorU32(
-    Col idx,
+API unsigned int GetColorU32(
+    int idx,
     float alpha_mul = 1.0f); // retrieve given style color with style alpha
                              // applied and optional extra alpha multiplier,
                              // packed as a 32-bit value suitable for DrawList
-API U32
+API unsigned int
 GetColorU32(const Vec4 &col); // retrieve given color with style alpha applied,
                               // packed as a 32-bit value suitable for DrawList
-API U32 GetColorU32(U32 col); // retrieve given color with style alpha applied,
-                              // packed as a 32-bit value suitable for DrawList
+API unsigned int
+GetColorU32(unsigned int col); // retrieve given color with style alpha applied,
+                               // packed as a 32-bit value suitable for DrawList
 API const Vec4 &GetStyleColorVec4(
-    Col idx); // retrieve style color as stored in Style structure. use to
+    int idx); // retrieve style color as stored in Style structure. use to
               // feed back into PushStyleColor(), otherwise use GetColorU32() to
               // get style color with style alpha baked in.
 
@@ -865,37 +771,38 @@ GetFrameHeightWithSpacing(); // ~ FontSize + style.FramePadding.y * 2 +
                              // style.ItemSpacing.y (distance in pixels between
                              // 2 consecutive lines of framed widgets)
 
-// ID stack/scopes
-// - These questions are answered and impacted by understanding of the ID stack
+// int stack/scopes
+// - These questions are answered and impacted by understanding of the int stack
 // system:
 //   - "Q: Why is my widget not reacting when I click on it?"
 //   - "Q: How can I have widgets with an empty label?"
 //   - "Q: How can I have multiple widgets with the same label?"
-// - Short version: ID are hashes of the entire ID stack. If you are creating
+// - Short version: int are hashes of the entire int stack. If you are creating
 // widgets in a loop you most likely
 //   want to push a unique identifier (e.g. object pointer, loop index) to
 //   uniquely differentiate them.
 // - You can also use the "Label##foobar" syntax within widget label to
 // distinguish them from each others.
 // - In this header file we use the "label"/"name" terminology to denote a
-// string that will be displayed + used as an ID,
-//   whereas "str_id" denote a string that is only used as an ID and not
+// string that will be displayed + used as an unsigned int,
+//   whereas "str_id" denote a string that is only used as an int and not
 //   normally displayed.
-API void
-PushID(const char *str_id); // push string into the ID stack (will hash string).
+API void PushID(
+    const char *str_id); // push string into the int stack (will hash string).
 API void PushID(const char *str_id_begin,
-                const char *str_id_end); // push string into the ID stack (will
+                const char *str_id_end); // push string into the int stack (will
                                          // hash string).
 API void PushID(
-    const void *ptr_id); // push pointer into the ID stack (will hash pointer).
+    const void *ptr_id); // push pointer into the int stack (will hash pointer).
 API void
-PushID(int int_id); // push integer into the ID stack (will hash integer).
-API void PopID();   // pop from the ID stack.
-API ID GetID(const char *str_id); // calculate unique ID (hash of whole ID stack
-                                  // + given parameter). e.g. if you want to
-                                  // query into Storage yourself
-API ID GetID(const char *str_id_begin, const char *str_id_end);
-API ID GetID(const void *ptr_id);
+PushID(int int_id); // push integer into the int stack (will hash integer).
+API void PopID();   // pop from the int stack.
+API int
+GetID(const char *str_id); // calculate unique int (hash of whole int stack
+                           // + given parameter). e.g. if you want to
+                           // query into Storage yourself
+API int GetID(const char *str_id_begin, const char *str_id_end);
+API int GetID(const void *ptr_id);
 
 // Widgets: Text
 API void
@@ -944,12 +851,11 @@ API bool SmallButton(const char *label); // button with (FramePadding.y == 0) to
                                          // easily embed within text
 API bool InvisibleButton(
     const char *str_id, const Vec2 &size,
-    ButtonFlags flags =
-        0); // flexible button behavior without the visuals, frequently useful
-            // to build custom behaviors using the public api (along with
-            // IsItemActive, IsItemHovered, etc.)
+    int flags = 0); // flexible button behavior without the visuals, frequently
+                    // useful to build custom behaviors using the public api
+                    // (along with IsItemActive, IsItemHovered, etc.)
 API bool ArrowButton(const char *str_id,
-                     Dir dir); // square button with an arrow shape
+                     int dir); // square button with an arrow shape
 API bool Checkbox(const char *label, bool *v);
 API bool CheckboxFlags(const char *label, int *flags, int flags_value);
 API bool CheckboxFlags(const char *label, unsigned int *flags,
@@ -986,7 +892,7 @@ API bool ImageButton(const char *str_id, TextureID user_texture_id,
 // available for convenience purpose. This is analogous to how ListBox are
 // created.
 API bool BeginCombo(const char *label, const char *preview_value,
-                    ComboFlags flags = 0);
+                    int flags = 0);
 API void EndCombo(); // only call EndCombo() if BeginCombo() returns true!
 API bool Combo(const char *label, int *current_item, const char *const items[],
                int items_count, int popup_max_height_in_items = -1);
@@ -1024,50 +930,50 @@ API bool Combo(const char *label, int *current_item,
 // - We use the same sets of flags for DragXXX() and SliderXXX() functions as
 // the features are the same and it makes it easier to swap them.
 // - Legacy: Pre-1.78 there are DragXXX() function signatures that take a final
-// `float power=1.0f' argument instead of the `SliderFlags flags=0'
+// `float power=1.0f' argument instead of the `int flags=0'
 // argument.
 API bool DragFloat(const char *label, float *v, float v_speed = 1.0f,
                    float v_min = 0.0f, float v_max = 0.0f,
                    const char *format = "%.3f",
-                   SliderFlags flags = 0); // If v_min >= v_max we have no bound
+                   int flags = 0); // If v_min >= v_max we have no bound
 API bool DragFloat2(const char *label, float v[2], float v_speed = 1.0f,
                     float v_min = 0.0f, float v_max = 0.0f,
-                    const char *format = "%.3f", SliderFlags flags = 0);
+                    const char *format = "%.3f", int flags = 0);
 API bool DragFloat3(const char *label, float v[3], float v_speed = 1.0f,
                     float v_min = 0.0f, float v_max = 0.0f,
-                    const char *format = "%.3f", SliderFlags flags = 0);
+                    const char *format = "%.3f", int flags = 0);
 API bool DragFloat4(const char *label, float v[4], float v_speed = 1.0f,
                     float v_min = 0.0f, float v_max = 0.0f,
-                    const char *format = "%.3f", SliderFlags flags = 0);
+                    const char *format = "%.3f", int flags = 0);
 API bool DragFloatRange2(const char *label, float *v_current_min,
                          float *v_current_max, float v_speed = 1.0f,
                          float v_min = 0.0f, float v_max = 0.0f,
                          const char *format = "%.3f",
-                         const char *format_max = NULL, SliderFlags flags = 0);
+                         const char *format_max = NULL, int flags = 0);
 API bool DragInt(const char *label, int *v, float v_speed = 1.0f, int v_min = 0,
                  int v_max = 0, const char *format = "%d",
-                 SliderFlags flags = 0); // If v_min >= v_max we have no bound
+                 int flags = 0); // If v_min >= v_max we have no bound
 API bool DragInt2(const char *label, int v[2], float v_speed = 1.0f,
                   int v_min = 0, int v_max = 0, const char *format = "%d",
-                  SliderFlags flags = 0);
+                  int flags = 0);
 API bool DragInt3(const char *label, int v[3], float v_speed = 1.0f,
                   int v_min = 0, int v_max = 0, const char *format = "%d",
-                  SliderFlags flags = 0);
+                  int flags = 0);
 API bool DragInt4(const char *label, int v[4], float v_speed = 1.0f,
                   int v_min = 0, int v_max = 0, const char *format = "%d",
-                  SliderFlags flags = 0);
+                  int flags = 0);
 API bool DragIntRange2(const char *label, int *v_current_min,
                        int *v_current_max, float v_speed = 1.0f, int v_min = 0,
                        int v_max = 0, const char *format = "%d",
-                       const char *format_max = NULL, SliderFlags flags = 0);
-API bool DragScalar(const char *label, DataType data_type, void *p_data,
+                       const char *format_max = NULL, int flags = 0);
+API bool DragScalar(const char *label, int data_type, void *p_data,
                     float v_speed = 1.0f, const void *p_min = NULL,
                     const void *p_max = NULL, const char *format = NULL,
-                    SliderFlags flags = 0);
-API bool DragScalarN(const char *label, DataType data_type, void *p_data,
+                    int flags = 0);
+API bool DragScalarN(const char *label, int data_type, void *p_data,
                      int components, float v_speed = 1.0f,
                      const void *p_min = NULL, const void *p_max = NULL,
-                     const char *format = NULL, SliderFlags flags = 0);
+                     const char *format = NULL, int flags = 0);
 
 // Widgets: Regular Sliders
 // - CTRL+Click on any slider to turn them into an input box. Manually input
@@ -1079,88 +985,85 @@ API bool DragScalarN(const char *label, DataType data_type, void *p_data,
 // - Format string may also be set to NULL or use the default format ("%f" or
 // "%d").
 // - Legacy: Pre-1.78 there are SliderXXX() function signatures that take a
-// final `float power=1.0f' argument instead of the `SliderFlags flags=0'
+// final `float power=1.0f' argument instead of the `int flags=0'
 // argument.
-API bool SliderFloat(
-    const char *label, float *v, float v_min, float v_max,
-    const char *format = "%.3f",
-    SliderFlags flags = 0); // adjust format to decorate the value with a prefix
+API bool
+SliderFloat(const char *label, float *v, float v_min, float v_max,
+            const char *format = "%.3f",
+            int flags = 0); // adjust format to decorate the value with a prefix
                             // or a suffix for in-slider labels or unit display.
 API bool SliderFloat2(const char *label, float v[2], float v_min, float v_max,
-                      const char *format = "%.3f", SliderFlags flags = 0);
+                      const char *format = "%.3f", int flags = 0);
 API bool SliderFloat3(const char *label, float v[3], float v_min, float v_max,
-                      const char *format = "%.3f", SliderFlags flags = 0);
+                      const char *format = "%.3f", int flags = 0);
 API bool SliderFloat4(const char *label, float v[4], float v_min, float v_max,
-                      const char *format = "%.3f", SliderFlags flags = 0);
+                      const char *format = "%.3f", int flags = 0);
 API bool SliderAngle(const char *label, float *v_rad,
                      float v_degrees_min = -360.0f,
                      float v_degrees_max = +360.0f,
-                     const char *format = "%.0f deg", SliderFlags flags = 0);
+                     const char *format = "%.0f deg", int flags = 0);
 API bool SliderInt(const char *label, int *v, int v_min, int v_max,
-                   const char *format = "%d", SliderFlags flags = 0);
+                   const char *format = "%d", int flags = 0);
 API bool SliderInt2(const char *label, int v[2], int v_min, int v_max,
-                    const char *format = "%d", SliderFlags flags = 0);
+                    const char *format = "%d", int flags = 0);
 API bool SliderInt3(const char *label, int v[3], int v_min, int v_max,
-                    const char *format = "%d", SliderFlags flags = 0);
+                    const char *format = "%d", int flags = 0);
 API bool SliderInt4(const char *label, int v[4], int v_min, int v_max,
-                    const char *format = "%d", SliderFlags flags = 0);
-API bool SliderScalar(const char *label, DataType data_type, void *p_data,
+                    const char *format = "%d", int flags = 0);
+API bool SliderScalar(const char *label, int data_type, void *p_data,
                       const void *p_min, const void *p_max,
-                      const char *format = NULL, SliderFlags flags = 0);
-API bool SliderScalarN(const char *label, DataType data_type, void *p_data,
+                      const char *format = NULL, int flags = 0);
+API bool SliderScalarN(const char *label, int data_type, void *p_data,
                        int components, const void *p_min, const void *p_max,
-                       const char *format = NULL, SliderFlags flags = 0);
+                       const char *format = NULL, int flags = 0);
 API bool VSliderFloat(const char *label, const Vec2 &size, float *v,
                       float v_min, float v_max, const char *format = "%.3f",
-                      SliderFlags flags = 0);
+                      int flags = 0);
 API bool VSliderInt(const char *label, const Vec2 &size, int *v, int v_min,
-                    int v_max, const char *format = "%d",
-                    SliderFlags flags = 0);
-API bool VSliderScalar(const char *label, const Vec2 &size, DataType data_type,
+                    int v_max, const char *format = "%d", int flags = 0);
+API bool VSliderScalar(const char *label, const Vec2 &size, int data_type,
                        void *p_data, const void *p_min, const void *p_max,
-                       const char *format = NULL, SliderFlags flags = 0);
+                       const char *format = NULL, int flags = 0);
 
 // Widgets: Input with Keyboard
 // - If you want to use InputText() with std::string or any custom dynamic
 // string type, see misc/cpp/stdlib.h and comments in demo.cpp.
-// - Most of the InputTextFlags flags are only useful for InputText() and
+// - Most of the int flags are only useful for InputText() and
 // not for InputFloatX, InputIntX, InputDouble etc.
-API bool InputText(const char *label, char *buf, size_t buf_size,
-                   InputTextFlags flags = 0, InputTextCallback callback = NULL,
-                   void *user_data = NULL);
+API bool InputText(const char *label, char *buf, size_t buf_size, int flags = 0,
+                   InputTextCallback callback = NULL, void *user_data = NULL);
 API bool InputTextMultiline(const char *label, char *buf, size_t buf_size,
-                            const Vec2 &size = Vec2(0, 0),
-                            InputTextFlags flags = 0,
+                            const Vec2 &size = Vec2(0, 0), int flags = 0,
                             InputTextCallback callback = NULL,
                             void *user_data = NULL);
 API bool InputTextWithHint(const char *label, const char *hint, char *buf,
-                           size_t buf_size, InputTextFlags flags = 0,
+                           size_t buf_size, int flags = 0,
                            InputTextCallback callback = NULL,
                            void *user_data = NULL);
 API bool InputFloat(const char *label, float *v, float step = 0.0f,
                     float step_fast = 0.0f, const char *format = "%.3f",
-                    InputTextFlags flags = 0);
+                    int flags = 0);
 API bool InputFloat2(const char *label, float v[2], const char *format = "%.3f",
-                     InputTextFlags flags = 0);
+                     int flags = 0);
 API bool InputFloat3(const char *label, float v[3], const char *format = "%.3f",
-                     InputTextFlags flags = 0);
+                     int flags = 0);
 API bool InputFloat4(const char *label, float v[4], const char *format = "%.3f",
-                     InputTextFlags flags = 0);
+                     int flags = 0);
 API bool InputInt(const char *label, int *v, int step = 1, int step_fast = 100,
-                  InputTextFlags flags = 0);
-API bool InputInt2(const char *label, int v[2], InputTextFlags flags = 0);
-API bool InputInt3(const char *label, int v[3], InputTextFlags flags = 0);
-API bool InputInt4(const char *label, int v[4], InputTextFlags flags = 0);
+                  int flags = 0);
+API bool InputInt2(const char *label, int v[2], int flags = 0);
+API bool InputInt3(const char *label, int v[3], int flags = 0);
+API bool InputInt4(const char *label, int v[4], int flags = 0);
 API bool InputDouble(const char *label, double *v, double step = 0.0,
                      double step_fast = 0.0, const char *format = "%.6f",
-                     InputTextFlags flags = 0);
-API bool InputScalar(const char *label, DataType data_type, void *p_data,
+                     int flags = 0);
+API bool InputScalar(const char *label, int data_type, void *p_data,
                      const void *p_step = NULL, const void *p_step_fast = NULL,
-                     const char *format = NULL, InputTextFlags flags = 0);
-API bool InputScalarN(const char *label, DataType data_type, void *p_data,
+                     const char *format = NULL, int flags = 0);
+API bool InputScalarN(const char *label, int data_type, void *p_data,
                       int components, const void *p_step = NULL,
                       const void *p_step_fast = NULL, const char *format = NULL,
-                      InputTextFlags flags = 0);
+                      int flags = 0);
 
 // Widgets: Color Editor/Picker (tip: the ColorEdit* functions have a little
 // color square that can be left-clicked to open a picker, and right-clicked to
@@ -1170,19 +1073,17 @@ API bool InputScalarN(const char *label, DataType data_type, void *p_data,
 // are expected to be accessible.
 // - You can pass the address of a first float element out of a contiguous
 // structure, e.g. &myvector.x
-API bool ColorEdit3(const char *label, float col[3], ColorEditFlags flags = 0);
-API bool ColorEdit4(const char *label, float col[4], ColorEditFlags flags = 0);
-API bool ColorPicker3(const char *label, float col[3],
-                      ColorEditFlags flags = 0);
-API bool ColorPicker4(const char *label, float col[4], ColorEditFlags flags = 0,
+API bool ColorEdit3(const char *label, float col[3], int flags = 0);
+API bool ColorEdit4(const char *label, float col[4], int flags = 0);
+API bool ColorPicker3(const char *label, float col[3], int flags = 0);
+API bool ColorPicker4(const char *label, float col[4], int flags = 0,
                       const float *ref_col = NULL);
 API bool ColorButton(
-    const char *desc_id, const Vec4 &col, ColorEditFlags flags = 0,
+    const char *desc_id, const Vec4 &col, int flags = 0,
     const Vec2 &size = Vec2(0, 0)); // display a color square/button, hover for
                                     // details, return true when pressed.
 API void SetColorEditOptions(
-    ColorEditFlags
-        flags); // initialize current options (generally on application startup)
+    int flags); // initialize current options (generally on application startup)
                 // if you want to select a default format, picker type, etc.
                 // User will be able to change many settings, unless you pass
                 // the _NoOptions flag to your calls.
@@ -1192,23 +1093,24 @@ API void SetColorEditOptions(
 // need to also call TreePop() when you are finished displaying the tree node
 // contents.
 API bool TreeNode(const char *label);
-API bool TreeNode(const char *str_id, const char *fmt, ...) FMTARGS(
-    2); // helper variation to easily decorelate the id from the displayed
-        // string. Read the FAQ about why and how to use ID. to align arbitrary
-        // text at the same level as a TreeNode() you can use Bullet().
+API bool TreeNode(const char *str_id, const char *fmt, ...)
+    FMTARGS(2); // helper variation to easily decorelate the id from the
+                // displayed string. Read the FAQ about why and how to use
+                // unsigned int. to align arbitrary text at the same level as a
+                // TreeNode() you can use Bullet().
 API bool TreeNode(const void *ptr_id, const char *fmt, ...) FMTARGS(2); // "
 API bool TreeNodeV(const char *str_id, const char *fmt, va_list args)
     FMTLIST(2);
 API bool TreeNodeV(const void *ptr_id, const char *fmt, va_list args)
     FMTLIST(2);
-API bool TreeNodeEx(const char *label, TreeNodeFlags flags = 0);
-API bool TreeNodeEx(const char *str_id, TreeNodeFlags flags, const char *fmt,
-                    ...) FMTARGS(3);
-API bool TreeNodeEx(const void *ptr_id, TreeNodeFlags flags, const char *fmt,
-                    ...) FMTARGS(3);
-API bool TreeNodeExV(const char *str_id, TreeNodeFlags flags, const char *fmt,
+API bool TreeNodeEx(const char *label, int flags = 0);
+API bool TreeNodeEx(const char *str_id, int flags, const char *fmt, ...)
+    FMTARGS(3);
+API bool TreeNodeEx(const void *ptr_id, int flags, const char *fmt, ...)
+    FMTARGS(3);
+API bool TreeNodeExV(const char *str_id, int flags, const char *fmt,
                      va_list args) FMTLIST(3);
-API bool TreeNodeExV(const void *ptr_id, TreeNodeFlags flags, const char *fmt,
+API bool TreeNodeExV(const void *ptr_id, int flags, const char *fmt,
                      va_list args) FMTLIST(3);
 API void
 TreePush(const char *str_id); // ~ Indent()+PushID(). Already called by
@@ -1222,19 +1124,18 @@ API float GetTreeNodeToLabelSpacing(); // horizontal distance preceding label
                                        // for a regular unframed TreeNode
 API bool CollapsingHeader(
     const char *label,
-    TreeNodeFlags flags =
+    int flags =
         0); // if returning 'true' the header is open. doesn't indent nor push
-            // on ID stack. user doesn't have to call TreePop().
+            // on int stack. user doesn't have to call TreePop().
 API bool CollapsingHeader(
     const char *label, bool *p_visible,
-    TreeNodeFlags flags =
-        0); // when 'p_visible != NULL': if '*p_visible==true' display an
-            // additional small close button on upper right of the header which
-            // will set the bool to false when clicked, if '*p_visible==false'
-            // don't display the header.
-API void SetNextItemOpen(
-    bool is_open,
-    Cond cond = 0); // set next TreeNode/CollapsingHeader open state.
+    int flags = 0); // when 'p_visible != NULL': if '*p_visible==true' display
+                    // an additional small close button on upper right of the
+                    // header which will set the bool to false when clicked, if
+                    // '*p_visible==false' don't display the header.
+API void
+SetNextItemOpen(bool is_open,
+                int cond = 0); // set next TreeNode/CollapsingHeader open state.
 
 // Widgets: Selectables
 // - A selectable highlights when hovered, and can display another color when
@@ -1242,15 +1143,14 @@ API void SetNextItemOpen(
 // - Neighbors selectable extend their highlight bounds in order to leave no gap
 // between them. This is so a series of selected Selectable appear contiguous.
 API bool Selectable(
-    const char *label, bool selected = false, SelectableFlags flags = 0,
+    const char *label, bool selected = false, int flags = 0,
     const Vec2 &size =
         Vec2(0, 0)); // "bool selected" carry the selection state (read-only).
                      // Selectable() is clicked is returns true so you can
                      // modify your selection state. size.x==0.0: use remaining
                      // width, size.x>0.0: specify width. size.y==0.0: use label
                      // height, size.y>0.0: specify height
-API bool Selectable(const char *label, bool *p_selected,
-                    SelectableFlags flags = 0,
+API bool Selectable(const char *label, bool *p_selected, int flags = 0,
                     const Vec2 &size = Vec2(
                         0, 0)); // "bool* p_selected" point to the selection
                                 // state (read-write), as a convenient helper.
@@ -1379,28 +1279,26 @@ API void SetItemTooltipV(const char *fmt, va_list args) FMTLIST(1);
 //  - You can bypass the hovering restriction by using
 //  HoveredFlags_AllowWhenBlockedByPopup when calling IsItemHovered() or
 //  IsWindowHovered().
-//  - IMPORTANT: Popup identifiers are relative to the current ID stack, so
+//  - IMPORTANT: Popup identifiers are relative to the current int stack, so
 //  OpenPopup and BeginPopup generally needs to be at the same level of the
 //  stack.
 //    This is sometimes leading to confusing mistakes. May rework this in the
 //    future.
 //  - BeginPopup(): query popup state, if open start appending into the window.
-//  Call EndPopup() afterwards if returned true. WindowFlags are forwarded
+//  Call EndPopup() afterwards if returned true. int are forwarded
 //  to the window.
 //  - BeginPopupModal(): block every interaction behind the window, cannot be
 //  closed by user, add a dimming background, has a title bar.
-API bool
-BeginPopup(const char *str_id,
-           WindowFlags flags = 0); // return true if the popup is open, and
-                                   // you can start outputting to it.
-API bool
-BeginPopupModal(const char *name, bool *p_open = NULL,
-                WindowFlags flags = 0); // return true if the modal is open, and
-                                        // you can start outputting to it.
+API bool BeginPopup(const char *str_id,
+                    int flags = 0); // return true if the popup is open, and
+                                    // you can start outputting to it.
+API bool BeginPopupModal(const char *name, bool *p_open = NULL,
+                         int flags = 0); // return true if the modal is open,
+                                         // and you can start outputting to it.
 API void EndPopup(); // only call EndPopup() if BeginPopupXXX() returns true!
 
 // Popups: open/close functions
-//  - OpenPopup(): set popup state to open. PopupFlags are available for
+//  - OpenPopup(): set popup state to open. int are available for
 //  opening options.
 //  - If not modal: they can be closed by clicking anywhere outside them, or by
 //  pressing ESCAPE.
@@ -1418,47 +1316,45 @@ API void EndPopup(); // only call EndPopup() if BeginPopupXXX() returns true!
 //  with older API taking 'int mouse_button = 1' parameter
 API void
 OpenPopup(const char *str_id,
-          PopupFlags popup_flags =
+          int popup_flags =
               0); // call to mark popup as open (don't call every frame!).
 API void
-OpenPopup(ID id,
-          PopupFlags popup_flags =
+OpenPopup(int id,
+          int popup_flags =
               0); // id overload to facilitate calling from nested stacks
-API void
-OpenPopupOnItemClick(const char *str_id = NULL,
-                     PopupFlags popup_flags =
-                         1); // helper to open popup when clicked on last item.
-                             // Default to PopupFlags_MouseButtonRight == 1.
-                             // (note: actually triggers on the mouse _released_
-                             // event to be consistent with popup behaviors)
+API void OpenPopupOnItemClick(
+    const char *str_id = NULL,
+    int popup_flags = 1); // helper to open popup when clicked on last item.
+                          // Default to PopupFlags_MouseButtonRight == 1.
+                          // (note: actually triggers on the mouse _released_
+                          // event to be consistent with popup behaviors)
 API void CloseCurrentPopup(); // manually close the popup we have begin-ed into.
 
 // Popups: open+begin combined functions helpers
 //  - Helpers to do OpenPopup+BeginPopup where the Open action is triggered by
 //  e.g. hovering an item and right-clicking.
 //  - They are convenient to easily create context menus, hence the name.
-//  - IMPORTANT: Notice that BeginPopupContextXXX takes PopupFlags just
+//  - IMPORTANT: Notice that BeginPopupContextXXX takes int just
 //  like OpenPopup() and unlike BeginPopup(). For full consistency, we may add
-//  WindowFlags to the BeginPopupContextXXX functions in the future.
+//  int to the BeginPopupContextXXX functions in the future.
 //  - IMPORTANT: Notice that we exceptionally default their flags to 1 (==
 //  PopupFlags_MouseButtonRight) for backward compatibility with older API
 //  taking 'int mouse_button = 1' parameter, so if you add other flags remember
 //  to re-add the PopupFlags_MouseButtonRight.
 API bool BeginPopupContextItem(
     const char *str_id = NULL,
-    PopupFlags popup_flags =
+    int popup_flags =
         1); // open+begin popup when clicked on last item. Use str_id==NULL to
             // associate the popup to previous item. If you want to use that on
             // a non-interactive item such as Text() you need to pass in an
-            // explicit ID here. read comments in .cpp!
+            // explicit int here. read comments in .cpp!
 API bool BeginPopupContextWindow(
     const char *str_id = NULL,
-    PopupFlags popup_flags =
-        1); // open+begin popup when clicked on current window.
+    int popup_flags = 1); // open+begin popup when clicked on current window.
 API bool BeginPopupContextVoid(
     const char *str_id = NULL,
-    PopupFlags popup_flags = 1); // open+begin popup when clicked in void
-                                 // (where there are no windows).
+    int popup_flags = 1); // open+begin popup when clicked in void
+                          // (where there are no windows).
 
 // Popups: query functions
 //  - IsPopupOpen(): return true if the popup is open at the current
@@ -1468,7 +1364,7 @@ API bool BeginPopupContextVoid(
 //  - IsPopupOpen() with PopupFlags_AnyPopupId +
 //  PopupFlags_AnyPopupLevel: return true if any popup is open.
 API bool IsPopupOpen(const char *str_id,
-                     PopupFlags flags = 0); // return true if the popup is open.
+                     int flags = 0); // return true if the popup is open.
 
 // Tables
 // - Full-featured replacement for old Columns API.
@@ -1504,12 +1400,12 @@ API bool IsPopupOpen(const char *str_id,
 //        OK! Missing TableSetColumnIndex() or TableNextColumn()! Text will not
 //        appear!
 // - 5. Call EndTable()
-API bool BeginTable(const char *str_id, int column, TableFlags flags = 0,
+API bool BeginTable(const char *str_id, int column, int flags = 0,
                     const Vec2 &outer_size = Vec2(0.0f, 0.0f),
                     float inner_width = 0.0f);
 API void EndTable(); // only call EndTable() if BeginTable() returns true!
 API void TableNextRow(
-    TableRowFlags row_flags = 0,
+    int row_flags = 0,
     float min_row_height = 0.0f); // append into the first cell of a new row.
 API bool TableNextColumn(); // append into the next column (or first column of
                             // next row if currently in last column). Return
@@ -1531,8 +1427,8 @@ TableSetColumnIndex(int column_n); // append into the specified column. Return
 //   some advanced use cases (e.g. adding custom widgets in header row).
 // - Use TableSetupScrollFreeze() to lock columns/rows so they stay visible when
 // scrolled.
-API void TableSetupColumn(const char *label, TableColumnFlags flags = 0,
-                          float init_width_or_weight = 0.0f, ID user_id = 0);
+API void TableSetupColumn(const char *label, int flags = 0,
+                          float init_width_or_weight = 0.0f, int user_id = 0);
 API void TableSetupScrollFreeze(
     int cols,
     int rows); // lock columns/rows so they stay visible when scrolled.
@@ -1567,7 +1463,7 @@ API int TableGetRowIndex();    // return current row index.
 API const char *TableGetColumnName(
     int column_n = -1); // return "" if column didn't have a name declared by
                         // TableSetupColumn(). Pass -1 to use current column.
-API TableColumnFlags TableGetColumnFlags(
+API int TableGetColumnFlags(
     int column_n = -1); // return column flags so you can query their
                         // Enabled/Visible/Sorted/Hovered status flags. Pass -1
                         // to use current column.
@@ -1578,7 +1474,7 @@ API void TableSetColumnEnabled(
              // change this themselves (right-click in headers, or right-click
              // in columns body with TableFlags_ContextMenuInBody)
 API void TableSetBgColor(
-    TableBgTarget target, U32 color,
+    int target, unsigned int color,
     int column_n = -1); // change the color of a cell, row, or column. See
                         // TableBgTarget_ flags for details.
 
@@ -1610,17 +1506,16 @@ API int GetColumnsCount();
 // - Note: Tabs are automatically created by the docking system (when in
 // 'docking' branch). Use this to create tab bars/tabs yourself.
 API bool BeginTabBar(const char *str_id,
-                     TabBarFlags flags = 0); // create and append into a TabBar
+                     int flags = 0); // create and append into a TabBar
 API void EndTabBar(); // only call EndTabBar() if BeginTabBar() returns true!
-API bool
-BeginTabItem(const char *label, bool *p_open = NULL,
-             TabItemFlags flags =
-                 0);   // create a Tab. Returns true if the Tab is selected.
+API bool BeginTabItem(
+    const char *label, bool *p_open = NULL,
+    int flags = 0);    // create a Tab. Returns true if the Tab is selected.
 API void EndTabItem(); // only call EndTabItem() if BeginTabItem() returns true!
 API bool TabItemButton(
     const char *label,
-    TabItemFlags flags = 0); // create a Tab behaving like a button. return true
-                             // when clicked. cannot be selected in the tab bar.
+    int flags = 0); // create a Tab behaving like a button. return true
+                    // when clicked. cannot be selected in the tab bar.
 API void SetTabItemClosed(
     const char
         *tab_or_docked_window_label); // notify TabBar or Docking system of a
@@ -1653,19 +1548,18 @@ API void SetTabItemClosed(
 // docked into it will be undocked.
 //   e.g. if you have multiple tabs with a dockspace inside each tab: submit the
 //   non-visible dockspaces with DockNodeFlags_KeepAliveOnly.
-API ID DockSpace(ID id, const Vec2 &size = Vec2(0, 0), DockNodeFlags flags = 0,
-                 const WindowClass *window_class = NULL);
-API ID DockSpaceOverViewport(const Viewport *viewport = NULL,
-                             DockNodeFlags flags = 0,
-                             const WindowClass *window_class = NULL);
-API void SetNextWindowDockID(ID dock_id,
-                             Cond cond = 0); // set next window dock id
+API int DockSpace(int id, const Vec2 &size = Vec2(0, 0), int flags = 0,
+                  const WindowClass *window_class = NULL);
+API int DockSpaceOverViewport(const Viewport *viewport = NULL, int flags = 0,
+                              const WindowClass *window_class = NULL);
+API void SetNextWindowDockID(int dock_id,
+                             int cond = 0); // set next window dock id
 API void SetNextWindowClass(
     const WindowClass *
         window_class); // set next window class (control docking compatibility +
                        // provide hints to platform backend via custom viewport
                        // flags and platform parent/child relationship)
-API ID GetWindowDockID();
+API int GetWindowDockID();
 API bool IsWindowDocked(); // is current window docked into another window?
 
 // Logging/Capture
@@ -1693,15 +1587,15 @@ API void LogTextV(const char *fmt, va_list args) FMTLIST(1);
 // tooltip, see #1725)
 // - An item can be both drag source and drop target.
 API bool BeginDragDropSource(
-    DragDropFlags flags = 0); // call after submitting an item which may be
-                              // dragged. when this return true, you can call
-                              // SetDragDropPayload() + EndDragDropSource()
+    int flags = 0); // call after submitting an item which may be
+                    // dragged. when this return true, you can call
+                    // SetDragDropPayload() + EndDragDropSource()
 API bool SetDragDropPayload(
     const char *type, const void *data, size_t sz,
-    Cond cond = 0); // type is a user defined string of maximum 32 characters.
-                    // Strings starting with '_' are reserved for gui
-                    // internal types. Data is copied and held by imgui. Return
-                    // true when payload has been accepted.
+    int cond = 0); // type is a user defined string of maximum 32 characters.
+                   // Strings starting with '_' are reserved for gui
+                   // internal types. Data is copied and held by imgui. Return
+                   // true when payload has been accepted.
 API void EndDragDropSource(); // only call EndDragDropSource() if
                               // BeginDragDropSource() returns true!
 API bool
@@ -1710,10 +1604,9 @@ BeginDragDropTarget(); // call after submitting an item that may receive a
                        // AcceptDragDropPayload() + EndDragDropTarget()
 API const Payload *AcceptDragDropPayload(
     const char *type,
-    DragDropFlags flags =
-        0); // accept contents of a given type. If
-            // DragDropFlags_AcceptBeforeDelivery is set you can peek into
-            // the payload before the mouse button is released.
+    int flags = 0); // accept contents of a given type. If
+                    // DragDropFlags_AcceptBeforeDelivery is set you can peek
+                    // into the payload before the mouse button is released.
 API void EndDragDropTarget(); // only call EndDragDropTarget() if
                               // BeginDragDropTarget() returns true!
 API const Payload *
@@ -1764,10 +1657,9 @@ SetNextItemAllowOverlap(); // allow next item to be overlapped by a subsequent
 // submitted.
 // - See Demo Window under "Widgets->Querying Status" for an interactive
 // visualization of most of those functions.
-API bool
-IsItemHovered(HoveredFlags flags =
-                  0); // is the last item hovered? (and usable, aka not blocked
-                      // by a popup, etc.). See HoveredFlags for more options.
+API bool IsItemHovered(
+    int flags = 0); // is the last item hovered? (and usable, aka not blocked
+                    // by a popup, etc.). See int for more options.
 API bool IsItemActive(); // is the last item active? (e.g. button being held,
                          // text field being edited. This will continuously
                          // return true while holding mouse button on an item.
@@ -1775,7 +1667,7 @@ API bool IsItemActive(); // is the last item active? (e.g. button being held,
 API bool
 IsItemFocused(); // is the last item focused for keyboard/gamepad navigation?
 API bool IsItemClicked(
-    MouseButton mouse_button =
+    int mouse_button =
         0); // is the last item hovered and mouse clicked on? (**)  ==
             // IsMouseClicked(mouse_button) && IsItemHovered()Important. (**)
             // this is NOT equivalent to the behavior of e.g. Button(). Read
@@ -1805,7 +1697,7 @@ IsItemToggledOpen(); // was the last item open state toggled? set by TreeNode().
 API bool IsAnyItemHovered(); // is any item hovered?
 API bool IsAnyItemActive();  // is any item active?
 API bool IsAnyItemFocused(); // is any item focused?
-API ID GetItemID();          // get ID of last item (~~ often same
+API int GetItemID();         // get int of last item (~~ often same
                              // Gui::GetID(label) beforehand)
 API Vec2 GetItemRectMin();   // get upper-left bounding rectangle of the last
                              // item (screen space)
@@ -1861,7 +1753,7 @@ API DrawListSharedData *
 GetDrawListSharedData(); // you may use this when creating your own DrawList
                          // instances.
 API const char *
-GetStyleColorName(Col idx); // get a string corresponding to the enum value
+GetStyleColorName(int idx); // get a string corresponding to the enum value
                             // (for display, saving, etc.).
 API void SetStateStorage(
     Storage *
@@ -1875,8 +1767,8 @@ API Vec2 CalcTextSize(const char *text, const char *text_end = NULL,
                       float wrap_width = -1.0f);
 
 // Color Utilities
-API Vec4 ColorConvertU32ToFloat4(U32 in);
-API U32 ColorConvertFloat4ToU32(const Vec4 &in);
+API Vec4 ColorConvertU32ToFloat4(unsigned int in);
+API unsigned int ColorConvertFloat4ToU32(const Vec4 &in);
 API void ColorConvertRGBtoHSV(float r, float g, float b, float &out_h,
                               float &out_s, float &out_v);
 API void ColorConvertHSVtoRGB(float h, float s, float v, float &out_r,
@@ -1900,10 +1792,10 @@ API bool IsKeyPressed(
                          // repeat=true, uses io.KeyRepeatDelay / KeyRepeatRate
 API bool IsKeyReleased(Key key); // was key released (went from Down to !Down)?
 API bool IsKeyChordPressed(
-    KeyChord key_chord); // was key chord (mods + key) pressed, e.g. you can
-                         // pass 'Mod_Ctrl | Key_S' as a key-chord. This
-                         // doesn't do any routing or focus check, please
-                         // consider using Shortcut() function instead.
+    int key_chord); // was key chord (mods + key) pressed, e.g. you can
+                    // pass 'Mod_Ctrl | Key_S' as a key-chord. This
+                    // doesn't do any routing or focus check, please
+                    // consider using Shortcut() function instead.
 API int GetKeyPressedAmount(
     Key key, float repeat_delay,
     float rate); // uses provided repeat rate/delay. return a count, most often
@@ -1932,21 +1824,20 @@ API void SetNextFrameWantCaptureKeyboard(
 // - Dragging operations are only reported after mouse has moved a certain
 // distance away from the initial clicking position (see 'lock_threshold' and
 // 'io.MouseDraggingThreshold')
-API bool IsMouseDown(MouseButton button); // is mouse button held?
+API bool IsMouseDown(int button); // is mouse button held?
 API bool IsMouseClicked(
-    MouseButton button,
+    int button,
     bool repeat = false); // did mouse button clicked? (went from !Down to
                           // Down). Same as GetMouseClickedCount() == 1.
-API bool IsMouseReleased(MouseButton button); // did mouse button released?
-                                              // (went from Down to !Down)
+API bool IsMouseReleased(int button); // did mouse button released?
+                                      // (went from Down to !Down)
 API bool IsMouseDoubleClicked(
-    MouseButton
-        button); // did mouse button double-clicked? Same as
+    int button); // did mouse button double-clicked? Same as
                  // GetMouseClickedCount() == 2. (note that a double-click will
                  // also report IsMouseClicked() == true)
 API int GetMouseClickedCount(
-    MouseButton button); // return the number of successive mouse-clicks at
-                         // the time where a click happen (otherwise 0).
+    int button); // return the number of successive mouse-clicks at
+                 // the time where a click happen (otherwise 0).
 API bool IsMouseHoveringRect(
     const Vec2 &r_min, const Vec2 &r_max,
     bool clip =
@@ -1969,25 +1860,24 @@ GetMousePosOnOpeningCurrentPopup(); // retrieve mouse position at the time of
                                     // (helper to avoid user backing that value
                                     // themselves)
 API bool IsMouseDragging(
-    MouseButton button,
+    int button,
     float lock_threshold = -1.0f); // is mouse dragging? (if lock_threshold <
                                    // -1.0f, uses io.MouseDraggingThreshold)
 API Vec2 GetMouseDragDelta(
-    MouseButton button = 0,
+    int button = 0,
     float lock_threshold =
         -1.0f); // return the delta from the initial clicking position while the
                 // mouse button is pressed or was just released. This is locked
                 // and return 0.0f until the mouse moves past a distance
                 // threshold at least once (if lock_threshold < -1.0f, uses
                 // io.MouseDraggingThreshold)
-API void ResetMouseDragDelta(MouseButton button = 0); //
-API MouseCursor
+API void ResetMouseDragDelta(int button = 0); //
+API int
 GetMouseCursor(); // get desired mouse cursor shape. Important: reset in
                   // Gui::NewFrame(), this is updated during the frame. valid
                   // before Render(). If you use software rendering by setting
                   // io.MouseDrawCursor Gui will render those for you
-API void
-SetMouseCursor(MouseCursor cursor_type); // set desired mouse cursor shape
+API void SetMouseCursor(int cursor_type); // set desired mouse cursor shape
 API void SetNextFrameWantCaptureMouse(
     bool
         want_capture_mouse); // Override io.WantCaptureMouse flag next frame
@@ -2038,7 +1928,7 @@ API const char *SaveIniSettingsToMemory(
 // - Your main debugging friend is the ShowMetricsWindow() function, which is
 // also accessible from Demo->Tools->Metrics Debugger
 API void DebugTextEncoding(const char *text);
-API void DebugFlashStyleColor(Col idx);
+API void DebugFlashStyleColor(int idx);
 API bool DebugCheckVersionAndDataLayout(
     const char *version_str, size_t sz_io, size_t sz_style, size_t sz_vec2,
     size_t sz_vec4, size_t sz_drawvert,
@@ -2079,7 +1969,7 @@ DestroyPlatformWindows(); // call DestroyWindow platform functions for all
                           // viewports. call from backend Shutdown() if you need
                           // to close platform windows before imgui shutdown.
                           // otherwise will be called by DestroyContext().
-API Viewport *FindViewportByID(ID id); // this is a helper for backends.
+API Viewport *FindViewportByID(int id); // this is a helper for backends.
 API Viewport *FindViewportByPlatformHandle(
     void *platform_handle); // this is a helper for backends. the type
                             // platform_handle is decided by the backend (e.g.
@@ -2300,7 +2190,7 @@ enum TreeNodeFlags_ {
       1 << 2, // Hit testing to allow subsequent widgets to overlap this one
   TreeNodeFlags_NoTreePushOnOpen =
       1 << 3, // Don't do a TreePush() when open (e.g. for CollapsingHeader) =
-              // no extra indent nor pushing on ID stack
+              // no extra indent nor pushing on int stack
   TreeNodeFlags_NoAutoOpenOnLog =
       1 << 4, // Don't automatically and temporarily open node when Logging is
               // active (by default logging will automatically open tree nodes)
@@ -2353,7 +2243,7 @@ enum TreeNodeFlags_ {
 //   small flags values as a mouse button index, so we encode the mouse button
 //   in the first few bits of the flags. It is therefore guaranteed to be legal
 //   to pass a mouse button index in PopupFlags.
-// - For the same reason, we exceptionally default the PopupFlags argument
+// - For the same reason, we exceptionally default the int argument
 // of BeginPopupContextXXX functions to 1 instead of 0.
 //   IMPORTANT: because the default parameter is 1
 //   (==PopupFlags_MouseButtonRight), if you rely on the default parameter
@@ -2380,7 +2270,7 @@ enum PopupFlags_ {
   PopupFlags_NoOpenOverItems =
       1 << 6, // For BeginPopupContextWindow(): don't return true when hovering
               // items, only when hovering empty space
-  PopupFlags_AnyPopupId = 1 << 7, // For IsPopupOpen(): ignore the ID
+  PopupFlags_AnyPopupId = 1 << 7, // For IsPopupOpen(): ignore the unsigned int
                                   // parameter and test for any popup.
   PopupFlags_AnyPopupLevel =
       1 << 8, // For IsPopupOpen(): search/test at any level of the popup stack
@@ -3434,7 +3324,7 @@ enum Cond_ {
 
 //-----------------------------------------------------------------------------
 // [SECTION] Tables API flags and structures (TableFlags,
-// TableColumnFlags, TableRowFlags, TableBgTarget,
+// int, int, TableBgTarget,
 // TableSortSpecs, TableColumnSortSpecs)
 //-----------------------------------------------------------------------------
 
@@ -3724,14 +3614,14 @@ struct TableSortSpecs {
 
 // Sorting specification for one column of a table (sizeof == 12 bytes)
 struct TableColumnSortSpecs {
-  ID ColumnUserID; // User id of the column (if specified by a
-                   // TableSetupColumn() call)
-  S16 ColumnIndex; // Index of the column
-  S16 SortOrder;   // Index within parent TableSortSpecs (always stored in
-                   // order starting from 0, tables sorted on a single criteria
-                   // will always have a 0 here)
-  SortDirection SortDirection : 8; // SortDirection_Ascending or
-                                   // SortDirection_Descending
+  int ColumnUserID;         // User id of the column (if specified by a
+                            // TableSetupColumn() call)
+  signed short ColumnIndex; // Index of the column
+  signed short SortOrder;   // Index within parent TableSortSpecs (always stored
+                          // in order starting from 0, tables sorted on a single
+                          // criteria will always have a 0 here)
+  int SortDirection : 8; // SortDirection_Ascending or
+                         // SortDirection_Descending
 
   TableColumnSortSpecs() { memset(this, 0, sizeof(*this)); }
 };
@@ -4064,7 +3954,7 @@ struct Style {
                       // SetNextWindowSizeConstraints().
   Vec2 WindowTitleAlign; // Alignment for title bar text. Defaults to
                          // (0.0f,0.5f) for left-aligned,vertically centered.
-  Dir WindowMenuButtonPosition; // Side of the collapsing/docking button in
+  int WindowMenuButtonPosition; // Side of the collapsing/docking button in
                                 // the title bar (None/Left/Right).
                                 // Defaults to Dir_Left.
   float ChildRounding;   // Radius of child window corners rounding. Set to 0.0f
@@ -4120,7 +4010,7 @@ struct Style {
   float
       TableAngledHeadersAngle; // Angle of angled headers (supported values
                                // range from -50.0f degrees to +50.0f degrees).
-  Dir ColorButtonPosition; // Side of the color button in the ColorEdit4 widget
+  int ColorButtonPosition; // Side of the color button in the ColorEdit4 widget
                            // (left/right). Defaults to Dir_Right.
   Vec2 ButtonTextAlign; // Alignment of button text when button is larger than
                         // text. Defaults to (0.5f, 0.5f) (centered).
@@ -4184,16 +4074,14 @@ struct Style {
                           // Usually used along with HoverStationaryDelay.
   float HoverDelayNormal; // Delay for
                           // IsItemHovered(HoveredFlags_DelayNormal). "
-  HoveredFlags
-      HoverFlagsForTooltipMouse; // Default flags when using
+  int HoverFlagsForTooltipMouse; // Default flags when using
                                  // IsItemHovered(HoveredFlags_ForTooltip)
                                  // or BeginItemTooltip()/SetItemTooltip() while
                                  // using mouse.
-  HoveredFlags
-      HoverFlagsForTooltipNav; // Default flags when using
-                               // IsItemHovered(HoveredFlags_ForTooltip) or
-                               // BeginItemTooltip()/SetItemTooltip() while
-                               // using keyboard/gamepad.
+  int HoverFlagsForTooltipNav;   // Default flags when using
+                                 // IsItemHovered(HoveredFlags_ForTooltip) or
+                                 // BeginItemTooltip()/SetItemTooltip() while
+                                 // using keyboard/gamepad.
 
   API Style();
   API void ScaleAllSizes(float scale_factor);
@@ -4224,15 +4112,15 @@ struct IO {
   // Configuration                            // Default value
   //------------------------------------------------------------------
 
-  ConfigFlags ConfigFlags;   // = 0              // See ConfigFlags_
-                             // enum. Set by user/application.
-                             // Gamepad/keyboard navigation options, etc.
-  BackendFlags BackendFlags; // = 0              // See BackendFlags_ enum. Set
-                             // by backend (xxx files or custom backend) to
-                             // communicate features supported by the backend.
-  Vec2 DisplaySize;          // <unset>          // Main display size, in pixels
-                    // (generally == GetMainViewport()->Size). May change
-                    // every frame.
+  int ConfigFlags;     // = 0              // See ConfigFlags_
+                       // enum. Set by user/application.
+                       // Gamepad/keyboard navigation options, etc.
+  int BackendFlags;    // = 0              // See BackendFlags_ enum. Set
+                       // by backend (xxx files or custom backend) to
+                       // communicate features supported by the backend.
+  Vec2 DisplaySize;    // <unset>          // Main display size, in pixels
+                       // (generally == GetMainViewport()->Size). May change
+                       // every frame.
   float DeltaTime;     // = 1.0f/60.0f     // Time elapsed since last frame, in
                        // seconds. May change every frame.
   float IniSavingRate; // = 5.0f           // Minimum time between saving
@@ -4487,9 +4375,9 @@ struct IO {
   AddMouseSourceEvent(MouseSource source); // Queue a mouse source change
                                            // (Mouse/TouchScreen/Pen)
   API void AddMouseViewportEvent(
-      ID id); // Queue a mouse hovered viewport. Requires backend to set
-              // BackendFlags_HasMouseHoveredViewport to call this
-              // (for multi-viewport support).
+      int id); // Queue a mouse hovered viewport. Requires backend to set
+               // BackendFlags_HasMouseHoveredViewport to call this
+               // (for multi-viewport support).
   API void AddFocusEvent(
       bool focused); // Queue a gain/loss of focus for the application
                      // (generally based on OS/platform focus of your window)
@@ -4636,29 +4524,29 @@ struct IO {
                      // wheel, may not be filled by all backends.
   MouseSource
       MouseSource; // Mouse actual input peripheral (Mouse/TouchScreen/Pen).
-  ID MouseHoveredViewport; // (Optional) Modify using
-                           // io.AddMouseViewportEvent(). With
-                           // multi-viewports: viewport the OS mouse is
-                           // hovering. If possible _IGNORING_ viewports
-                           // with the ViewportFlags_NoInputs flag is
-                           // much better (few backends can handle that).
-                           // Set io.BackendFlags |=
-                           // BackendFlags_HasMouseHoveredViewport if
-                           // you can provide this info. If you don't imgui
-                           // will infer the value using the rectangles and
-                           // last focused time of the viewports it knows
-                           // about (ignoring other OS windows).
-  bool KeyCtrl;            // Keyboard modifier down: Control
-  bool KeyShift;           // Keyboard modifier down: Shift
-  bool KeyAlt;             // Keyboard modifier down: Alt
-  bool KeySuper;           // Keyboard modifier down: Cmd/Super/Windows
+  int MouseHoveredViewport; // (Optional) Modify using
+                            // io.AddMouseViewportEvent(). With
+                            // multi-viewports: viewport the OS mouse is
+                            // hovering. If possible _IGNORING_ viewports
+                            // with the ViewportFlags_NoInputs flag is
+                            // much better (few backends can handle that).
+                            // Set io.BackendFlags |=
+                            // BackendFlags_HasMouseHoveredViewport if
+                            // you can provide this info. If you don't imgui
+                            // will infer the value using the rectangles and
+                            // last focused time of the viewports it knows
+                            // about (ignoring other OS windows).
+  bool KeyCtrl;             // Keyboard modifier down: Control
+  bool KeyShift;            // Keyboard modifier down: Shift
+  bool KeyAlt;              // Keyboard modifier down: Alt
+  bool KeySuper;            // Keyboard modifier down: Cmd/Super/Windows
 
   // Other state maintained from data above + IO function calls
-  KeyChord KeyMods; // Key mods flags (any of
-                    // Mod_Ctrl/Mod_Shift/Mod_Alt/Mod_Super
-                    // flags, same as io.KeyCtrl/KeyShift/KeyAlt/KeySuper but
-                    // merged into flags. DOES NOT CONTAINS Mod_Shortcut
-                    // which is pretranslated). Read-only, updated by NewFrame()
+  int KeyMods; // Key mods flags (any of
+               // Mod_Ctrl/Mod_Shift/Mod_Alt/Mod_Super
+               // flags, same as io.KeyCtrl/KeyShift/KeyAlt/KeySuper but
+               // merged into flags. DOES NOT CONTAINS Mod_Shortcut
+               // which is pretranslated). Read-only, updated by NewFrame()
   KeyData KeysData[Key_KeysData_SIZE];   // Key state for all known keys. Use
                                          // IsKeyXXX() functions to access this.
   bool WantCaptureMouseUnlessPopupClose; // Alternative to WantCaptureMouse:
@@ -4676,15 +4564,16 @@ struct IO {
                               // MouseClickedCount[x] != 0)
   bool MouseDoubleClicked[5]; // Has mouse button been double-clicked? (same as
                               // MouseClickedCount[x] == 2)
-  U16 MouseClickedCount[5];   // == 0 (not clicked), == 1 (same as
-                              // MouseClicked[]), == 2 (double-clicked), == 3
-                              // (triple-clicked) etc. when going from !Down to
-                              // Down
-  U16 MouseClickedLastCount[5]; // Count successive number of clicks. Stays
-                                // valid after mouse release. Reset after
-                                // another click is done.
-  bool MouseReleased[5];        // Mouse button went from Down to !Down
-  bool MouseDownOwned[5];       // Track if button was clicked inside a gui
+  unsigned short
+      MouseClickedCount[5]; // == 0 (not clicked), == 1 (same as
+                            // MouseClicked[]), == 2 (double-clicked), == 3
+                            // (triple-clicked) etc. when going from !Down to
+                            // Down
+  unsigned short MouseClickedLastCount[5]; // Count successive number of clicks.
+                                           // Stays valid after mouse release.
+                                           // Reset after another click is done.
+  bool MouseReleased[5];  // Mouse button went from Down to !Down
+  bool MouseDownOwned[5]; // Track if button was clicked inside a gui
                           // window or over void blocked by a popup. We don't
                           // request mouse capture from the application if click
                           // started outside Gui bounds.
@@ -4708,9 +4597,10 @@ struct IO {
                      // when MouseDown[0] == true). Helper storage currently
                      // unused by Gui.
   bool AppFocusLost; // Only modify via AddFocusEvent()
-  bool AppAcceptingEvents;        // Only modify via SetAppAcceptingEvents()
-  S8 BackendUsingLegacyKeyArrays; // -1: unknown, 0: using AddKeyEvent(), 1:
-                                  // using legacy io.KeysDown[]
+  bool AppAcceptingEvents; // Only modify via SetAppAcceptingEvents()
+  signed char
+      BackendUsingLegacyKeyArrays; // -1: unknown, 0: using AddKeyEvent(), 1:
+                                   // using legacy io.KeysDown[]
   bool BackendUsingLegacyNavInputArray; // 0: using AddKeyAnalogEvent(), 1:
                                         // writing to legacy io.NavInputs[]
                                         // directly
@@ -4745,10 +4635,10 @@ struct IO {
 // changes request (beyond 'buf_size' parameter value), allowing the string to
 // grow.
 struct InputTextCallbackData {
-  Context *Ctx;             // Parent UI context
-  InputTextFlags EventFlag; // One InputTextFlags_Callback*    // Read-only
-  InputTextFlags Flags;     // What user passed to InputText()      // Read-only
-  void *UserData;           // What user passed to InputText()      // Read-only
+  Context *Ctx;   // Parent UI context
+  int EventFlag;  // One InputTextFlags_Callback*    // Read-only
+  int Flags;      // What user passed to InputText()      // Read-only
+  void *UserData; // What user passed to InputText()      // Read-only
 
   // Arguments for the different callback events
   // - To modify the text buffer in a callback, prefer using the InsertChars() /
@@ -4824,32 +4714,29 @@ struct SizeCallbackData {
 // viewport.
 // - To the docking system for various options and filtering.
 struct WindowClass {
-  ID ClassId;          // User data. 0 = Default class (unclassed). Windows of
-                       // different classes cannot be docked with each others.
-  ID ParentViewportId; // Hint for the platform backend. -1: use default. 0:
-                       // request platform backend to not parent the platform.
-                       // != 0: request platform backend to create a
-                       // parent<>child relationship between the platform
-                       // windows. Not conforming backends are free to e.g.
-                       // parent every viewport to the main viewport or not.
-  ViewportFlags
-      ViewportFlagsOverrideSet; // Viewport flags to set when a window of this
+  int ClassId;          // User data. 0 = Default class (unclassed). Windows of
+                        // different classes cannot be docked with each others.
+  int ParentViewportId; // Hint for the platform backend. -1: use default. 0:
+                        // request platform backend to not parent the platform.
+                        // != 0: request platform backend to create a
+                        // parent<>child relationship between the platform
+                        // windows. Not conforming backends are free to e.g.
+                        // parent every viewport to the main viewport or not.
+  int ViewportFlagsOverrideSet; // Viewport flags to set when a window of this
                                 // class owns a viewport. This allows you to
                                 // enforce OS decoration or task bar icon,
                                 // override the defaults on a per-window basis.
-  ViewportFlags
-      ViewportFlagsOverrideClear; // Viewport flags to clear when a window of
+  int ViewportFlagsOverrideClear; // Viewport flags to clear when a window of
                                   // this class owns a viewport. This allows you
                                   // to enforce OS decoration or task bar icon,
                                   // override the defaults on a per-window
                                   // basis.
-  TabItemFlags TabItemFlagsOverrideSet; // [EXPERIMENTAL] TabItem flags to set
-                                        // when a window of this class gets
-                                        // submitted into a dock node tab bar.
-                                        // May use with TabItemFlags_Leading or
-                                        // TabItemFlags_Trailing.
-  DockNodeFlags
-      DockNodeFlagsOverrideSet; // [EXPERIMENTAL] Dock node flags to set when a
+  int TabItemFlagsOverrideSet;    // [EXPERIMENTAL] TabItem flags to set
+                                  // when a window of this class gets
+                                  // submitted into a dock node tab bar.
+                                  // May use with TabItemFlags_Leading or
+                                  // TabItemFlags_Trailing.
+  int DockNodeFlagsOverrideSet; // [EXPERIMENTAL] Dock node flags to set when a
                                 // window of this class is hosted by a dock node
                                 // (it doesn't have to be selected!)
   bool DockingAlwaysTabBar; // Set to true to enforce single floating windows of
@@ -4858,11 +4745,11 @@ struct WindowClass {
                             // io.ConfigDockingAlwaysTabBar)
   bool DockingAllowUnclassed; // Set to true to allow windows of this class to
                               // be docked/merged with an unclassed window. //
-                              // FIXME-DOCK: Move to DockNodeFlags override?
+                              // FIXME-DOCK: Move to int override?
 
   WindowClass() {
     memset(this, 0, sizeof(*this));
-    ParentViewportId = (ID)-1;
+    ParentViewportId = (unsigned int)-1;
     DockingAllowUnclassed = true;
   }
 };
@@ -4875,8 +4762,8 @@ struct Payload {
   int DataSize; // Data size
 
   // [Internal]
-  ID SourceId;           // Source item id
-  ID SourceParentId;     // Source parent id (if available)
+  int SourceId;          // Source item id
+  int SourceParentId;    // Source parent id (if available)
   int DataFrameCount;    // Data timestamp
   char DataType[32 + 1]; // Data type tag (short user-supplied string, 32
                          // characters max)
@@ -5006,21 +4893,21 @@ struct TextBuffer {
 struct Storage {
   // [Internal]
   struct StoragePair {
-    ID key;
+    int key;
     union {
       int val_i;
       float val_f;
       void *val_p;
     };
-    StoragePair(ID _key, int _val) {
+    StoragePair(int _key, int _val) {
       key = _key;
       val_i = _val;
     }
-    StoragePair(ID _key, float _val) {
+    StoragePair(int _key, float _val) {
       key = _key;
       val_f = _val;
     }
-    StoragePair(ID _key, void *_val) {
+    StoragePair(int _key, void *_val) {
       key = _key;
       val_p = _val;
     }
@@ -5034,14 +4921,14 @@ struct Storage {
   // - Sorted insertion is costly, paid once. A typical frame shouldn't need to
   // insert any new pair.
   void Clear() { Data.clear(); }
-  API int GetInt(ID key, int default_val = 0) const;
-  API void SetInt(ID key, int val);
-  API bool GetBool(ID key, bool default_val = false) const;
-  API void SetBool(ID key, bool val);
-  API float GetFloat(ID key, float default_val = 0.0f) const;
-  API void SetFloat(ID key, float val);
-  API void *GetVoidPtr(ID key) const; // default_val is NULL
-  API void SetVoidPtr(ID key, void *val);
+  API int GetInt(int key, int default_val = 0) const;
+  API void SetInt(int key, int val);
+  API bool GetBool(int key, bool default_val = false) const;
+  API void SetBool(int key, bool val);
+  API float GetFloat(int key, float default_val = 0.0f) const;
+  API void SetFloat(int key, float val);
+  API void *GetVoidPtr(int key) const; // default_val is NULL
+  API void SetVoidPtr(int key, void *val);
 
   // - Get***Ref() functions finds pair, insert on demand if missing, return
   // pointer. Useful if you intend to do Get+Set.
@@ -5053,10 +4940,10 @@ struct Storage {
   // struct)
   //      float* pvar = Gui::GetFloatRef(key); Gui::SliderFloat("var", pvar,
   //      0, 100.0f); some_var += *pvar;
-  API int *GetIntRef(ID key, int default_val = 0);
-  API bool *GetBoolRef(ID key, bool default_val = false);
-  API float *GetFloatRef(ID key, float default_val = 0.0f);
-  API void **GetVoidPtrRef(ID key, void *default_val = NULL);
+  API int *GetIntRef(int key, int default_val = 0);
+  API bool *GetBoolRef(int key, bool default_val = false);
+  API float *GetFloatRef(int key, float default_val = 0.0f);
+  API void **GetVoidPtrRef(int key, void *default_val = NULL);
 
   // Advanced: for quicker full rebuild of a storage (instead of an incremental
   // one), you may add all your contents and then sort once.
@@ -5244,20 +5131,22 @@ MSVC_RUNTIME_CHECKS_RESTORE
 #endif
 #endif
 #define COL32(R, G, B, A)                                                      \
-  (((U32)(A) << COL32_A_SHIFT) | ((U32)(B) << COL32_B_SHIFT) |                 \
-   ((U32)(G) << COL32_G_SHIFT) | ((U32)(R) << COL32_R_SHIFT))
+  (((unsigned int)(A) << COL32_A_SHIFT) |                                      \
+   ((unsigned int)(B) << COL32_B_SHIFT) |                                      \
+   ((unsigned int)(G) << COL32_G_SHIFT) |                                      \
+   ((unsigned int)(R) << COL32_R_SHIFT))
 #define COL32_WHITE COL32(255, 255, 255, 255) // Opaque white = 0xFFFFFFFF
 #define COL32_BLACK COL32(0, 0, 0, 255)       // Opaque black
 #define COL32_BLACK_TRANS COL32(0, 0, 0, 0)   // Transparent black = 0x00000000
 
-// Helper: Color() implicitly converts colors to either U32 (packed 4x1
+// Helper: Color() implicitly converts colors to either unsigned int (packed 4x1
 // byte) or Vec4 (4x1 float) Prefer using COL32() macros if you want a
-// guaranteed compile-time U32 for usage with DrawList API.
+// guaranteed compile-time unsigned int for usage with DrawList API.
 // **Avoid storing Color! Store either u32 of Vec4. This is not a
 // full-featured color class. MAY OBSOLETE.
 // **None of the Gui API are using Color directly but you can use it as a
-// convenience to pass colors in either U32 or Vec4 formats. Explicitly cast
-// to U32 or Vec4 if needed.
+// convenience to pass colors in either unsigned int or Vec4 formats. Explicitly
+// cast to unsigned int or Vec4 if needed.
 struct Color {
   Vec4 Value;
 
@@ -5268,12 +5157,14 @@ struct Color {
   constexpr Color(int r, int g, int b, int a = 255)
       : Value((float)r * (1.0f / 255.0f), (float)g * (1.0f / 255.0f),
               (float)b * (1.0f / 255.0f), (float)a * (1.0f / 255.0f)) {}
-  constexpr Color(U32 rgba)
+  constexpr Color(unsigned int rgba)
       : Value((float)((rgba >> COL32_R_SHIFT) & 0xFF) * (1.0f / 255.0f),
               (float)((rgba >> COL32_G_SHIFT) & 0xFF) * (1.0f / 255.0f),
               (float)((rgba >> COL32_B_SHIFT) & 0xFF) * (1.0f / 255.0f),
               (float)((rgba >> COL32_A_SHIFT) & 0xFF) * (1.0f / 255.0f)) {}
-  inline operator U32() const { return Gui::ColorConvertFloat4ToU32(Value); }
+  inline operator unsigned int() const {
+    return Gui::ColorConvertFloat4ToU32(Value);
+  }
   inline operator Vec4() const { return Value; }
 
   // FIXME-OBSOLETE: May need to obsolete/cleanup those helpers.
@@ -5338,8 +5229,8 @@ struct DrawCmd {
   Vec4 ClipRect;       // 4*4  // Clipping rectangle (x1, y1, x2, y2). Subtract
                        // DrawData->DisplayPos to get clipping rectangle in
                        // "viewport" coordinates
-  TextureID TextureId; // 4-8  // User-provided texture ID. Set by user in
-                       // ImfontAtlas::SetTexID() for fonts or passed to
+  TextureID TextureId; // 4-8  // User-provided texture unsigned int. Set by
+                       // user in ImfontAtlas::SetTexID() for fonts or passed to
                        // Image*() functions. Ignore if never using images or
                        // multiple fonts atlas.
   unsigned int VtxOffset; // 4    // Start offset in vertex buffer.
@@ -5371,17 +5262,17 @@ struct DrawCmd {
 struct DrawVert {
   Vec2 pos;
   Vec2 uv;
-  U32 col;
+  unsigned int col;
 };
 #else
 // You can override the vertex format layout by defining
 // OVERRIDE_DRAWVERT_STRUCT_LAYOUT in config.hpp The code expect Vec2 pos (8
-// bytes), Vec2 uv (8 bytes), U32 col (4 bytes), but you can re-order them
-// or add other fields as needed to simplify integration in your engine. The
-// type has to be described within the macro (you can either declare the struct
-// or use a typedef). This is because Vec2/U32 are likely not declared at
-// the time you'd want to set your type up. NOTE: GUI DOESN'T CLEAR THE
-// STRUCTURE AND DOESN'T CALL A CONSTRUCTOR SO ANY CUSTOM FIELD WILL BE
+// bytes), Vec2 uv (8 bytes), unsigned int col (4 bytes), but you can re-order
+// them or add other fields as needed to simplify integration in your engine.
+// The type has to be described within the macro (you can either declare the
+// struct or use a typedef). This is because Vec2/unsigned int are likely not
+// declared at the time you'd want to set your type up. NOTE: GUI DOESN'T CLEAR
+// THE STRUCTURE AND DOESN'T CALL A CONSTRUCTOR SO ANY CUSTOM FIELD WILL BE
 // UNINITIALIZED. IF YOU ADD EXTRA FIELDS (SUCH AS A 'Z' COORDINATES) YOU WILL
 // NEED TO CLEAR THEM DURING RENDER OR TO IGNORE THEM.
 OVERRIDE_DRAWVERT_STRUCT_LAYOUT;
@@ -5510,7 +5401,7 @@ struct DrawList {
   Vector<DrawIdx> IdxBuffer;  // Index buffer. Each command consume
                               // DrawCmd::ElemCount of those
   Vector<DrawVert> VtxBuffer; // Vertex buffer.
-  DrawListFlags Flags;        // Flags, you may poke into these to adjust
+  int Flags;                  // Flags, you may poke into these to adjust
                               // anti-aliasing settings per-primitive.
 
   // [Internal, used while building lists]
@@ -5581,57 +5472,61 @@ struct DrawList {
   //   to provide cheaper and higher-quality circles. Use AddNgon() and
   //   AddNgonFilled() functions if you need to guarantee a specific number of
   //   sides.
-  API void AddLine(const Vec2 &p1, const Vec2 &p2, U32 col,
+  API void AddLine(const Vec2 &p1, const Vec2 &p2, unsigned int col,
                    float thickness = 1.0f);
   API void
-  AddRect(const Vec2 &p_min, const Vec2 &p_max, U32 col, float rounding = 0.0f,
-          DrawFlags flags = 0,
+  AddRect(const Vec2 &p_min, const Vec2 &p_max, unsigned int col,
+          float rounding = 0.0f, int flags = 0,
           float thickness =
               1.0f); // a: upper-left, b: lower-right (== upper-left + size)
-  API void
-  AddRectFilled(const Vec2 &p_min, const Vec2 &p_max, U32 col,
-                float rounding = 0.0f,
-                DrawFlags flags =
-                    0); // a: upper-left, b: lower-right (== upper-left + size)
+  API void AddRectFilled(
+      const Vec2 &p_min, const Vec2 &p_max, unsigned int col,
+      float rounding = 0.0f,
+      int flags = 0); // a: upper-left, b: lower-right (== upper-left + size)
   API void AddRectFilledMultiColor(const Vec2 &p_min, const Vec2 &p_max,
-                                   U32 col_upr_left, U32 col_upr_right,
-                                   U32 col_bot_right, U32 col_bot_left);
+                                   unsigned int col_upr_left,
+                                   unsigned int col_upr_right,
+                                   unsigned int col_bot_right,
+                                   unsigned int col_bot_left);
   API void AddQuad(const Vec2 &p1, const Vec2 &p2, const Vec2 &p3,
-                   const Vec2 &p4, U32 col, float thickness = 1.0f);
+                   const Vec2 &p4, unsigned int col, float thickness = 1.0f);
   API void AddQuadFilled(const Vec2 &p1, const Vec2 &p2, const Vec2 &p3,
-                         const Vec2 &p4, U32 col);
-  API void AddTriangle(const Vec2 &p1, const Vec2 &p2, const Vec2 &p3, U32 col,
-                       float thickness = 1.0f);
+                         const Vec2 &p4, unsigned int col);
+  API void AddTriangle(const Vec2 &p1, const Vec2 &p2, const Vec2 &p3,
+                       unsigned int col, float thickness = 1.0f);
   API void AddTriangleFilled(const Vec2 &p1, const Vec2 &p2, const Vec2 &p3,
-                             U32 col);
-  API void AddCircle(const Vec2 &center, float radius, U32 col,
+                             unsigned int col);
+  API void AddCircle(const Vec2 &center, float radius, unsigned int col,
                      int num_segments = 0, float thickness = 1.0f);
-  API void AddCircleFilled(const Vec2 &center, float radius, U32 col,
+  API void AddCircleFilled(const Vec2 &center, float radius, unsigned int col,
                            int num_segments = 0);
-  API void AddNgon(const Vec2 &center, float radius, U32 col, int num_segments,
-                   float thickness = 1.0f);
-  API void AddNgonFilled(const Vec2 &center, float radius, U32 col,
+  API void AddNgon(const Vec2 &center, float radius, unsigned int col,
+                   int num_segments, float thickness = 1.0f);
+  API void AddNgonFilled(const Vec2 &center, float radius, unsigned int col,
                          int num_segments);
   API void AddEllipse(const Vec2 &center, float radius_x, float radius_y,
-                      U32 col, float rot = 0.0f, int num_segments = 0,
+                      unsigned int col, float rot = 0.0f, int num_segments = 0,
                       float thickness = 1.0f);
   API void AddEllipseFilled(const Vec2 &center, float radius_x, float radius_y,
-                            U32 col, float rot = 0.0f, int num_segments = 0);
-  API void AddText(const Vec2 &pos, U32 col, const char *text_begin,
+                            unsigned int col, float rot = 0.0f,
+                            int num_segments = 0);
+  API void AddText(const Vec2 &pos, unsigned int col, const char *text_begin,
                    const char *text_end = NULL);
-  API void AddText(const Font *font, float font_size, const Vec2 &pos, U32 col,
-                   const char *text_begin, const char *text_end = NULL,
-                   float wrap_width = 0.0f,
+  API void AddText(const Font *font, float font_size, const Vec2 &pos,
+                   unsigned int col, const char *text_begin,
+                   const char *text_end = NULL, float wrap_width = 0.0f,
                    const Vec4 *cpu_fine_clip_rect = NULL);
-  API void AddPolyline(const Vec2 *points, int num_points, U32 col,
-                       DrawFlags flags, float thickness);
-  API void AddConvexPolyFilled(const Vec2 *points, int num_points, U32 col);
+  API void AddPolyline(const Vec2 *points, int num_points, unsigned int col,
+                       int flags, float thickness);
+  API void AddConvexPolyFilled(const Vec2 *points, int num_points,
+                               unsigned int col);
   API void
   AddBezierCubic(const Vec2 &p1, const Vec2 &p2, const Vec2 &p3, const Vec2 &p4,
-                 U32 col, float thickness,
+                 unsigned int col, float thickness,
                  int num_segments = 0); // Cubic Bezier (4 control points)
   API void AddBezierQuadratic(
-      const Vec2 &p1, const Vec2 &p2, const Vec2 &p3, U32 col, float thickness,
+      const Vec2 &p1, const Vec2 &p2, const Vec2 &p3, unsigned int col,
+      float thickness,
       int num_segments = 0); // Quadratic Bezier (3 control points)
 
   // Image primitives
@@ -5643,17 +5538,17 @@ struct DrawList {
   // display the entire texture.
   API void AddImage(TextureID user_texture_id, const Vec2 &p_min,
                     const Vec2 &p_max, const Vec2 &uv_min = Vec2(0, 0),
-                    const Vec2 &uv_max = Vec2(1, 1), U32 col = COL32_WHITE);
-  API void AddImageQuad(TextureID user_texture_id, const Vec2 &p1,
-                        const Vec2 &p2, const Vec2 &p3, const Vec2 &p4,
-                        const Vec2 &uv1 = Vec2(0, 0),
-                        const Vec2 &uv2 = Vec2(1, 0),
-                        const Vec2 &uv3 = Vec2(1, 1),
-                        const Vec2 &uv4 = Vec2(0, 1), U32 col = COL32_WHITE);
+                    const Vec2 &uv_max = Vec2(1, 1),
+                    unsigned int col = COL32_WHITE);
+  API void
+  AddImageQuad(TextureID user_texture_id, const Vec2 &p1, const Vec2 &p2,
+               const Vec2 &p3, const Vec2 &p4, const Vec2 &uv1 = Vec2(0, 0),
+               const Vec2 &uv2 = Vec2(1, 0), const Vec2 &uv3 = Vec2(1, 1),
+               const Vec2 &uv4 = Vec2(0, 1), unsigned int col = COL32_WHITE);
   API void AddImageRounded(TextureID user_texture_id, const Vec2 &p_min,
                            const Vec2 &p_max, const Vec2 &uv_min,
-                           const Vec2 &uv_max, U32 col, float rounding,
-                           DrawFlags flags = 0);
+                           const Vec2 &uv_max, unsigned int col, float rounding,
+                           int flags = 0);
 
   // Stateful path API, add points then finish with PathFillConvex() or
   // PathStroke()
@@ -5666,11 +5561,12 @@ struct DrawList {
     if (_Path.Size == 0 || memcmp(&_Path.Data[_Path.Size - 1], &pos, 8) != 0)
       _Path.push_back(pos);
   }
-  inline void PathFillConvex(U32 col) {
+  inline void PathFillConvex(unsigned int col) {
     AddConvexPolyFilled(_Path.Data, _Path.Size, col);
     _Path.Size = 0;
   }
-  inline void PathStroke(U32 col, DrawFlags flags = 0, float thickness = 1.0f) {
+  inline void PathStroke(unsigned int col, int flags = 0,
+                         float thickness = 1.0f) {
     AddPolyline(_Path.Data, _Path.Size, col, flags, thickness);
     _Path.Size = 0;
   }
@@ -5689,7 +5585,7 @@ struct DrawList {
       const Vec2 &p2, const Vec2 &p3,
       int num_segments = 0); // Quadratic Bezier (3 control points)
   API void PathRect(const Vec2 &rect_min, const Vec2 &rect_max,
-                    float rounding = 0.0f, DrawFlags flags = 0);
+                    float rounding = 0.0f, int flags = 0);
 
   // Advanced
   API void
@@ -5725,15 +5621,15 @@ struct DrawList {
   // - All primitives needs to be reserved via PrimReserve() beforehand.
   API void PrimReserve(int idx_count, int vtx_count);
   API void PrimUnreserve(int idx_count, int vtx_count);
-  API void
-  PrimRect(const Vec2 &a, const Vec2 &b,
-           U32 col); // Axis aligned rectangle (composed of two triangles)
+  API void PrimRect(
+      const Vec2 &a, const Vec2 &b,
+      unsigned int col); // Axis aligned rectangle (composed of two triangles)
   API void PrimRectUV(const Vec2 &a, const Vec2 &b, const Vec2 &uv_a,
-                      const Vec2 &uv_b, U32 col);
+                      const Vec2 &uv_b, unsigned int col);
   API void PrimQuadUV(const Vec2 &a, const Vec2 &b, const Vec2 &c,
                       const Vec2 &d, const Vec2 &uv_a, const Vec2 &uv_b,
-                      const Vec2 &uv_c, const Vec2 &uv_d, U32 col);
-  inline void PrimWriteVtx(const Vec2 &pos, const Vec2 &uv, U32 col) {
+                      const Vec2 &uv_c, const Vec2 &uv_d, unsigned int col);
+  inline void PrimWriteVtx(const Vec2 &pos, const Vec2 &uv, unsigned int col) {
     _VtxWritePtr->pos = pos;
     _VtxWritePtr->uv = uv;
     _VtxWritePtr->col = col;
@@ -5744,19 +5640,19 @@ struct DrawList {
     *_IdxWritePtr = idx;
     _IdxWritePtr++;
   }
-  inline void PrimVtx(const Vec2 &pos, const Vec2 &uv, U32 col) {
+  inline void PrimVtx(const Vec2 &pos, const Vec2 &uv, unsigned int col) {
     PrimWriteIdx((DrawIdx)_VtxCurrentIdx);
     PrimWriteVtx(pos, uv, col);
   } // Write vertex with unique index
 
   // Obsolete names
   // inline  void  AddBezierCurve(const Vec2& p1, const Vec2& p2, const
-  // Vec2& p3, const Vec2& p4, U32 col, float thickness, int num_segments
-  // = 0) { AddBezierCubic(p1, p2, p3, p4, col, thickness, num_segments); } //
-  // OBSOLETED in 1.80 (Jan 2021) inline  void  PathBezierCurveTo(const Vec2&
-  // p2, const Vec2& p3, const Vec2& p4, int num_segments = 0) {
-  // PathBezierCubicCurveTo(p2, p3, p4, num_segments); } // OBSOLETED in 1.80
-  // (Jan 2021)
+  // Vec2& p3, const Vec2& p4, unsigned int col, float thickness, int
+  // num_segments = 0) { AddBezierCubic(p1, p2, p3, p4, col, thickness,
+  // num_segments); } // OBSOLETED in 1.80 (Jan 2021) inline  void
+  // PathBezierCurveTo(const Vec2& p2, const Vec2& p3, const Vec2& p4, int
+  // num_segments = 0) { PathBezierCubicCurveTo(p2, p3, p4, num_segments); } //
+  // OBSOLETED in 1.80 (Jan 2021)
 
   // [Internal helpers]
   API void _ResetForNewFrame();
@@ -5819,7 +5715,7 @@ struct DrawData {
 };
 
 //-----------------------------------------------------------------------------
-// [SECTION] Font API (FontConfig, FontGlyph, FontAtlasFlags, FontAtlas,
+// [SECTION] Font API (FontConfig, FontGlyph, int, FontAtlas,
 // FontGlyphRangesBuilder, Font)
 //-----------------------------------------------------------------------------
 
@@ -5903,23 +5799,23 @@ struct FontGlyph {
 // strings/characters to it then call BuildRanges(). This is essentially a
 // tightly packed of vector of 64k booleans = 8KB storage.
 struct FontGlyphRangesBuilder {
-  Vector<U32>
+  Vector<unsigned int>
       UsedChars; // Store 1-bit per Unicode code point (0=unused, 1=used)
 
   FontGlyphRangesBuilder() { Clear(); }
   inline void Clear() {
     int size_in_bytes = (UNICODE_CODEPOINT_MAX + 1) / 8;
-    UsedChars.resize(size_in_bytes / (int)sizeof(U32));
+    UsedChars.resize(size_in_bytes / (int)sizeof(unsigned int));
     memset(UsedChars.Data, 0, (size_t)size_in_bytes);
   }
   inline bool GetBit(size_t n) const {
     int off = (int)(n >> 5);
-    U32 mask = 1u << (n & 31);
+    unsigned int mask = 1u << (n & 31);
     return (UsedChars[off] & mask) != 0;
   } // Get bit n in the array
   inline void SetBit(size_t n) {
     int off = (int)(n >> 5);
-    U32 mask = 1u << (n & 31);
+    unsigned int mask = 1u << (n & 31);
     UsedChars[off] |= mask;
   }                                           // Set bit n in the array
   inline void AddChar(Wchar c) { SetBit(c); } // Add character
@@ -5940,7 +5836,7 @@ struct FontAtlasCustomRect {
   unsigned short Width, Height; // Input    // Desired rectangle dimension
   unsigned short X, Y;          // Output   // Packed position in Atlas
   unsigned int
-      GlyphID; // Input    // For custom font glyphs only (ID < 0x110000)
+      GlyphID; // Input    // For custom font glyphs only (int < 0x110000)
   float
       GlyphAdvanceX; // Input    // For custom font glyphs only: glyph xadvance
   Vec2 GlyphOffset;  // Input    // For custom font glyphs only: glyph display
@@ -6128,16 +6024,15 @@ struct FontAtlas {
   // [Internal]
   API void CalcCustomRectUV(const FontAtlasCustomRect *rect, Vec2 *out_uv_min,
                             Vec2 *out_uv_max) const;
-  API bool GetMouseCursorTexData(MouseCursor cursor, Vec2 *out_offset,
-                                 Vec2 *out_size, Vec2 out_uv_border[2],
-                                 Vec2 out_uv_fill[2]);
+  API bool GetMouseCursorTexData(int cursor, Vec2 *out_offset, Vec2 *out_size,
+                                 Vec2 out_uv_border[2], Vec2 out_uv_fill[2]);
 
   //-------------------------------------------
   // Members
   //-------------------------------------------
 
-  FontAtlasFlags Flags; // Build flags (see FontAtlasFlags_)
-  TextureID TexID;      // User data to refer to the texture once it has been
+  int Flags;       // Build flags (see FontAtlasFlags_)
+  TextureID TexID; // User data to refer to the texture once it has been
                    // uploaded to user's graphic systems. It is passed back to
                    // you during rendering via the DrawCmd structure.
   int TexDesiredWidth; // Texture width desired by user before Build(). Must be
@@ -6190,9 +6085,9 @@ struct FontAtlas {
                         // override is also available in FontConfig.
 
   // [Internal] Packing data
-  int PackIdMouseCursors; // Custom texture rectangle ID for white pixel and
+  int PackIdMouseCursors; // Custom texture rectangle int for white pixel and
                           // mouse cursors
-  int PackIdLines; // Custom texture rectangle ID for baked anti-aliased lines
+  int PackIdLines; // Custom texture rectangle int for baked anti-aliased lines
 
   // [Obsolete]
   // typedef FontAtlasCustomRect    CustomRect;         // OBSOLETED in 1.72+
@@ -6246,12 +6141,12 @@ struct Font {
                            // pixels to get an idea of the font
                            // rasterization/texture cost (not exact, we
                            // approximate the cost of padding between glyphs)
-  U8 Used4kPagesMap[(UNICODE_CODEPOINT_MAX + 1) / 4096 /
-                    8]; // 2 bytes if Wchar=Wchar16, 34 bytes if
-                        // Wchar==Wchar32. Store 1-bit for each block of
-                        // 4K codepoints that has one active glyph. This is
-                        // mainly used to facilitate iterations across all
-                        // used codepoints.
+  unsigned char Used4kPagesMap[(UNICODE_CODEPOINT_MAX + 1) / 4096 /
+                               8]; // 2 bytes if Wchar=Wchar16, 34 bytes if
+                                   // Wchar==Wchar32. Store 1-bit for each block
+                                   // of 4K codepoints that has one active
+                                   // glyph. This is mainly used to facilitate
+                                   // iterations across all used codepoints.
 
   // Methods
   API Font();
@@ -6276,11 +6171,12 @@ struct Font {
   API const char *CalcWordWrapPositionA(float scale, const char *text,
                                         const char *text_end,
                                         float wrap_width) const;
-  API void RenderChar(DrawList *draw_list, float size, const Vec2 &pos, U32 col,
-                      Wchar c) const;
-  API void RenderText(DrawList *draw_list, float size, const Vec2 &pos, U32 col,
-                      const Vec4 &clip_rect, const char *text_begin,
-                      const char *text_end, float wrap_width = 0.0f,
+  API void RenderChar(DrawList *draw_list, float size, const Vec2 &pos,
+                      unsigned int col, Wchar c) const;
+  API void RenderText(DrawList *draw_list, float size, const Vec2 &pos,
+                      unsigned int col, const Vec4 &clip_rect,
+                      const char *text_begin, const char *text_end,
+                      float wrap_width = 0.0f,
                       bool cpu_fine_clip = false) const;
 
   // [Internal] Don't use!
@@ -6370,8 +6266,8 @@ enum ViewportFlags_ {
 //   - Windows are generally trying to stay within the Work Area of their host
 //   viewport.
 struct Viewport {
-  ID ID;               // Unique identifier for the viewport
-  ViewportFlags Flags; // See ViewportFlags_
+  int ID;         // Unique identifier for the viewport
+  int Flags;      // See ViewportFlags_
   Vec2 Pos;       // Main Area: Position of the viewport (Gui coordinates are
                   // the same as OS desktop/native coordinates)
   Vec2 Size;      // Main Area: Size of the viewport.
@@ -6380,11 +6276,11 @@ struct Viewport {
   Vec2 WorkSize;  // Work Area: Size of the viewport minus task bars, menu
                   // bars, status bars (<= Size)
   float DpiScale; // 1.0f = 96 DPI = No extra scale.
-  ::ID ParentViewportId; // (Advanced) 0: no parent. Instruct the platform
-                         // backend to setup a parent/child relationship
-                         // between platform windows.
-  DrawData *DrawData;    // The DrawData corresponding to this viewport. Valid
-                      // after Render() and until the next call to NewFrame().
+  int ParentViewportId; // (Advanced) 0: no parent. Instruct the platform
+                        // backend to setup a parent/child relationship
+                        // between platform windows.
+  DrawData *DrawData;   // The DrawData corresponding to this viewport. Valid
+                        // after Render() and until the next call to NewFrame().
 
   // Platform/Backend Dependent Data
   // Our design separate the Renderer and Platform backends to facilitate
@@ -6600,8 +6496,9 @@ struct PlatformIO {
                      // viewport we are outputting into changes, so backend
                      // has a chance to swap fonts to adjust style.
   int (*Platform_CreateVkSurface)(
-      Viewport *vp, U64 vk_inst, const void *vk_allocators,
-      U64 *out_vk_surface); // (Optional) For a Vulkan Renderer to call into
+      Viewport *vp, unsigned long long vk_inst, const void *vk_allocators,
+      unsigned long long
+          *out_vk_surface); // (Optional) For a Vulkan Renderer to call into
                             // Platform code (since the surface creation needs
                             // to tie them both).
 
@@ -6702,17 +6599,17 @@ static inline Key GetKeyIndex(Key key) {
 #ifndef DISABLE_OBSOLETE_FUNCTIONS
 namespace Gui {
 // OBSOLETED in 1.90.0 (from September 2023)
-static inline bool BeginChildFrame(ID id, const Vec2 &size,
-                                   WindowFlags window_flags = 0) {
+static inline bool BeginChildFrame(int id, const Vec2 &size,
+                                   int window_flags = 0) {
   return BeginChild(id, size, ChildFlags_FrameStyle, window_flags);
 }
 static inline void EndChildFrame() { EndChild(); }
 // static inline bool BeginChild(const char* str_id, const Vec2& size_arg,
-// bool border, WindowFlags window_flags){ return BeginChild(str_id,
+// bool border, int window_flags){ return BeginChild(str_id,
 // size_arg, border ? ChildFlags_Border : ChildFlags_None,
 // window_flags); } // Unnecessary as true == ChildFlags_Border static
-// inline bool BeginChild(ID id, const Vec2& size_arg, bool border,
-// WindowFlags window_flags)        { return BeginChild(id, size_arg,
+// inline bool BeginChild(int id, const Vec2& size_arg, bool border,
+// int window_flags)        { return BeginChild(id, size_arg,
 // border ? ChildFlags_Border : ChildFlags_None, window_flags);     }
 // // Unnecessary as true == ChildFlags_Border
 static inline void ShowStackToolWindow(bool *p_open = NULL) {
@@ -6771,22 +6668,22 @@ static inline void CaptureMouseFromApp(bool want_capture_mouse = true) {
 // EndListBox(); }
 //-- OBSOLETED in 1.79 (from August 2020)
 // static inline void  OpenPopupContextItem(const char* str_id = NULL,
-// MouseButton mb = 1)    { OpenPopupOnItemClick(str_id, mb); } // Bool
+// int mb = 1)    { OpenPopupOnItemClick(str_id, mb); } // Bool
 // return value removed. Use IsWindowAppearing() in BeginPopup() instead.
 // Renamed in 1.77, renamed back in 1.79. Sorry!
 //-- OBSOLETED in 1.78 (from June 2020): Old drag/sliders functions that took a
 //'float power > 1.0f' argument instead of SliderFlags_Logarithmic. API bool
 // DragScalar(const
-// char* label, DataType data_type, void* p_data, float v_speed, const
+// char* label, int data_type, void* p_data, float v_speed, const
 // void* p_min, const void* p_max, const char* format, float power = 1.0f) //
 // OBSOLETED in 1.78 (from June 2020) API bool      DragScalarN(const char*
-// label, DataType data_type, void* p_data, int components, float v_speed,
+// label, int data_type, void* p_data, int components, float v_speed,
 // const void* p_min, const void* p_max, const char* format, float power
 // = 1.0f);                                          // OBSOLETED in 1.78 (from
 // June 2020) API bool      SliderScalar(const char* label, DataType
 // data_type, void* p_data, const void* p_min, const void* p_max, const char*
 // format, float power = 1.0f); // OBSOLETED in 1.78 (from June 2020) API bool
-// SliderScalarN(const char* label, DataType data_type, void* p_data, int
+// SliderScalarN(const char* label, int data_type, void* p_data, int
 // components, const void* p_min, const void* p_max, const char* format, float
 // power = 1.0f);                                                       //
 // OBSOLETED in 1.78 (from June 2020) static inline bool  DragFloat(const char*
@@ -6822,13 +6719,13 @@ static inline void CaptureMouseFromApp(bool want_capture_mouse = true) {
 // OBSOLETED in 1.78 (from June 2020)
 //-- OBSOLETED in 1.77 and before
 // static inline bool  BeginPopupContextWindow(const char* str_id,
-// MouseButton mb, bool over_items) { return
+// int mb, bool over_items) { return
 // BeginPopupContextWindow(str_id, mb | (over_items ? 0 :
 // PopupFlags_NoOpenOverItems)); } // OBSOLETED in 1.77 (from June 2020)
 // static inline void  TreeAdvanceToLabelPos()               {
 // SetCursorPosX(GetCursorPosX() + GetTreeNodeToLabelSpacing()); }   //
 // OBSOLETED in 1.72 (from July 2019) static inline void
-// SetNextTreeNodeOpen(bool open, Cond cond = 0) { SetNextItemOpen(open,
+// SetNextTreeNodeOpen(bool open, int cond = 0) { SetNextItemOpen(open,
 // cond); }                       // OBSOLETED in 1.71 (from June 2019) static
 // inline float GetContentRegionAvailWidth()          { return
 // GetContentRegionAvail().x; }                               // OBSOLETED
@@ -6866,7 +6763,7 @@ static inline void CaptureMouseFromApp(bool want_capture_mouse = true) {
 // OBSOLETED in 1.52 (between Aug 2017 and Oct 2017) static inline void
 // AlignFirstTextHeightToWidgets()       { AlignTextToFramePadding(); } //
 // OBSOLETED in 1.52 (between Aug 2017 and Oct 2017) static inline void
-// SetNextWindowPosCenter(Cond c=0) {
+// SetNextWindowPosCenter(int c=0) {
 // SetNextWindowPos(GetMainViewport()->GetCenter(), c, Vec2(0.5f,0.5f)); } //
 // OBSOLETED in 1.52 (between Aug 2017 and Oct 2017) static inline bool
 // IsItemHoveredRect()                   { return
@@ -6895,7 +6792,7 @@ static inline void CaptureMouseFromApp(bool want_capture_mouse = true) {
 } // namespace Gui
 
 //-- OBSOLETED in 1.82 (from Mars 2021): flags for AddRect(), AddRectFilled(),
-// AddImageRounded(), PathRect() typedef DrawFlags DrawCornerFlags; enum
+// AddImageRounded(), PathRect() typedef int DrawCornerFlags; enum
 // DrawCornerFlags_
 //{
 //    DrawCornerFlags_None      = DrawFlags_RoundCornersNone,         // Was
@@ -6923,9 +6820,9 @@ static inline void CaptureMouseFromApp(bool want_capture_mouse = true) {
 // in 1.88 (from April 2022). Exceptionally commented out ahead of obscolescence
 // schedule to reduce confusion and because they were not meant to be used in
 // the first place.
-typedef KeyChord ModFlags; // == int. We generally use KeyChord to mean "a
-                           // Key or-ed with any number of Mod_XXX
-                           // value", but you may store only mods in there.
+typedef int ModFlags; // == int. We generally use int to mean "a
+                      // Key or-ed with any number of Mod_XXX
+                      // value", but you may store only mods in there.
 enum ModFlags_ {
   ModFlags_None = 0,
   ModFlags_Ctrl = Mod_Ctrl,
@@ -6933,7 +6830,7 @@ enum ModFlags_ {
   ModFlags_Alt = Mod_Alt,
   ModFlags_Super = Mod_Super
 };
-// typedef KeyChord KeyModFlags; // == int
+// typedef int KeyModFlags; // == int
 // enum KeyModFlags_ { KeyModFlags_None = 0, KeyModFlags_Ctrl =
 // Mod_Ctrl, KeyModFlags_Shift = Mod_Shift, KeyModFlags_Alt
 // = Mod_Alt, KeyModFlags_Super = Mod_Super };

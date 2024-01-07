@@ -389,7 +389,7 @@ static const float TABLE_RESIZE_SEPARATOR_FEEDBACK_TIMER =
            // visible because tables/columns tends to be more cramped.
 
 // Helper
-inline TableFlags TableFixFlags(TableFlags flags, Window *outer_window) {
+inline int TableFixFlags(int flags, Window *outer_window) {
   // Adjust flags: set default sizing policy
   if ((flags & TableFlags_SizingMask_) == 0)
     flags |= ((flags & TableFlags_ScrollX) ||
@@ -429,22 +429,21 @@ inline TableFlags TableFixFlags(TableFlags flags, Window *outer_window) {
   return flags;
 }
 
-Table *Gui::TableFindByID(ID id) {
+Table *Gui::TableFindByID(int id) {
   Context &g = *GGui;
   return g.Tables.GetByKey(id);
 }
 
 // Read about "TABLE SIZING" at the top of this file.
-bool Gui::BeginTable(const char *str_id, int columns_count, TableFlags flags,
+bool Gui::BeginTable(const char *str_id, int columns_count, int flags,
                      const Vec2 &outer_size, float inner_width) {
-  ID id = GetID(str_id);
+  int id = GetID(str_id);
   return BeginTableEx(str_id, id, columns_count, flags, outer_size,
                       inner_width);
 }
 
-bool Gui::BeginTableEx(const char *name, ID id, int columns_count,
-                       TableFlags flags, const Vec2 &outer_size,
-                       float inner_width) {
+bool Gui::BeginTableEx(const char *name, int id, int columns_count, int flags,
+                       const Vec2 &outer_size, float inner_width) {
   Context &g = *GGui;
   Window *outer_window = GetCurrentWindow();
   if (outer_window->SkipItems) // Consistent with other tables + beneficial side
@@ -479,7 +478,7 @@ bool Gui::BeginTableEx(const char *name, ID id, int columns_count,
 
   // Acquire storage for the table
   Table *table = g.Tables.GetOrAddByKey(id);
-  const TableFlags table_last_flags = table->Flags;
+  const int table_last_flags = table->Flags;
 
   // Acquire temporary buffers
   const int table_idx = g.Tables.GetIndex(table);
@@ -509,18 +508,18 @@ bool Gui::BeginTableEx(const char *name, ID id, int columns_count,
   temp_data->UserOuterSize = outer_size;
 
   // Instance data (for instance 0, TableID == TableInstanceID)
-  ID instance_id;
-  table->InstanceCurrent = (S16)instance_no;
+  int instance_id;
+  table->InstanceCurrent = (signed short)instance_no;
   if (instance_no > 0) {
     ASSERT(table->ColumnsCount == columns_count &&
            "BeginTable(): Cannot change columns count mid-frame while "
-           "preserving same ID");
+           "preserving same unsigned int");
     if (table->InstanceDataExtra.Size < instance_no)
       table->InstanceDataExtra.push_back(TableInstanceData());
     instance_id = GetIDWithSeed(
         instance_no, GetIDWithSeed("##Instances", NULL,
                                    id)); // Push "##Instances" followed by
-                                         // (int)instance_no in ID stack.
+                                         // (int)instance_no in int stack.
   } else {
     instance_id = id;
   }
@@ -558,9 +557,9 @@ bool Gui::BeginTableEx(const char *name, ID id, int columns_count,
       SetNextWindowScroll(Vec2(0.0f, 0.0f));
 
     // Create scrolling region (without border and zero window padding)
-    WindowFlags child_flags = (flags & TableFlags_ScrollX)
-                                  ? WindowFlags_HorizontalScrollbar
-                                  : WindowFlags_None;
+    int child_flags = (flags & TableFlags_ScrollX)
+                          ? WindowFlags_HorizontalScrollbar
+                          : WindowFlags_None;
     BeginChildEx(name, instance_id, outer_rect.GetSize(), false, child_flags);
     table->InnerWindow = g.CurrentWindow;
     table->WorkRect = table->InnerWindow->WorkRect;
@@ -590,7 +589,7 @@ bool Gui::BeginTableEx(const char *name, ID id, int columns_count,
     table->WorkRect = table->OuterRect = table->InnerRect = outer_rect;
   }
 
-  // Push a standardized ID for both child-using and not-child-using tables
+  // Push a standardized int for both child-using and not-child-using tables
   PushOverrideID(id);
   if (instance_no > 0)
     PushOverrideID(
@@ -832,9 +831,10 @@ void Gui::TableBeginInitMemory(Table *table, int columns_count) {
   span_allocator.GetSpan(0, &table->Columns);
   span_allocator.GetSpan(1, &table->DisplayOrderToIndex);
   span_allocator.GetSpan(2, &table->RowCellData);
-  table->EnabledMaskByDisplayOrder = (U32 *)span_allocator.GetSpanPtrBegin(3);
-  table->EnabledMaskByIndex = (U32 *)span_allocator.GetSpanPtrBegin(4);
-  table->VisibleMaskByIndex = (U32 *)span_allocator.GetSpanPtrBegin(5);
+  table->EnabledMaskByDisplayOrder =
+      (unsigned int *)span_allocator.GetSpanPtrBegin(3);
+  table->EnabledMaskByIndex = (unsigned int *)span_allocator.GetSpanPtrBegin(4);
+  table->VisibleMaskByIndex = (unsigned int *)span_allocator.GetSpanPtrBegin(5);
 }
 
 // Apply queued resizing/reordering/hiding requests
@@ -911,13 +911,12 @@ void Gui::TableBeginApplyRequests(Table *table) {
 // Adjust flags: default width mode + stretch columns are not allowed when auto
 // extending
 static void TableSetupColumnFlags(Table *table, TableColumn *column,
-                                  TableColumnFlags flags_in) {
-  TableColumnFlags flags = flags_in;
+                                  int flags_in) {
+  int flags = flags_in;
 
   // Sizing Policy
   if ((flags & TableColumnFlags_WidthMask_) == 0) {
-    const TableFlags table_sizing_policy =
-        (table->Flags & TableFlags_SizingMask_);
+    const int table_sizing_policy = (table->Flags & TableFlags_SizingMask_);
     if (table_sizing_policy == TableFlags_SizingFixedFit ||
         table_sizing_policy == TableFlags_SizingFixedSame)
       flags |= TableColumnFlags_WidthFixed;
@@ -986,9 +985,9 @@ static void TableSetupColumnFlags(Table *table, TableColumn *column,
       mask |= 1 << SortDirection_None;
       count++;
     }
-    column->SortDirectionsAvailList = (U8)list;
-    column->SortDirectionsAvailMask = (U8)mask;
-    column->SortDirectionsAvailCount = (U8)count;
+    column->SortDirectionsAvailList = (unsigned char)list;
+    column->SortDirectionsAvailMask = (unsigned char)mask;
+    column->SortDirectionsAvailCount = (unsigned char)count;
     Gui::TableFixColumnSortDirection(table, column);
   }
 }
@@ -1005,8 +1004,7 @@ void Gui::TableUpdateLayout(Table *table) {
   Context &g = *GGui;
   ASSERT(table->IsLayoutLocked == false);
 
-  const TableFlags table_sizing_policy =
-      (table->Flags & TableFlags_SizingMask_);
+  const int table_sizing_policy = (table->Flags & TableFlags_SizingMask_);
   table->IsDefaultDisplayOrder = true;
   table->ColumnsEnabledCount = 0;
   BitArrayClearAllBits(table->EnabledMaskByIndex, table->ColumnsCount);
@@ -1294,7 +1292,7 @@ void Gui::TableUpdateLayout(Table *table) {
       table->OuterRect.Min.x, table->OuterRect.Min.y, table->OuterRect.Max.x,
       Max(table->OuterRect.Max.y,
           table->OuterRect.Min.y + table_instance->LastOuterHeight));
-  const ID backup_active_id = g.ActiveId;
+  const int backup_active_id = g.ActiveId;
   g.ActiveId = 0;
   const bool is_hovering_table =
       ItemHoverable(mouse_hit_rect, 0, ItemFlags_None);
@@ -1327,10 +1325,10 @@ void Gui::TableUpdateLayout(Table *table) {
     TableColumn *column = &table->Columns[column_n];
 
     column->NavLayerCurrent =
-        (S8)(table->FreezeRowsCount > 0
-                 ? NavLayer_Menu
-                 : NavLayer_Main); // Use Count NOT request so Header
-                                   // line changes layer when frozen
+        (signed char)(table->FreezeRowsCount > 0
+                          ? NavLayer_Menu
+                          : NavLayer_Main); // Use Count NOT request so Header
+                                            // line changes layer when frozen
 
     if (offset_x_frozen && table->FreezeColumnsCount == visible_n) {
       offset_x += work_rect.Min.x - table->OuterRect.Min.x;
@@ -1638,7 +1636,7 @@ void Gui::TableUpdateBorders(Table *table) {
     if (!column->IsVisibleX && table->LastResizedColumn != column_n)
       continue;
 
-    ID column_id =
+    int column_id =
         TableGetColumnResizeID(table, column_n, table->InstanceCurrent);
     Rect hit_rect(column->MaxX - hit_half_width, hit_y1,
                   column->MaxX + hit_half_width, border_y2_hit);
@@ -1690,7 +1688,7 @@ void Gui::EndTable() {
   if (!table->IsLayoutLocked)
     TableUpdateLayout(table);
 
-  const TableFlags flags = table->Flags;
+  const int flags = table->Flags;
   Window *inner_window = table->InnerWindow;
   Window *outer_window = table->OuterWindow;
   TableTempData *temp_data = table->TempData;
@@ -1946,8 +1944,8 @@ void Gui::EndTable() {
 
 // See "COLUMNS SIZING POLICIES" comments at the top of this file
 // If (init_width_or_weight <= 0.0f) it is ignored
-void Gui::TableSetupColumn(const char *label, TableColumnFlags flags,
-                           float init_width_or_weight, ID user_id) {
+void Gui::TableSetupColumn(const char *label, int flags,
+                           float init_width_or_weight, int user_id) {
   Context &g = *GGui;
   Table *table = g.CurrentTable;
   ASSERT(table != NULL &&
@@ -2018,15 +2016,15 @@ void Gui::TableSetupColumn(const char *label, TableColumnFlags flags,
              // SortOrder values when building the sort specs.
       column->SortDirection =
           (column->Flags & TableColumnFlags_PreferSortDescending)
-              ? (S8)SortDirection_Descending
-              : (U8)(SortDirection_Ascending);
+              ? (signed char)SortDirection_Descending
+              : (unsigned char)(SortDirection_Ascending);
     }
   }
 
   // Store name (append with zero-terminator in contiguous buffer)
   column->NameOffset = -1;
   if (label != NULL && label[0] != 0) {
-    column->NameOffset = (S16)table->ColumnsNames.size();
+    column->NameOffset = (signed short)table->ColumnsNames.size();
     table->ColumnsNames.append(label, label + strlen(label) + 1);
   }
 }
@@ -2140,7 +2138,7 @@ void Gui::TableSetColumnEnabled(int column_n, bool enabled) {
 
 // We allow querying for an extra column in order to poll the IsHovered state of
 // the right-most section
-TableColumnFlags Gui::TableGetColumnFlags(int column_n) {
+int Gui::TableGetColumnFlags(int column_n) {
   Context &g = *GGui;
   Table *table = g.CurrentTable;
   if (!table)
@@ -2178,10 +2176,10 @@ Rect Gui::TableGetCellBgRect(const Table *table, int column_n) {
   return Rect(x1, table->RowPosY1, x2, table->RowPosY2);
 }
 
-// Return the resizing ID for the right-side of the given column.
-ID Gui::TableGetColumnResizeID(Table *table, int column_n, int instance_no) {
+// Return the resizing int for the right-side of the given column.
+int Gui::TableGetColumnResizeID(Table *table, int column_n, int instance_no) {
   ASSERT(column_n >= 0 && column_n < table->ColumnsCount);
-  ID instance_id = TableGetInstanceID(table, instance_no);
+  int instance_id = TableGetInstanceID(table, instance_no);
   return instance_id + 1 + column_n; // FIXME: #6140: still not ideal
 }
 
@@ -2209,7 +2207,7 @@ int Gui::TableGetHoveredRow() {
   return (int)table_instance->HoveredRowLast;
 }
 
-void Gui::TableSetBgColor(TableBgTarget target, U32 color, int column_n) {
+void Gui::TableSetBgColor(int target, unsigned int color, int column_n) {
   Context &g = *GGui;
   Table *table = g.CurrentTable;
   ASSERT(target != TableBgTarget_None);
@@ -2269,7 +2267,7 @@ int Gui::TableGetRowIndex() {
 }
 
 // [Public] Starts into the first cell of a new row
-void Gui::TableNextRow(TableRowFlags row_flags, float row_min_height) {
+void Gui::TableNextRow(int row_flags, float row_min_height) {
   Context &g = *GGui;
   Table *table = g.CurrentTable;
 
@@ -2379,8 +2377,8 @@ void Gui::TableEndRow(Table *table) {
       table_instance->HoveredRowNext = table->CurrentRow;
 
     // Decide of background color for the row
-    U32 bg_col0 = 0;
-    U32 bg_col1 = 0;
+    unsigned int bg_col0 = 0;
+    unsigned int bg_col1 = 0;
     if (table->RowBgColor[0] != COL32_DISABLE)
       bg_col0 = table->RowBgColor[0];
     else if (table->Flags & TableFlags_RowBg)
@@ -2390,7 +2388,7 @@ void Gui::TableEndRow(Table *table) {
       bg_col1 = table->RowBgColor[1];
 
     // Decide of top border color
-    U32 top_border_col = 0;
+    unsigned int top_border_col = 0;
     const float border_size = TABLE_BORDER_SIZE;
     if (table->CurrentRow > 0 && (table->Flags & TableFlags_BordersInnerH))
       top_border_col = (table->LastRowFlags & TableRowFlags_Headers)
@@ -3271,7 +3269,8 @@ void Gui::TableMergeDrawChannels(Table *table) {
   }
 }
 
-static U32 TableGetColumnBorderCol(Table *table, int order_n, int column_n) {
+static unsigned int TableGetColumnBorderCol(Table *table, int order_n,
+                                            int column_n) {
   const bool is_hovered = (table->HoveredColumnBorder == column_n);
   const bool is_resized = (table->ResizedColumn == column_n) &&
                           (table->InstanceInteracted == table->InstanceCurrent);
@@ -3376,7 +3375,7 @@ void Gui::TableDrawBorders(Table *table) {
     // currently won't allow us to use a larger border size: the border would
     // clipped.
     const Rect outer_border = table->OuterRect;
-    const U32 outer_col = table->BorderColorStrong;
+    const unsigned int outer_col = table->BorderColorStrong;
     if ((table->Flags & TableFlags_BordersOuter) == TableFlags_BordersOuter) {
       inner_drawlist->AddRect(outer_border.Min, outer_border.Max + Vec2(1, 1),
                               outer_col, 0.0f, 0, border_size);
@@ -3442,8 +3441,7 @@ TableSortSpecs *Gui::TableGetSortSpecs() {
   return &table->SortSpecs;
 }
 
-static inline SortDirection
-TableGetColumnAvailSortDirection(TableColumn *column, int n) {
+static inline int TableGetColumnAvailSortDirection(TableColumn *column, int n) {
   ASSERT(n < column->SortDirectionsAvailCount);
   return (column->SortDirectionsAvailList >> (n << 1)) & 0x03;
 }
@@ -3454,7 +3452,8 @@ void Gui::TableFixColumnSortDirection(Table *table, TableColumn *column) {
   if (column->SortOrder == -1 ||
       (column->SortDirectionsAvailMask & (1 << column->SortDirection)) != 0)
     return;
-  column->SortDirection = (U8)TableGetColumnAvailSortDirection(column, 0);
+  column->SortDirection =
+      (unsigned char)TableGetColumnAvailSortDirection(column, 0);
   table->IsSortSpecsDirty = true;
 }
 
@@ -3465,7 +3464,7 @@ void Gui::TableFixColumnSortDirection(Table *table, TableColumn *column) {
 // the default and therefore a no-op.
 STATIC_ASSERT(SortDirection_None == 0 && SortDirection_Ascending == 1 &&
               SortDirection_Descending == 2);
-SortDirection Gui::TableGetColumnNextSortDirection(TableColumn *column) {
+int Gui::TableGetColumnNextSortDirection(TableColumn *column) {
   ASSERT(column->SortDirectionsAvailCount > 0);
   if (column->SortOrder == -1)
     return TableGetColumnAvailSortDirection(column, 0);
@@ -3481,8 +3480,7 @@ SortDirection Gui::TableGetColumnNextSortDirection(TableColumn *column) {
 // TableSortSpecsSanitize(), and they may change/revert the value of
 // SortDirection. We could technically also do it here but it would be
 // unnecessary and duplicate code.
-void Gui::TableSetColumnSortDirection(int column_n,
-                                      SortDirection sort_direction,
+void Gui::TableSetColumnSortDirection(int column_n, int sort_direction,
                                       bool append_to_sort_specs) {
   Context &g = *GGui;
   Table *table = g.CurrentTable;
@@ -3500,7 +3498,7 @@ void Gui::TableSetColumnSortDirection(int column_n,
           Max(sort_order_max, table->Columns[other_column_n].SortOrder);
 
   TableColumn *column = &table->Columns[column_n];
-  column->SortDirection = (U8)sort_direction;
+  column->SortDirection = (unsigned char)sort_direction;
   if (column->SortDirection == SortDirection_None)
     column->SortOrder = -1;
   else if (column->SortOrder == -1 || !append_to_sort_specs)
@@ -3523,7 +3521,7 @@ void Gui::TableSortSpecsSanitize(Table *table) {
   // Clear SortOrder from hidden column and verify that there's no gap or
   // duplicate.
   int sort_order_count = 0;
-  U64 sort_order_mask = 0x00;
+  unsigned long long sort_order_mask = 0x00;
   for (int column_n = 0; column_n < table->ColumnsCount; column_n++) {
     TableColumn *column = &table->Columns[column_n];
     if (column->SortOrder != -1 && !column->IsEnabled)
@@ -3531,30 +3529,31 @@ void Gui::TableSortSpecsSanitize(Table *table) {
     if (column->SortOrder == -1)
       continue;
     sort_order_count++;
-    sort_order_mask |= ((U64)1 << column->SortOrder);
+    sort_order_mask |= ((unsigned long long)1 << column->SortOrder);
     ASSERT(sort_order_count < (int)sizeof(sort_order_mask) * 8);
   }
 
   const bool need_fix_linearize =
-      ((U64)1 << sort_order_count) != (sort_order_mask + 1);
+      ((unsigned long long)1 << sort_order_count) != (sort_order_mask + 1);
   const bool need_fix_single_sort_order =
       (sort_order_count > 1) && !(table->Flags & TableFlags_SortMulti);
   if (need_fix_linearize || need_fix_single_sort_order) {
-    U64 fixed_mask = 0x00;
+    unsigned long long fixed_mask = 0x00;
     for (int sort_n = 0; sort_n < sort_order_count; sort_n++) {
       // Fix: Rewrite sort order fields if needed so they have no gap or
       // duplicate. (e.g. SortOrder 0 disappeared, SortOrder 1..2 exists -->
       // rewrite then as SortOrder 0..1)
       int column_with_smallest_sort_order = -1;
       for (int column_n = 0; column_n < table->ColumnsCount; column_n++)
-        if ((fixed_mask & ((U64)1 << (U64)column_n)) == 0 &&
+        if ((fixed_mask &
+             ((unsigned long long)1 << (unsigned long long)column_n)) == 0 &&
             table->Columns[column_n].SortOrder != -1)
           if (column_with_smallest_sort_order == -1 ||
               table->Columns[column_n].SortOrder <
                   table->Columns[column_with_smallest_sort_order].SortOrder)
             column_with_smallest_sort_order = column_n;
       ASSERT(column_with_smallest_sort_order != -1);
-      fixed_mask |= ((U64)1 << column_with_smallest_sort_order);
+      fixed_mask |= ((unsigned long long)1 << column_with_smallest_sort_order);
       table->Columns[column_with_smallest_sort_order].SortOrder =
           (TableColumnIdx)sort_n;
 
@@ -3578,7 +3577,8 @@ void Gui::TableSortSpecsSanitize(Table *table) {
       if (column->IsEnabled && !(column->Flags & TableColumnFlags_NoSort)) {
         sort_order_count = 1;
         column->SortOrder = 0;
-        column->SortDirection = (U8)TableGetColumnAvailSortDirection(column, 0);
+        column->SortDirection =
+            (unsigned char)TableGetColumnAvailSortDirection(column, 0);
         break;
       }
     }
@@ -3772,7 +3772,7 @@ void Gui::TableHeader(const char *label) {
       Max(column->ContentMaxXHeadersIdeal, max_pos_x);
 
   // Keep header highlighted when context menu is open.
-  ID id = window->GetID(label);
+  int id = window->GetID(label);
   Rect bb(cell_r.Min.x, cell_r.Min.y, cell_r.Max.x,
           Max(cell_r.Max.y,
               cell_r.Min.y + label_height + g.Style.CellPadding.y * 2.0f));
@@ -3792,9 +3792,9 @@ void Gui::TableHeader(const char *label) {
   bool pressed =
       ButtonBehavior(bb, id, &hovered, &held, ButtonFlags_AllowOverlap);
   if (held || hovered || highlight) {
-    const U32 col = GetColorU32(held      ? Col_HeaderActive
-                                : hovered ? Col_HeaderHovered
-                                          : Col_Header);
+    const unsigned int col = GetColorU32(held      ? Col_HeaderActive
+                                         : hovered ? Col_HeaderHovered
+                                                   : Col_Header);
     // RenderFrame(bb.Min, bb.Max, col, false, 0.0f);
     TableSetBgColor(TableBgTarget_CellBg, col, table->CurrentColumn);
   } else {
@@ -3868,7 +3868,7 @@ void Gui::TableHeader(const char *label) {
 
     // Handle clicking on column header to adjust Sort Order
     if (pressed && table->ReorderColumn != column_n) {
-      SortDirection sort_direction = TableGetColumnNextSortDirection(column);
+      int sort_direction = TableGetColumnNextSortDirection(column);
       TableSetColumnSortDirection(column_n, sort_direction, g.IO.KeyShift);
     }
   }
@@ -3957,7 +3957,7 @@ void Gui::TableAngledHeadersRowEx(float angle, float max_label_width) {
 
   const Rect row_r(table->WorkRect.Min.x, table->BgClipRect.Min.y,
                    table->WorkRect.Max.x, window->DC.CursorPos.y + row_height);
-  const ID row_id = GetID("##AngledHeaders");
+  const int row_id = GetID("##AngledHeaders");
   ButtonBehavior(row_r, row_id, NULL, NULL);
   KeepAliveID(row_id);
 
@@ -4072,7 +4072,7 @@ void Gui::TableOpenContextMenu(int column_n) {
     table->IsContextPopupOpen = true;
     table->ContextPopupColumn = (TableColumnIdx)column_n;
     table->InstanceInteracted = table->InstanceCurrent;
-    const ID context_menu_id = HashStr("##ContextMenu", 0, table->ID);
+    const int context_menu_id = HashStr("##ContextMenu", 0, table->ID);
     OpenPopupEx(context_menu_id, PopupFlags_None);
   }
 }
@@ -4081,7 +4081,7 @@ bool Gui::TableBeginContextMenuPopup(Table *table) {
   if (!table->IsContextPopupOpen ||
       table->InstanceCurrent != table->InstanceInteracted)
     return false;
-  const ID context_menu_id = HashStr("##ContextMenu", 0, table->ID);
+  const int context_menu_id = HashStr("##ContextMenu", 0, table->ID);
   if (BeginPopupEx(context_menu_id, WindowFlags_AlwaysAutoResize |
                                         WindowFlags_NoTitleBar |
                                         WindowFlags_NoSavedSettings))
@@ -4101,7 +4101,7 @@ bool Gui::TableBeginContextMenuPopup(Table *table) {
 // It means if you have a custom context menus you can call this section and
 // omit some sections, and add your own.
 void Gui::TableDrawDefaultContextMenu(Table *table,
-                                      TableFlags flags_for_section_to_display) {
+                                      int flags_for_section_to_display) {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
   if (window->SkipItems)
@@ -4225,8 +4225,8 @@ void Gui::TableDrawDefaultContextMenu(Table *table,
 //-------------------------------------------------------------------------
 
 // Clear and initialize empty settings instance
-static void TableSettingsInit(TableSettings *settings, ID id, int columns_count,
-                              int columns_count_max) {
+static void TableSettingsInit(TableSettings *settings, int id,
+                              int columns_count, int columns_count_max) {
   PLACEMENT_NEW(settings) TableSettings();
   TableColumnSettings *settings_column = settings->GetColumnSettings();
   for (int n = 0; n < columns_count_max; n++, settings_column++)
@@ -4242,7 +4242,7 @@ static size_t TableSettingsCalcChunkSize(int columns_count) {
          (size_t)columns_count * sizeof(TableColumnSettings);
 }
 
-TableSettings *Gui::TableSettingsCreate(ID id, int columns_count) {
+TableSettings *Gui::TableSettingsCreate(int id, int columns_count) {
   Context &g = *GGui;
   TableSettings *settings =
       g.SettingsTables.alloc_chunk(TableSettingsCalcChunkSize(columns_count));
@@ -4251,7 +4251,7 @@ TableSettings *Gui::TableSettingsCreate(ID id, int columns_count) {
 }
 
 // Find existing settings
-TableSettings *Gui::TableSettingsFindByID(ID id) {
+TableSettings *Gui::TableSettingsFindByID(int id) {
   // FIXME-OPT: Might want to store a lookup map for this?
   Context &g = *GGui;
   for (TableSettings *settings = g.SettingsTables.begin(); settings != NULL;
@@ -4374,7 +4374,7 @@ void Gui::TableLoadSettings(Table *table) {
   // Serialize TableSettings/TableColumnSettings into
   // Table/TableColumn
   TableColumnSettings *column_settings = settings->GetColumnSettings();
-  U64 display_order_mask = 0;
+  unsigned long long display_order_mask = 0;
   for (int data_n = 0; data_n < settings->ColumnsCount;
        data_n++, column_settings++) {
     int column_n = column_settings->Index;
@@ -4393,7 +4393,7 @@ void Gui::TableLoadSettings(Table *table) {
       column->DisplayOrder = column_settings->DisplayOrder;
     else
       column->DisplayOrder = (TableColumnIdx)column_n;
-    display_order_mask |= (U64)1 << column->DisplayOrder;
+    display_order_mask |= (unsigned long long)1 << column->DisplayOrder;
     column->IsUserEnabled = column->IsUserEnabledNextFrame =
         column_settings->IsEnabled;
     column->SortOrder = column_settings->SortOrder;
@@ -4401,9 +4401,10 @@ void Gui::TableLoadSettings(Table *table) {
   }
 
   // Validate and fix invalid display order data
-  const U64 expected_display_order_mask =
-      (settings->ColumnsCount == 64) ? ~0
-                                     : ((U64)1 << settings->ColumnsCount) - 1;
+  const unsigned long long expected_display_order_mask =
+      (settings->ColumnsCount == 64)
+          ? ~0
+          : ((unsigned long long)1 << settings->ColumnsCount) - 1;
   if (display_order_mask != expected_display_order_mask)
     for (int column_n = 0; column_n < table->ColumnsCount; column_n++)
       table->Columns[column_n].DisplayOrder = (TableColumnIdx)column_n;
@@ -4434,7 +4435,7 @@ static void TableSettingsHandler_ApplyAll(Context *ctx, SettingsHandler *) {
 
 static void *TableSettingsHandler_ReadOpen(Context *, SettingsHandler *,
                                            const char *name) {
-  ID id = 0;
+  int id = 0;
   int columns_count = 0;
   if (sscanf(name, "0x%08X,%d", &id, &columns_count) < 2)
     return NULL;
@@ -4470,9 +4471,9 @@ static void TableSettingsHandler_ReadLine(Context *, SettingsHandler *,
     char c = 0;
     TableColumnSettings *column = settings->GetColumnSettings() + column_n;
     column->Index = (TableColumnIdx)column_n;
-    if (sscanf(line, "UserID=0x%08X%n", (U32 *)&n, &r) == 1) {
+    if (sscanf(line, "UserID=0x%08X%n", (unsigned int *)&n, &r) == 1) {
       line = StrSkipBlank(line + r);
-      column->UserID = (ID)n;
+      column->UserID = (unsigned int)n;
     }
     if (sscanf(line, "Width=%d%n", &n, &r) == 1) {
       line = StrSkipBlank(line + r);
@@ -4488,7 +4489,7 @@ static void TableSettingsHandler_ReadLine(Context *, SettingsHandler *,
     }
     if (sscanf(line, "Visible=%d%n", &n, &r) == 1) {
       line = StrSkipBlank(line + r);
-      column->IsEnabled = (U8)n;
+      column->IsEnabled = (unsigned char)n;
       settings->SaveFlags |= TableFlags_Hideable;
     }
     if (sscanf(line, "Order=%d%n", &n, &r) == 1) {
@@ -4598,7 +4599,8 @@ void Gui::TableRemove(Table *table) {
 
 // Free up/compact internal Table buffers for when it gets unused
 void Gui::TableGcCompactTransientBuffers(Table *table) {
-  // DEBUG_PRINT("TableGcCompactTransientBuffers() id=0x%08X\n", table->ID);
+  // DEBUG_PRINT("TableGcCompactTransientBuffers() id=0x%08X\n", table->unsigned
+  // int);
   Context &g = *GGui;
   ASSERT(table->MemoryCompacted == false);
   table->SortSpecs.Specs = NULL;
@@ -4647,7 +4649,7 @@ void Gui::TableGcCompactSettings() {
 
 #ifndef DISABLE_DEBUG_TOOLS
 
-static const char *DebugNodeTableGetSizingPolicyDesc(TableFlags sizing_policy) {
+static const char *DebugNodeTableGetSizingPolicyDesc(int sizing_policy) {
   sizing_policy &= TableFlags_SizingMask_;
   if (sizing_policy == TableFlags_SizingFixedFit) {
     return "FixedFit";
@@ -4779,9 +4781,9 @@ void Gui::DebugNodeTableSettings(TableSettings *settings) {
              settings->ColumnsCountMax);
   for (int n = 0; n < settings->ColumnsCount; n++) {
     TableColumnSettings *column_settings = &settings->GetColumnSettings()[n];
-    SortDirection sort_dir = (column_settings->SortOrder != -1)
-                                 ? (SortDirection)column_settings->SortDirection
-                                 : SortDirection_None;
+    int sort_dir = (column_settings->SortOrder != -1)
+                       ? (int)column_settings->SortDirection
+                       : SortDirection_None;
     BulletText(
         "Column %d Order %d SortOrder %d %s Vis %d %s %7.3f UserID 0x%08X", n,
         column_settings->DisplayOrder, column_settings->SortOrder,
@@ -4870,7 +4872,7 @@ static float GetDraggedColumnOffset(OldColumns *columns, int column_index) {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
   ASSERT(column_index > 0); // We are not supposed to drag column 0.
-  ASSERT(g.ActiveId == columns->ID + ID(column_index));
+  ASSERT(g.ActiveId == columns->ID + (unsigned int)(column_index));
 
   float x = g.IO.MousePos.x - g.ActiveIdClickOffset.x +
             COLUMNS_HIT_RECT_HALF_WIDTH - window->Pos.x;
@@ -5001,7 +5003,7 @@ void Gui::PopColumnsBackground() {
   columns->Splitter.SetCurrentChannel(window->DrawList, columns->Current + 1);
 }
 
-OldColumns *Gui::FindOrCreateColumns(Window *window, ID id) {
+OldColumns *Gui::FindOrCreateColumns(Window *window, int id) {
   // We have few columns per window so for now we don't need bother much with
   // turning this into a faster lookup.
   for (int n = 0; n < window->ColumnsStorage.Size; n++)
@@ -5014,22 +5016,21 @@ OldColumns *Gui::FindOrCreateColumns(Window *window, ID id) {
   return columns;
 }
 
-ID Gui::GetColumnsID(const char *str_id, int columns_count) {
+int Gui::GetColumnsID(const char *str_id, int columns_count) {
   Window *window = GetCurrentWindow();
 
-  // Differentiate column ID with an arbitrary prefix for cases where users name
-  // their columns set the same as another widget. In addition, when an
+  // Differentiate column int with an arbitrary prefix for cases where users
+  // name their columns set the same as another widget. In addition, when an
   // identifier isn't explicitly provided we include the number of columns in
   // the hash to make it uniquer.
   PushID(0x11223347 + (str_id ? 0 : columns_count));
-  ID id = window->GetID(str_id ? str_id : "columns");
+  int id = window->GetID(str_id ? str_id : "columns");
   PopID();
 
   return id;
 }
 
-void Gui::BeginColumns(const char *str_id, int columns_count,
-                       OldColumnFlags flags) {
+void Gui::BeginColumns(const char *str_id, int columns_count, int flags) {
   Context &g = *GGui;
   Window *window = GetCurrentWindow();
 
@@ -5038,7 +5039,7 @@ void Gui::BeginColumns(const char *str_id, int columns_count,
          NULL); // Nested columns are currently not supported
 
   // Acquire storage for the columns set
-  ID id = GetColumnsID(str_id, columns_count);
+  int id = GetColumnsID(str_id, columns_count);
   OldColumns *columns = FindOrCreateColumns(window, id);
   ASSERT(columns->ID == id);
   columns->Current = 0;
@@ -5181,7 +5182,7 @@ void Gui::EndColumns() {
     columns->Splitter.Merge(window->DrawList);
   }
 
-  const OldColumnFlags flags = columns->Flags;
+  const int flags = columns->Flags;
   columns->LineMaxY = Max(columns->LineMaxY, window->DC.CursorPos.y);
   window->DC.CursorPos.y = columns->LineMaxY;
   if (!(flags & OldColumnFlags_GrowParentContentsSize))
@@ -5202,7 +5203,7 @@ void Gui::EndColumns() {
     for (int n = 1; n < columns->Count; n++) {
       OldColumnData *column = &columns->Columns[n];
       float x = window->Pos.x + GetColumnOffset(n);
-      const ID column_id = columns->ID + ID(n);
+      const int column_id = columns->ID + (unsigned int)(n);
       const float column_hit_hw = COLUMNS_HIT_RECT_HALF_WIDTH;
       const Rect column_hit_rect(Vec2(x - column_hit_hw, y1),
                                  Vec2(x + column_hit_hw, y2));
@@ -5219,9 +5220,9 @@ void Gui::EndColumns() {
       }
 
       // Draw column
-      const U32 col = GetColorU32(held      ? Col_SeparatorActive
-                                  : hovered ? Col_SeparatorHovered
-                                            : Col_Separator);
+      const unsigned int col = GetColorU32(held      ? Col_SeparatorActive
+                                           : hovered ? Col_SeparatorHovered
+                                                     : Col_Separator);
       const float xi = TRUNC(x);
       window->DrawList->AddLine(Vec2(xi, y1 + 1.0f), Vec2(xi, y2), col);
     }
@@ -5253,7 +5254,7 @@ void Gui::Columns(int columns_count, const char *id, bool border) {
   Window *window = GetCurrentWindow();
   ASSERT(columns_count >= 1);
 
-  OldColumnFlags flags = (border ? 0 : OldColumnFlags_NoBorder);
+  int flags = (border ? 0 : OldColumnFlags_NoBorder);
   // flags |= OldColumnFlags_NoPreserveWidths; // NB: Legacy behavior
   OldColumns *columns = window->DC.CurrentColumns;
   if (columns != NULL && columns->Count == columns_count &&

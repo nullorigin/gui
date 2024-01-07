@@ -18,7 +18,8 @@
 #include <webgpu/webgpu.h>
 
 // Gui prototypes from internal.hpp
-extern ID HashData(const void *data_p, size_t data_size, U32 seed = 0);
+extern int HashData(const void *data_p, size_t data_size,
+                    unsigned int seed = 0);
 #define MEMALIGN(_SIZE, _ALIGN)                                                \
   (((_SIZE) + ((_ALIGN)-1)) &                                                  \
    ~((_ALIGN)-1)) // Memory align (copied from ALIGN() macro).
@@ -415,7 +416,7 @@ void WGPU_RenderDrawData(DrawData *draw_data,
       } else {
         // Bind custom texture
         TextureID tex_id = pcmd->GetTexID();
-        ID tex_id_hash = HashData(&tex_id, sizeof(tex_id));
+        int tex_id_hash = HashData(&tex_id, sizeof(tex_id));
         auto bind_group =
             bd->renderResources.ImageBindGroups.GetVoidPtr(tex_id_hash);
         if (bind_group) {

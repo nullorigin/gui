@@ -140,7 +140,7 @@ struct Context;      // Main Gui context
 struct ContextHook;  // Hook for extensions like TestEngine
 struct DataVarInfo;  // Variable information (e.g. to avoid style variables
                      // from an enum)
-struct DataTypeInfo; // Type information associated to a DataType enum
+struct DataTypeInfo; // Type information associated to a int enum
 struct DockContext;  // Docking system context
 struct DockRequest;  // Docking system dock/undock queued request
 struct DockNode;     // Docking system node (hold a list of Windows OR two
@@ -201,47 +201,40 @@ struct WindowSettings; // Storage for a window .ini settings (we keep one
 // center columns to find the actual flags/enum lists.
 enum LocKey : int; // -> enum LocKey              // Enum: a
                    // localization entry for translation.
-typedef int
-    DataAuthority;      // -> enum DataAuthority_      // Enum: for storing
-                        // the source authority (dock node vs window) of a field
-typedef int LayoutType; // -> enum LayoutType_         // Enum:
-                        // Horizontal or vertical
+                   // -> enum DataAuthority_      // Enum: for storing
+                   // the source authority (dock node vs window) of a field
+                   // -> enum LayoutType_         // Enum:
+                   // Horizontal or vertical
 
 // Flags
-typedef int ActivateFlags;     // -> enum ActivateFlags_      // Flags:
-                               // for navigation/focus function (will be for
-                               // ActivateItem() later)
-typedef int DebugLogFlags;     // -> enum DebugLogFlags_      // Flags:
-                               // for ShowDebugLogWindow(), g.DebugLogFlags
-typedef int FocusRequestFlags; // -> enum FocusRequestFlags_  //
-                               // Flags: for FocusWindow();
-typedef int InputFlags;        // -> enum InputFlags_         // Flags: for
-                        // IsKeyPressed(), IsMouseClicked(), SetKeyOwner(),
-                        // SetItemKeyOwner() etc.
-typedef int ItemFlags;           // -> enum ItemFlags_          // Flags: for
-                                 // PushItemFlag(), g.LastItemData.InFlags
-typedef int ItemStatusFlags;     // -> enum ItemStatusFlags_    // Flags:
-                                 // for g.LastItemData.StatusFlags
-typedef int OldColumnFlags;      // -> enum OldColumnFlags_     // Flags:
-                                 // for BeginColumns()
-typedef int NavHighlightFlags;   // -> enum NavHighlightFlags_  //
-                                 // Flags: for RenderNavHighlight()
-typedef int NavMoveFlags;        // -> enum NavMoveFlags_       // Flags: for
-                                 // navigation requests
-typedef int NextItemDataFlags;   // -> enum NextItemDataFlags_  //
-                                 // Flags: for SetNextItemXXX() functions
-typedef int NextWindowDataFlags; // -> enum NextWindowDataFlags_//
-                                 // Flags: for SetNextWindowXXX() functions
-typedef int ScrollFlags;         // -> enum ScrollFlags_        // Flags: for
-                                 // ScrollToItem() and navigation requests
-typedef int SeparatorFlags;      // -> enum SeparatorFlags_     // Flags:
-                                 // for SeparatorEx()
-typedef int TextFlags;    // -> enum TextFlags_          // Flags: for TextEx()
-typedef int TooltipFlags; // -> enum TooltipFlags_       // Flags: for
-                          // BeginTooltipEx()
-typedef int TypingSelectFlags; // -> enum TypingSelectFlags_  //
-                               // Flags: for GetTypingSelectRequest()
-
+// -> enum ActivateFlags_      // Flags:
+// for navigation/focus function (will be for
+// ActivateItem() later)
+// -> enum DebugLogFlags_      // Flags:
+// for ShowDebugLogWindow(), g.DebugLogFlags
+// -> enum FocusRequestFlags_  //
+// Flags: for FocusWindow();
+// -> enum InputFlags_         // Flags: for
+// IsKeyPressed(), IsMouseClicked(), SetKeyOwner(),
+// SetItemKeyOwner() etc.
+// -> enum ItemFlags_          // Flags: for
+// PushItemFlag(), g.LastItemData.InFlags
+// -> enum ItemStatusFlags_    // Flags:
+// for g.LastItemData.StatusFlags
+// -> enum OldColumnFlags_     // Flags:
+// for BeginColumns()
+// -> enum NavHighlightFlags_  //
+// Flags: for RenderNavHighlight()
+// -> enum NavMoveFlags_       // Flags: for
+// navigation requests
+// -> enum NextItemDataFlags_  //
+// Flags: for SetNextItemXXX() functions
+// -> enum NextWindowDataFlags_//
+// Flags: for SetNextWindowXXX() functions
+// // -> enum ScrollFlags_        // Flags: for
+// ScrollToItem() and navigation requests
+// -> enum SeparatorFlags_     // Flags:
+// for SeparatorEx()
 typedef void (*ErrorLogCallback)(void *user_data, const char *fmt, ...);
 
 //-----------------------------------------------------------------------------
@@ -257,7 +250,7 @@ extern API Context *GGui; // Current implicit context pointer
 // [SECTION] STB libraries includes
 //-------------------------------------------------------------------------
 
-namespace Stb {
+namespace Gui {
 
 #undef TEXTEDIT_STRING
 #undef TEXTEDIT_CHARTYPE
@@ -268,7 +261,7 @@ namespace Stb {
 #define TEXTEDIT_UNDOCHARCOUNT 999
 #include "textedit.hpp"
 
-} // namespace Stb
+} // namespace Gui
 
 //-----------------------------------------------------------------------------
 // [SECTION] Macros
@@ -475,8 +468,8 @@ namespace Stb {
 //-----------------------------------------------------------------------------
 
 // Helpers: Hashing
-API ID HashData(const void *data, size_t data_size, ID seed = 0);
-API ID HashStr(const char *data, size_t data_size = 0, ID seed = 0);
+API int HashData(const void *data, size_t data_size, int seed = 0);
+API int HashStr(const char *data, size_t data_size = 0, int seed = 0);
 
 // Helpers: Sorting
 #ifndef Qsort
@@ -488,11 +481,13 @@ static inline void Qsort(void *base, size_t count, size_t size_of_element,
 #endif
 
 // Helpers: Color Blending
-API U32 AlphaBlendColors(U32 col_a, U32 col_b);
+API unsigned int AlphaBlendColors(unsigned int col_a, unsigned int col_b);
 
 // Helpers: Bit manipulation
 static inline bool IsPowerOfTwo(int v) { return v != 0 && (v & (v - 1)) == 0; }
-static inline bool IsPowerOfTwo(U64 v) { return v != 0 && (v & (v - 1)) == 0; }
+static inline bool IsPowerOfTwo(unsigned long long v) {
+  return v != 0 && (v & (v - 1)) == 0;
+}
 static inline int UpperPowerOfTwo(int v) {
   v--;
   v |= v >> 1;
@@ -599,17 +594,27 @@ API const char *TextFindPreviousUtf8Codepoint(
 typedef void *FileHandle;
 static inline FileHandle FileOpen(const char *, const char *) { return NULL; }
 static inline bool FileClose(FileHandle) { return false; }
-static inline U64 FileGetSize(FileHandle) { return (U64)-1; }
-static inline U64 FileRead(void *, U64, U64, FileHandle) { return 0; }
-static inline U64 FileWrite(const void *, U64, U64, FileHandle) { return 0; }
+static inline unsigned long long FileGetSize(FileHandle) {
+  return (unsigned long long)-1;
+}
+static inline unsigned long long FileRead(void *, unsigned long long,
+                                          unsigned long long, FileHandle) {
+  return 0;
+}
+static inline unsigned long long FileWrite(const void *, unsigned long long,
+                                           unsigned long long, FileHandle) {
+  return 0;
+}
 #endif
 #ifndef DISABLE_DEFAULT_FILE_FUNCTIONS
 typedef FILE *FileHandle;
 API FileHandle FileOpen(const char *filename, const char *mode);
 API bool FileClose(FileHandle file);
-API U64 FileGetSize(FileHandle file);
-API U64 FileRead(void *data, U64 size, U64 count, FileHandle file);
-API U64 FileWrite(const void *data, U64 size, U64 count, FileHandle file);
+API unsigned long long FileGetSize(FileHandle file);
+API unsigned long long FileRead(void *data, unsigned long long size,
+                                unsigned long long count, FileHandle file);
+API unsigned long long FileWrite(const void *data, unsigned long long size,
+                                 unsigned long long count, FileHandle file);
 #else
 #define DISABLE_TTY_FUNCTIONS // Can't use stdout, fflush if we are not using
                               // default file functions
@@ -918,50 +923,52 @@ struct API Rect {
 
 // Helper: BitArray
 #define BITARRAY_TESTBIT(_ARRAY, _N)                                           \
-  ((_ARRAY[(_N) >> 5] & ((U32)1 << ((_N) & 31))) !=                            \
+  ((_ARRAY[(_N) >> 5] & ((unsigned int)1 << ((_N) & 31))) !=                   \
    0) // Macro version of BitArrayTestBit(): ensure args have side-effect or
       // are costly!
 #define BITARRAY_CLEARBIT(_ARRAY, _N)                                          \
   ((_ARRAY[(_N) >> 5] &=                                                       \
-    ~((U32)1 << ((_N) & 31)))) // Macro version of BitArrayClearBit(): ensure
-                               // args have side-effect or are costly!
+    ~((unsigned int)1 << ((_N) &                                               \
+                          31)))) // Macro version of BitArrayClearBit(): ensure
+                                 // args have side-effect or are costly!
 inline size_t BitArrayGetStorageSizeInBytes(int bitcount) {
   return (size_t)((bitcount + 31) >> 5) << 2;
 }
-inline void BitArrayClearAllBits(U32 *arr, int bitcount) {
+inline void BitArrayClearAllBits(unsigned int *arr, int bitcount) {
   memset(arr, 0, BitArrayGetStorageSizeInBytes(bitcount));
 }
-inline bool BitArrayTestBit(const U32 *arr, int n) {
-  U32 mask = (U32)1 << (n & 31);
+inline bool BitArrayTestBit(const unsigned int *arr, int n) {
+  unsigned int mask = (unsigned int)1 << (n & 31);
   return (arr[n >> 5] & mask) != 0;
 }
-inline void BitArrayClearBit(U32 *arr, int n) {
-  U32 mask = (U32)1 << (n & 31);
+inline void BitArrayClearBit(unsigned int *arr, int n) {
+  unsigned int mask = (unsigned int)1 << (n & 31);
   arr[n >> 5] &= ~mask;
 }
-inline void BitArraySetBit(U32 *arr, int n) {
-  U32 mask = (U32)1 << (n & 31);
+inline void BitArraySetBit(unsigned int *arr, int n) {
+  unsigned int mask = (unsigned int)1 << (n & 31);
   arr[n >> 5] |= mask;
 }
-inline void BitArraySetBitRange(U32 *arr, int n,
+inline void BitArraySetBitRange(unsigned int *arr, int n,
                                 int n2) // Works on range [n..n2)
 {
   n2--;
   while (n <= n2) {
     int a_mod = (n & 31);
     int b_mod = (n2 > (n | 31) ? 31 : (n2 & 31)) + 1;
-    U32 mask = (U32)(((U64)1 << b_mod) - 1) & ~(U32)(((U64)1 << a_mod) - 1);
+    unsigned int mask = (unsigned int)(((unsigned long long)1 << b_mod) - 1) &
+                        ~(unsigned int)(((unsigned long long)1 << a_mod) - 1);
     arr[n >> 5] |= mask;
     n = (n + 32) & ~31;
   }
 }
 
-typedef U32 *BitArrayPtr; // Name for use in structs
+typedef unsigned int *BitArrayPtr; // Name for use in structs
 
 // Helper: BitArray class (wrapper over BitArray functions)
 // Store 1-bit per value.
 template <int BITCOUNT, int OFFSET = 0> struct BitArray {
-  U32 Storage[(BITCOUNT + 31) >> 5];
+  unsigned int Storage[(BITCOUNT + 31) >> 5];
   BitArray() { ClearAllBits(); }
   void ClearAllBits() { memset(Storage, 0, sizeof(Storage)); }
   void SetAllBits() { memset(Storage, 255, sizeof(Storage)); }
@@ -996,7 +1003,7 @@ template <int BITCOUNT, int OFFSET = 0> struct BitArray {
 // Helper: BitVector
 // Store 1-bit per value.
 struct API BitVector {
-  Vector<U32> Storage;
+  Vector<unsigned int> Storage;
   void Create(int sz) {
     Storage.resize((sz + 31) >> 5);
     memset(Storage.Data, 0, (size_t)Storage.Size * sizeof(Storage.Data[0]));
@@ -1108,19 +1115,19 @@ template <int CHUNKS> struct SpanAllocator {
 
 // Helper: Pool<>
 // Basic keyed storage for contiguous instances, slow/amortized insertion, O(1)
-// indexable, O(Log N) queries by ID over a dense/hot buffer, Honor
+// indexable, O(Log N) queries by int over a dense/hot buffer, Honor
 // constructor/destructor. Add/remove invalidate all pointers. Indexes have the
 // same lifetime as the associated object.
 typedef int PoolIdx;
 template <typename T> struct Pool {
   Vector<T> Buf;      // Contiguous data
-  Storage Map;        // ID->Index
+  Storage Map;        // unsigned int->Index
   PoolIdx FreeIdx;    // Next free idx to use
   PoolIdx AliveCount; // Number of active/alive items (for display purpose)
 
   Pool() { FreeIdx = AliveCount = 0; }
   ~Pool() { Clear(); }
-  T *GetByKey(ID key) {
+  T *GetByKey(int key) {
     int idx = Map.GetInt(key, -1);
     return (idx != -1) ? &Buf[idx] : NULL;
   }
@@ -1129,7 +1136,7 @@ template <typename T> struct Pool {
     ASSERT(p >= Buf.Data && p < Buf.Data + Buf.Size);
     return (PoolIdx)(p - Buf.Data);
   }
-  T *GetOrAddByKey(ID key) {
+  T *GetOrAddByKey(int key) {
     int *p_idx = Map.GetIntRef(key, -1);
     if (*p_idx != -1)
       return &Buf[*p_idx];
@@ -1161,8 +1168,8 @@ template <typename T> struct Pool {
     AliveCount++;
     return &Buf[idx];
   }
-  void Remove(ID key, const T *p) { Remove(key, GetIndex(p)); }
-  void Remove(ID key, PoolIdx idx) {
+  void Remove(int key, const T *p) { Remove(key, GetIndex(p)); }
+  void Remove(int key, PoolIdx idx) {
     Buf[idx].~T();
     *(int *)&Buf[idx] = FreeIdx;
     FreeIdx = idx;
@@ -1325,7 +1332,7 @@ struct API DrawListSharedData {
   float CircleSegmentMaxError; // Number of circle segments to use per pixel of
                                // radius for AddCircle() etc
   Vec4 ClipRectFullscreen;     // Value for PushClipRectFullscreen()
-  DrawListFlags InitialFlags;  // Initial flags at the beginning of the frame
+  int InitialFlags;            // Initial flags at the beginning of the frame
                                // (it is possible to alter flags on a
                                // per-drawlist basis afterwards)
 
@@ -1335,12 +1342,13 @@ struct API DrawListSharedData {
   // [Internal] Lookup tables
   Vec2 ArcFastVtx[DRAWLIST_ARCFAST_TABLE_SIZE]; // Sample points on the
                                                 // quarter of the circle.
-  float ArcFastRadiusCutoff;  // Cutoff radius after which arc drawing will
-                              // fallback to slower PathArcTo()
-  U8 CircleSegmentCounts[64]; // Precomputed segment count for given radius
-                              // before we calculate it dynamically (to avoid
-                              // calculation overhead)
-  const Vec4 *TexUvLines;     // UV of anti-aliased lines in the atlas
+  float ArcFastRadiusCutoff; // Cutoff radius after which arc drawing will
+                             // fallback to slower PathArcTo()
+  unsigned char
+      CircleSegmentCounts[64]; // Precomputed segment count for given radius
+                               // before we calculate it dynamically (to avoid
+                               // calculation overhead)
+  const Vec4 *TexUvLines;      // UV of anti-aliased lines in the atlas
 
   DrawListSharedData();
   void SetCircleTessellationMaxError(float max_error);
@@ -1576,7 +1584,7 @@ enum SelectableFlagsPrivate_ {
                // purpose. FIXME: We may be able to remove this (added in
                // 6251d379, 2bcafc86 for menus)
   SelectableFlags_SetNavIdOnHover =
-      1 << 25, // Set Nav/Focus ID on mouse hover (used by MenuItem)
+      1 << 25, // Set Nav/Focus int on mouse hover (used by MenuItem)
   SelectableFlags_NoPadWithHalfSpacing =
       1 << 26, // Disable padding each side with ItemSpacing * 0.5f
   SelectableFlags_NoSetKeyOwner =
@@ -1604,7 +1612,7 @@ enum SeparatorFlags_ {
 };
 
 // Flags for FocusWindow(). This is not called FocusFlags to avoid
-// confusion with public-facing FocusedFlags.
+// confusion with public-facing int.
 // FIXME: Once we finishing replacing more uses of
 // GetTopMostPopupModal()+IsWindowWithinBeginStackOf() and FindBlockingModal()
 // with this, we may want to change the flag to be opt-out instead of opt-in.
@@ -1655,16 +1663,16 @@ enum PopupPositionPolicy {
 };
 
 struct DataVarInfo {
-  DataType Type;
-  U32 Count;  // 1+
-  U32 Offset; // Offset in parent structure
+  int Type;
+  unsigned int Count;  // 1+
+  unsigned int Offset; // Offset in parent structure
   void *GetVarPtr(void *parent) const {
     return (void *)((unsigned char *)parent + Offset);
   }
 };
 
 struct DataTypeTempStorage {
-  U8 Data[8]; // Can fit any data up to DataType_COUNT
+  unsigned char Data[8]; // Can fit any data up to DataType_COUNT
 };
 
 // Type information associated to one DataType. Retrieve with
@@ -1685,27 +1693,27 @@ enum DataTypePrivate_ {
 
 // Stacked color modifier, backup of modified data so we can restore it
 struct ColorMod {
-  Col Col;
+  int Col;
   Vec4 BackupValue;
 };
 
 // Stacked style modifier, backup of modified data so we can restore it. Data
 // type inferred from the variable.
 struct StyleMod {
-  StyleVar VarIdx;
+  int VarIdx;
   union {
     int BackupInt[2];
     float BackupFloat[2];
   };
-  StyleMod(StyleVar idx, int v) {
+  StyleMod(int idx, int v) {
     VarIdx = idx;
     BackupInt[0] = v;
   }
-  StyleMod(StyleVar idx, float v) {
+  StyleMod(int idx, float v) {
     VarIdx = idx;
     BackupFloat[0] = v;
   }
-  StyleMod(StyleVar idx, Vec2 v) {
+  StyleMod(int idx, Vec2 v) {
     VarIdx = idx;
     BackupFloat[0] = v.x;
     BackupFloat[1] = v.y;
@@ -1719,14 +1727,14 @@ struct API ComboPreviewData {
   Vec2 BackupCursorMaxPos;
   Vec2 BackupCursorPosPrevLine;
   float BackupPrevLineTextBaseOffset;
-  LayoutType BackupLayout;
+  int BackupLayout;
 
   ComboPreviewData() { memset(this, 0, sizeof(*this)); }
 };
 
 // Stacked storage data for BeginGroup()/EndGroup()
 struct API GroupData {
-  ID WindowID;
+  int WindowID;
   Vec2 BackupCursorPos;
   Vec2 BackupCursorMaxPos;
   Vec2 BackupCursorPosPrevLine;
@@ -1734,7 +1742,7 @@ struct API GroupData {
   Vec1 BackupGroupOffset;
   Vec2 BackupCurrLineSize;
   float BackupCurrLineTextBaseOffset;
-  ID BackupActiveIdIsAlive;
+  int BackupActiveIdIsAlive;
   bool BackupActiveIdPreviousFrameIsAlive;
   bool BackupHoveredIdIsAlive;
   bool BackupIsSameLine;
@@ -1744,15 +1752,15 @@ struct API GroupData {
 // Simple column measurement, currently used for MenuItem() only.. This is very
 // short-sighted/throw-away code and NOT a generic helper.
 struct API MenuColumns {
-  U32 TotalWidth;
-  U32 NextTotalWidth;
-  U16 Spacing;
-  U16 OffsetIcon;  // Always zero for now
-  U16 OffsetLabel; // Offsets are locked in Update()
-  U16 OffsetShortcut;
-  U16 OffsetMark;
-  U16 Widths[4]; // Width of:   Icon, Label, Shortcut, Mark  (accumulators for
-                 // current frame)
+  unsigned int TotalWidth;
+  unsigned int NextTotalWidth;
+  unsigned short Spacing;
+  unsigned short OffsetIcon;  // Always zero for now
+  unsigned short OffsetLabel; // Offsets are locked in Update()
+  unsigned short OffsetShortcut;
+  unsigned short OffsetMark;
+  unsigned short Widths[4]; // Width of:   Icon, Label, Shortcut, Mark
+                            // (accumulators for current frame)
 
   MenuColumns() { memset(this, 0, sizeof(*this)); }
   void Update(float spacing, bool window_reappearing);
@@ -1763,7 +1771,8 @@ struct API MenuColumns {
 
 // Internal temporary state for deactivating InputText() instances.
 struct API InputTextDeactivatedState {
-  ID ID; // widget id owning the text state (which just got deactivated)
+  int ID;             // widget id owning the text state (which just got
+                      // deactivated)
   Vector<char> TextA; // text buffer
 
   InputTextDeactivatedState() { memset(this, 0, sizeof(*this)); }
@@ -1773,10 +1782,10 @@ struct API InputTextDeactivatedState {
   }
 };
 // Internal state of the currently focused/edited text input box
-// For a given item ID, access with Gui::GetInputTextState()
+// For a given item unsigned int, access with Gui::GetInputTextState()
 struct API InputTextState {
   Context *Ctx; // parent UI context (needs to be set explicitly by parent).
-  ID ID;        // widget id owning the text state
+  int ID;       // widget id owning the text state
   int CurLenW,
       CurLenA; // we need to maintain our buffer length in both UTF-8 and wchar
                // format. UTF-8 length is valid even if TextA is not.
@@ -1793,7 +1802,7 @@ struct API InputTextState {
                      // user argument)
   int BufCapacityA;  // end-user buffer capacity
   float ScrollX;     // horizontal scrolling/offset
-  Stb::TexteditState Stb; // state for textedit.h
+  Gui::TexteditState Stb; // state for textedit.h
   float CursorAnim; // timer for cursor blink, reset on every user action so the
                     // cursor reappears immediately
   bool CursorFollow; // set when we want scrolling to follow the current cursor
@@ -1801,7 +1810,7 @@ struct API InputTextState {
   bool SelectedAllMouseLock; // after a double-click to select all, we ignore
                              // further mouse drags to update selection
   bool Edited;               // edited this frame
-  InputTextFlags Flags;      // copy of InputText() flags. may be used to check
+  int Flags;                 // copy of InputText() flags. may be used to check
                              // if e.g. InputTextFlags_Password is set.
 
   InputTextState() { memset(this, 0, sizeof(*this)); }
@@ -1846,17 +1855,17 @@ struct API InputTextState {
 
 // Storage for current popup stack
 struct PopupData {
-  ID PopupId;     // Set on OpenPopup()
+  int PopupId;    // Set on OpenPopup()
   Window *Window; // Resolved on BeginPopup() - may stay unresolved if user
                   // never calls OpenPopup()
-  ::Window *BackupNavWindow; // Set on OpenPopup(), a NavWindow that will be
-                             // restored on popup close
+  struct Window *BackupNavWindow; // Set on OpenPopup(), a NavWindow that will
+                                  // be restored on popup close
   int ParentNavLayer; // Resolved on BeginPopup(). Actually a NavLayer type
                       // (declared down below), initialized to -1 which is not
                       // part of an enum, but serves well-enough as "not any of
                       // layers" value
   int OpenFrameCount; // Set on OpenPopup()
-  ID OpenParentId;    // Set on OpenPopup(), we need this to differentiate
+  int OpenParentId;   // Set on OpenPopup(), we need this to differentiate
                       // multiple menu sets from each others (e.g. inside menu
                       // bar vs loose menu items)
   Vec2 OpenPopupPos;  // Set on OpenPopup(), preferred popup position
@@ -1888,25 +1897,25 @@ enum NextWindowDataFlags_ {
 
 // Storage for SetNexWindow** functions
 struct NextWindowData {
-  NextWindowDataFlags Flags;
-  Cond PosCond;
-  Cond SizeCond;
-  Cond CollapsedCond;
-  Cond DockCond;
+  int Flags;
+  int PosCond;
+  int SizeCond;
+  int CollapsedCond;
+  int DockCond;
   Vec2 PosVal;
   Vec2 PosPivotVal;
   Vec2 SizeVal;
   Vec2 ContentSizeVal;
   Vec2 ScrollVal;
-  ChildFlags ChildFlags;
+  int ChildFlags;
   bool PosUndock;
   bool CollapsedVal;
   Rect SizeConstraintRect;
   SizeCallback SizeCallback;
   void *SizeCallbackUserData;
   float BgAlphaVal; // Override background alpha
-  ID ViewportId;
-  ID DockId;
+  int ViewportId;
+  int DockId;
   WindowClass WindowClass;
   Vec2 MenuBarOffsetMinVal; // (Always on) This is not exposed publicly, so we
                             // don't clear it and it doesn't have a
@@ -1920,7 +1929,7 @@ struct NextWindowData {
 // SetNextItemSelectionUserData()/BeginMultiSelect() (Most users are likely to
 // use this store an item INDEX but this may be used to store a POINTER as
 // well.)
-typedef S64 SelectionUserData;
+typedef signed long long SelectionUserData;
 
 enum NextItemDataFlags_ {
   NextItemDataFlags_None = 0,
@@ -1929,8 +1938,8 @@ enum NextItemDataFlags_ {
 };
 
 struct NextItemData {
-  NextItemDataFlags Flags;
-  ItemFlags ItemFlags; // Currently only tested/used for ItemFlags_AllowOverlap.
+  int Flags;
+  int ItemFlags; // Currently only tested/used for ItemFlags_AllowOverlap.
   // Non-flags members are NOT cleared by ItemAdd() meaning they are still valid
   // during NavProcessItem()
   float Width;                         // Set by SetNextItemWidth()
@@ -1938,7 +1947,7 @@ struct NextItemData {
                                        // (note that NULL/0 is a valid value, we
                                        // use -1 == SelectionUserData_Invalid to
                                        // mark invalid values)
-  Cond OpenCond;
+  int OpenCond;
   bool OpenVal; // Set by SetNextItemOpen()
 
   NextItemData() {
@@ -1953,17 +1962,17 @@ struct NextItemData {
 
 // Status storage for the last submitted item
 struct LastItemData {
-  ID ID;
-  ItemFlags InFlags;           // See ItemFlags_
-  ItemStatusFlags StatusFlags; // See ItemStatusFlags_
-  Rect Rect;                   // Full rectangle
-  ::Rect NavRect;              // Navigation scoring rectangle (not displayed)
+  int ID;
+  int InFlags;         // See ItemFlags_
+  int StatusFlags;     // See ItemStatusFlags_
+  Rect Rect;           // Full rectangle
+  struct Rect NavRect; // Navigation scoring rectangle (not displayed)
   // Rarely used fields are not explicitly cleared, only valid when the
-  // corresponding ItemStatusFlags is set.
-  ::Rect DisplayRect; // Display rectangle (ONLY VALID IF
-                      // ItemStatusFlags_HasDisplayRect is set)
-  ::Rect ClipRect; // Clip rectangle at the time of submitting item (ONLY VALID
-                   // IF ItemStatusFlags_HasClipRect is set)
+  // corresponding int is set.
+  struct Rect DisplayRect; // Display rectangle (ONLY VALID IF
+                           // ItemStatusFlags_HasDisplayRect is set)
+  struct Rect ClipRect; // Clip rectangle at the time of submitting item (ONLY
+                        // VALID IF ItemStatusFlags_HasClipRect is set)
 
   LastItemData() { memset(this, 0, sizeof(*this)); }
 };
@@ -1974,8 +1983,8 @@ struct LastItemData {
 // can't infer in TreePop() Only stored when the node is a potential candidate
 // for landing on a Left arrow jump.
 struct NavTreeNodeData {
-  ID ID;
-  ItemFlags InFlags;
+  int ID;
+  int InFlags;
   Rect NavRect;
 };
 
@@ -2091,7 +2100,7 @@ struct InputEventMouseButton {
   MouseSource MouseSource;
 };
 struct InputEventMouseViewport {
-  ID HoveredViewportID;
+  int HoveredViewportID;
 };
 struct InputEventKey {
   Key Key;
@@ -2108,8 +2117,8 @@ struct InputEventAppFocused {
 struct InputEvent {
   InputEventType Type;
   InputSource Source;
-  U32 EventId; // Unique, sequential increasing integer to identify an event
-               // (if you need to correlate them to other data).
+  unsigned int EventId; // Unique, sequential increasing integer to identify an
+                        // event (if you need to correlate them to other data).
   union {
     InputEventMousePos MousePos;       // if Type == InputEventType_MousePos
     InputEventMouseWheel MouseWheel;   // if Type == InputEventType_MouseWheel
@@ -2125,26 +2134,27 @@ struct InputEvent {
   InputEvent() { memset(this, 0, sizeof(*this)); }
 };
 
-// Input function taking an 'ID owner_id' argument defaults to
+// Input function taking an 'unsigned int owner_id' argument defaults to
 // (KeyOwner_Any == 0) aka don't test ownership, which matches legacy
 // behavior.
 #define KeyOwner_Any                                                           \
-  ((ID)0) // Accept key that have an owner, UNLESS a call to SetKeyOwner()
-          // explicitly used InputFlags_LockThisFrame or
-          // InputFlags_LockUntilRelease.
-#define KeyOwner_None ((ID)-1) // Require key to have no owner.
+  ((unsigned int)0) // Accept key that have an owner, UNLESS a call to
+                    // SetKeyOwner()
+                    // explicitly used InputFlags_LockThisFrame or
+                    // InputFlags_LockUntilRelease.
+#define KeyOwner_None ((unsigned int)-1) // Require key to have no owner.
 
-typedef S16 KeyRoutingIndex;
+typedef signed short KeyRoutingIndex;
 
 // Routing table entry (sizeof() == 16 bytes)
 struct KeyRoutingData {
   KeyRoutingIndex NextEntryIndex;
-  U16 Mods; // Technically we'd only need 4-bits but for simplify we store
-            // Mod_ values which need 16-bits. Mod_Shortcut is
-            // already translated to Ctrl/Super.
-  U8 RoutingNextScore; // Lower is better (0: perfect score)
-  ID RoutingCurr;
-  ID RoutingNext;
+  unsigned short Mods; // Technically we'd only need 4-bits but for simplify we
+                       // store Mod_ values which need 16-bits. Mod_Shortcut is
+                       // already translated to Ctrl/Super.
+  unsigned char RoutingNextScore; // Lower is better (0: perfect score)
+  int RoutingCurr;
+  int RoutingNext;
 
   KeyRoutingData() {
     NextEntryIndex = -1;
@@ -2177,8 +2187,8 @@ struct KeyRoutingTable {
 // the new features) Stored in main context (1 per named key). In the future it
 // might be merged into KeyData.
 struct KeyOwnerData {
-  ID OwnerCurr;
-  ID OwnerNext;
+  int OwnerCurr;
+  int OwnerNext;
   bool LockThisFrame; // Reading this key requires explicit owner id (until end
                       // of frame). Set by InputFlags_LockThisFrame.
   bool LockUntilRelease; // Reading this key requires explicit owner id (until
@@ -2218,12 +2228,12 @@ enum InputFlags_ {
 
   // Flags for SetKeyOwner(), SetItemKeyOwner()
   InputFlags_LockThisFrame =
-      1 << 6, // Access to key data will require EXPLICIT owner ID
+      1 << 6, // Access to key data will require EXPLICIT owner unsigned int
               // (KeyOwner_Any/0 will NOT accepted for polling). Cleared at
               // end of frame. This is useful to make input-owner-aware code
               // steal keys from non-input-owner-aware code.
   InputFlags_LockUntilRelease =
-      1 << 7, // Access to key data will require EXPLICIT owner ID
+      1 << 7, // Access to key data will require EXPLICIT owner unsigned int
               // (KeyOwner_Any/0 will NOT accepted for polling). Cleared
               // when the key is released or at end of each frame if key is
               // released. This is useful to make input-owner-aware code steal
@@ -2296,8 +2306,8 @@ struct ListClipperRange {
   int Max;
   bool PosToIndexConvert; // Begin/End are absolute position (will be converted
                           // to indices later)
-  S8 PosToIndexOffsetMin; // Add to Min after converting to indices
-  S8 PosToIndexOffsetMax; // Add to Min after converting to indices
+  signed char PosToIndexOffsetMin; // Add to Min after converting to indices
+  signed char PosToIndexOffsetMax; // Add to Min after converting to indices
 
   static ListClipperRange FromIndices(int min, int max) {
     ListClipperRange r = {min, max, false, 0, 0};
@@ -2305,7 +2315,8 @@ struct ListClipperRange {
   }
   static ListClipperRange FromPositions(float y1, float y2, int off_min,
                                         int off_max) {
-    ListClipperRange r = {(int)y1, (int)y2, true, (S8)off_min, (S8)off_max};
+    ListClipperRange r = {(int)y1, (int)y2, true, (signed char)off_min,
+                          (signed char)off_max};
     return r;
   }
 };
@@ -2436,13 +2447,13 @@ enum NavLayer {
 };
 
 struct NavItemData {
-  Window *Window; // Init,Move    // Best candidate window
-                  // (result->ItemWindow->RootWindowForNav == request->Window)
-  ID ID;          // Init,Move    // Best candidate item ID
-  ::ID FocusScopeId; // Init,Move    // Best candidate focus scope ID
-  Rect RectRel;      // Init,Move    // Best candidate bounding box in window
-                     // relative space
-  ItemFlags InFlags; // ????,Move    // Best candidate item flags
+  Window *Window;   // Init,Move    // Best candidate window
+                    // (result->ItemWindow->RootWindowForNav == request->Window)
+  int ID;           // Init,Move    // Best candidate item unsigned int
+  int FocusScopeId; // Init,Move    // Best candidate focus scope unsigned int
+  Rect RectRel;     // Init,Move    // Best candidate bounding box in window
+                    // relative space
+  int InFlags;      // ????,Move    // Best candidate item flags
   SelectionUserData SelectionUserData; // I+Mov    // Best candidate
                                        // SetNextItemSelectionData() value.
   float DistBox; //      Move    // Best candidate box distance to current NavId
@@ -2479,7 +2490,7 @@ enum TypingSelectFlags_ {
 
 // Returned by GetTypingSelectRequest(), designed to eventually be public.
 struct API TypingSelectRequest {
-  TypingSelectFlags Flags; // Flags passed to GetTypingSelectRequest()
+  int Flags; // Flags passed to GetTypingSelectRequest()
   int SearchBufferLen;
   const char *
       SearchBuffer; // Search buffer contents (use full string. unless
@@ -2490,7 +2501,8 @@ struct API TypingSelectRequest {
       SingleCharMode; // Notify when buffer contains same character repeated, to
                       // implement special mode. In this situation it preferred
                       // to not display any on-screen search indication.
-  S8 SingleCharSize;  // Length in bytes of first letter codepoint (1 for ascii,
+  signed char
+      SingleCharSize; // Length in bytes of first letter codepoint (1 for ascii,
                       // 2-4 for UTF-8). If (SearchBufferLen==RepeatCharSize)
                       // only 1 letter has been input.
 };
@@ -2500,7 +2512,7 @@ struct API TypingSelectState {
   TypingSelectRequest Request; // User-facing data
   char SearchBuffer[64];       // Search buffer: no need to make dynamic as this
                                // search is very transient.
-  ID FocusScope;
+  int FocusScope;
   int LastRequestFrame = 0;
   float LastRequestTime = 0.0f;
   bool SingleCharModeLock =
@@ -2552,15 +2564,15 @@ struct OldColumnData {
   float OffsetNorm; // Column start offset, normalized 0.0 (far left) -> 1.0
                     // (far right)
   float OffsetNormBeforeResize;
-  OldColumnFlags Flags; // Not exposed
+  int Flags; // Not exposed
   Rect ClipRect;
 
   OldColumnData() { memset(this, 0, sizeof(*this)); }
 };
 
 struct OldColumns {
-  ID ID;
-  OldColumnFlags Flags;
+  int ID;
+  int Flags;
   bool IsFirstFrame;
   bool IsBeingResized;
   int Current;
@@ -2682,15 +2694,14 @@ enum DockNodeState {
 
 // sizeof() 156~192
 struct API DockNode {
-  ID ID;
-  DockNodeFlags
-      SharedFlags; // (Write) Flags shared by all nodes of a same dockspace
+  int ID;
+  int SharedFlags; // (Write) Flags shared by all nodes of a same dockspace
                    // hierarchy (inherited from the root node)
-  DockNodeFlags LocalFlags;          // (Write) Flags specific to this node
-  DockNodeFlags LocalFlagsInWindows; // (Write) Flags specific to this
-                                     // node, applied from windows
-  DockNodeFlags MergedFlags; // (Read)  Effective flags (== SharedFlags |
-                             // LocalFlagsInNode | LocalFlagsInWindows)
+  int LocalFlags;  // (Write) Flags specific to this node
+  int LocalFlagsInWindows; // (Write) Flags specific to this
+                           // node, applied from windows
+  int MergedFlags;         // (Read)  Effective flags (== SharedFlags |
+                           // LocalFlagsInNode | LocalFlagsInWindows)
   DockNodeState State;
   DockNode *ParentNode;
   DockNode *ChildNodes[2]; // [Split node only] Child nodes (left/right or
@@ -2705,31 +2716,31 @@ struct API DockNode {
                   // to calculate Size.
   Axis SplitAxis; // [Split node only] Split axis (X or Y)
   WindowClass WindowClass; // [Root node only]
-  U32 LastBgColor;
+  unsigned int LastBgColor;
 
   Window *HostWindow;
-  Window *VisibleWindow; // Generally point to window which is ID is ==
+  Window *VisibleWindow; // Generally point to window which is int is ==
                          // SelectedTabID, but when CTRL+Tabbing this can
                          // be a different window.
   DockNode *CentralNode; // [Root node only] Pointer to central node.
   DockNode *OnlyNodeWithWindows; // [Root node only] Set when there is a single
                                  // visible node within the hierarchy.
   int CountNodeWithWindows;      // [Root node only]
-  int LastFrameAlive;   // Last frame number the node was updated or kept alive
-                        // explicitly with DockSpace() +
-                        // DockNodeFlags_KeepAliveOnly
-  int LastFrameActive;  // Last frame number the node was updated.
-  int LastFrameFocused; // Last frame number the node was focused.
-  ::ID LastFocusedNodeId; // [Root node only] Which of our child docking node
-                          // (any ancestor in the hierarchy) was last focused.
-  ::ID SelectedTabId;  // [Leaf node only] Which of our tab/window is selected.
-  ::ID WantCloseTabId; // [Leaf node only] Set when closing a specific
-                       // tab/window.
-  ::ID RefViewportId;  // Reference viewport ID from visible window when
-                       // HostWindow == NULL.
-  DataAuthority AuthorityForPos : 3;
-  DataAuthority AuthorityForSize : 3;
-  DataAuthority AuthorityForViewport : 3;
+  int LastFrameAlive;    // Last frame number the node was updated or kept alive
+                         // explicitly with DockSpace() +
+                         // DockNodeFlags_KeepAliveOnly
+  int LastFrameActive;   // Last frame number the node was updated.
+  int LastFrameFocused;  // Last frame number the node was focused.
+  int LastFocusedNodeId; // [Root node only] Which of our child docking node
+                         // (any ancestor in the hierarchy) was last focused.
+  int SelectedTabId;  // [Leaf node only] Which of our tab/window is selected.
+  int WantCloseTabId; // [Leaf node only] Set when closing a specific
+                      // tab/window.
+  int RefViewportId;  // Reference viewport int from visible window when
+                      // HostWindow == NULL.
+  int AuthorityForPos : 3;
+  int AuthorityForSize : 3;
+  int AuthorityForViewport : 3;
   bool IsVisible : 1; // Set to false when the node is hidden (usually disabled
                       // as it has no active window)
   bool IsFocused : 1;
@@ -2746,7 +2757,7 @@ struct API DockNode {
   bool WantHiddenTabBarUpdate : 1;
   bool WantHiddenTabBarToggle : 1;
 
-  DockNode(::ID id);
+  DockNode(int id);
   ~DockNode();
   bool IsRootNode() const { return ParentNode == NULL; }
   bool IsDockSpace() const {
@@ -2771,7 +2782,7 @@ struct API DockNode {
     return ::Rect(Pos.x, Pos.y, Pos.x + Size.x, Pos.y + Size.y);
   }
 
-  void SetLocalFlags(DockNodeFlags flags) {
+  void SetLocalFlags(int flags) {
     LocalFlags = flags;
     UpdateMergedFlags();
   }
@@ -2797,11 +2808,11 @@ enum WindowDockStyleCol {
 };
 
 struct WindowDockStyle {
-  U32 Colors[WindowDockStyleCol_COUNT];
+  unsigned int Colors[WindowDockStyleCol_COUNT];
 };
 
 struct DockContext {
-  Storage Nodes; // Map ID -> DockNode*: Active nodes
+  Storage Nodes; // Map int -> DockNode*: Active nodes
   Vector<DockRequest> Requests;
   Vector<DockNodeSettings> NodesSettings;
   bool WantFullRebuild;
@@ -2826,7 +2837,7 @@ struct ViewportP : public Viewport {
                              // this viewport was focused (by comparing this
                              // value between two viewport we have an implicit
                              // viewport z-order we use as fallback)
-  ::ID LastNameHash;
+  int LastNameHash;
   Vec2 LastPos;
   float Alpha; // Window opacity (when dragging dockable windows/viewports we
                // make them transparent)
@@ -2842,7 +2853,7 @@ struct ViewportP : public Viewport {
                               // draw lists. We use them to draw software
                               // mouser cursor when io.MouseDrawCursor is set
                               // and to draw most debug overlays.
-  ::DrawData DrawDataP;
+  struct DrawData DrawDataP;
   DrawDataBuilder
       DrawDataBuilder; // Temporary data while building final DrawData
   Vec2 LastPlatformPos;
@@ -2924,15 +2935,15 @@ struct ViewportP : public Viewport {
 // names in a separate buffer easily. (this is designed to be stored in a
 // ChunkStream buffer, with the variable-length Name following our structure)
 struct WindowSettings {
-  ID ID;
+  int ID;
   Vec2ih Pos; // NB: Settings position are stored RELATIVE to the viewport!
               // Whereas runtime ones are absolute positions.
   Vec2ih Size;
   Vec2ih ViewportPos;
-  ::ID ViewportId;
-  ::ID DockId;  // ID of last known DockNode (even if the DockNode is invisible
-                // because it has only 1 active window), or 0 if none.
-  ::ID ClassId; // ID of window class if specified
+  int ViewportId;
+  int DockId;  // int of last known DockNode (even if the DockNode is invisible
+               // because it has only 1 active window), or 0 if none.
+  int ClassId; // int of window class if specified
   short DockOrder; // Order of the last time the window was visible within its
                    // DockNode. This is used to reorder windows that are
                    // reappearing on the same frame. Same value between windows
@@ -2953,7 +2964,7 @@ struct WindowSettings {
 struct SettingsHandler {
   const char *TypeName; // Short description stored in .ini file. Disallowed
                         // characters: '[' ']'
-  ID TypeHash;          // == HashStr(TypeName)
+  int TypeHash;         // == HashStr(TypeName)
   void (*ClearAllFn)(Context *ctx,
                      SettingsHandler *handler); // Clear all settings data
   void (*ReadInitFn)(Context *ctx,
@@ -3030,14 +3041,14 @@ enum DebugLogFlags_ {
 
 struct DebugAllocEntry {
   int FrameCount;
-  S16 AllocCount;
-  S16 FreeCount;
+  signed short AllocCount;
+  signed short FreeCount;
 };
 
 struct DebugAllocInfo {
   int TotalAllocCount; // Number of call to MemAlloc().
   int TotalFreeCount;
-  S16 LastEntriesIdx;                // Current index in buffer
+  signed short LastEntriesIdx;       // Current index in buffer
   DebugAllocEntry LastEntriesBuf[6]; // Track last 6 frames that had allocations
 
   DebugAllocInfo() { memset(this, 0, sizeof(*this)); }
@@ -3058,10 +3069,10 @@ struct MetricsConfig {
 };
 
 struct StackLevelInfo {
-  ID ID;
-  S8 QueryFrameCount; // >= 1: Query in progress
-  bool QuerySuccess;  // Obtained result from DebugHookIdInfo()
-  DataType DataType : 8;
+  int ID;
+  signed char QueryFrameCount; // >= 1: Query in progress
+  bool QuerySuccess;           // Obtained result from DebugHookIdInfo()
+  int DataType : 8;
   char Desc[57]; // Arbitrarily sized buffer to hold a result (FIXME: could
                  // replace Results[] with a chunk stream?) FIXME: Now that we
                  // added CTRL+C this should be fixed.
@@ -3069,12 +3080,12 @@ struct StackLevelInfo {
   StackLevelInfo() { memset(this, 0, sizeof(*this)); }
 };
 
-// State for ID Stack tool queries
+// State for int Stack tool queries
 struct IDStackTool {
   int LastActiveFrame;
   int StackLevel; // -1: query stack and resize Results, >= 0: individual stack
                   // level
-  ID QueryId;     // ID to query details for
+  int QueryId;    // int to query details for
   Vector<StackLevelInfo> Results;
   bool CopyToClipboardOnCtrlC;
   float CopyToClipboardLastTime;
@@ -3102,9 +3113,9 @@ enum ContextHookType {
 };
 
 struct ContextHook {
-  ID HookId; // A unique ID assigned by AddContextHook()
+  int HookId; // A unique int assigned by AddContextHook()
   ContextHookType Type;
-  ID Owner;
+  int Owner;
   ContextHookCallback Callback;
   void *UserData;
 
@@ -3122,9 +3133,8 @@ struct Context {
   IO IO;
   PlatformIO PlatformIO;
   Style Style;
-  ConfigFlags
-      ConfigFlagsCurrFrame; // = g.IO.ConfigFlags at the time of NewFrame()
-  ConfigFlags ConfigFlagsLastFrame;
+  int ConfigFlagsCurrFrame; // = g.IO.ConfigFlags at the time of NewFrame()
+  int ConfigFlagsLastFrame;
   Font *Font; // (Shortcut) == FontStack.empty() ? IO.Font : FontStack.back()
   float
       FontSize; // (Shortcut) == FontBaseSize * g.CurrentWindow->FontWindowScale
@@ -3157,7 +3167,7 @@ struct Context {
                         // allow domain-specific application to access e.g
                         // mouse/pen trail.
   MouseSource InputEventsNextMouseSource;
-  U32 InputEventsNextEventId;
+  unsigned int InputEventsNextEventId;
 
   // Windows state
   Vector<Window *> Windows; // Windows, sorted in display order, back to front
@@ -3167,7 +3177,7 @@ struct Context {
       WindowsTempSortBuffer; // Temporary buffer used in EndFrame() to reorder
                              // windows so parents are kept before their child
   Vector<WindowStackData> CurrentWindowStack;
-  Storage WindowsById;      // Map window's ID to Window*
+  Storage WindowsById;      // Map window's int to Window*
   int WindowsActiveCount;   // Number of unique windows submitted by frame
   Vec2 WindowsHoverPadding; // Padding around resizable windows for which
                             // hovering on counts as hovering the window ==
@@ -3196,11 +3206,11 @@ struct Context {
   Vec2 WheelingAxisAvg;
 
   // Item/widgets state and tracking information
-  ID DebugHookIdInfo; // Will call core hooks: DebugHookIdInfo() from GetID
-                      // functions, used by ID Stack Tool [next
-                      // HoveredId/ActiveId to not pull in an extra cache-line]
-  ID HoveredId;       // Hovered widget, filled during the frame
-  ID HoveredIdPreviousFrame;
+  int DebugHookIdInfo; // Will call core hooks: DebugHookIdInfo() from GetID
+                       // functions, used by int Stack Tool [next
+                       // HoveredId/ActiveId to not pull in an extra cache-line]
+  int HoveredId;       // Hovered widget, filled during the frame
+  int HoveredIdPreviousFrame;
   bool HoveredIdAllowOverlap;
   bool HoveredIdDisabled; // At least one widget passed the rect test, but has
                           // been discarded by disabled flag or popup inhibit.
@@ -3208,9 +3218,9 @@ struct Context {
   float HoveredIdTimer;   // Measure contiguous hovering time
   float HoveredIdNotActiveTimer; // Measure contiguous hovering time where the
                                  // item has not been active
-  ID ActiveId;                   // Active widget
-  ID ActiveIdIsAlive; // Active widget has been seen this frame (we can't use a
-                      // bool as the ActiveId may change within the frame)
+  int ActiveId;                  // Active widget
+  int ActiveIdIsAlive; // Active widget has been seen this frame (we can't use a
+                       // bool as the ActiveId may change within the frame)
   float ActiveIdTimer;
   bool ActiveIdIsJustActivated; // Set at the time of activation for one frame
   bool ActiveIdAllowOverlap;    // Active widget allows another widget to steal
@@ -3233,11 +3243,11 @@ struct Context {
   InputSource ActiveIdSource; // Activating source: InputSource_Mouse OR
                               // InputSource_Keyboard OR InputSource_Gamepad
   int ActiveIdMouseButton;
-  ID ActiveIdPreviousFrame;
+  int ActiveIdPreviousFrame;
   bool ActiveIdPreviousFrameIsAlive;
   bool ActiveIdPreviousFrameHasBeenEditedBefore;
   Window *ActiveIdPreviousFrameWindow;
-  ID LastActiveId; // Store the last non-zero ActiveId, useful for animation.
+  int LastActiveId; // Store the last non-zero ActiveId, useful for animation.
   float LastActiveIdTimer; // Store the last non-zero ActiveId timer since the
                            // beginning of activation, useful for animation.
 
@@ -3245,21 +3255,22 @@ struct Context {
   // - The idea is that instead of "eating" a given key, we can link to an
   // owner.
   // - Input query can then read input by specifying KeyOwner_Any (== 0),
-  // KeyOwner_None (== -1) or a custom ID.
+  // KeyOwner_None (== -1) or a custom unsigned int.
   // - Routing is requested ahead of time for a given chord (Key + Mods) and
   // granted in NewFrame().
   KeyOwnerData KeysOwnerData[Key_NamedKey_COUNT];
   KeyRoutingTable KeysRoutingTable;
-  U32 ActiveIdUsingNavDirMask; // Active widget will want to read those nav
-                               // move requests (e.g. can activate a button
-                               // and move away from it)
-  bool ActiveIdUsingAllKeyboardKeys; // Active widget will want to read all
+  unsigned int ActiveIdUsingNavDirMask; // Active widget will want to read those
+                                        // nav move requests (e.g. can activate
+                                        // a button and move away from it)
+  bool ActiveIdUsingAllKeyboardKeys;    // Active widget will want to read all
                                      // keyboard keys inputs. (FIXME: This is a
                                      // shortcut for not taking ownership of
                                      // 100+ keys but perhaps best to not have
                                      // the inconsistency)
 #ifndef DISABLE_OBSOLETE_KEYIO
-  U32 ActiveIdUsingNavInputMask; // If you used this. Since (VERSION_NUM >=
+  unsigned int
+      ActiveIdUsingNavInputMask; // If you used this. Since (VERSION_NUM >=
                                  // 18804) : 'g.ActiveIdUsingNavInputMask |=
                                  // (1 << NavInput_Cancel);' becomes
                                  // 'SetKeyOwner(Key_Escape, g.ActiveId)
@@ -3269,10 +3280,10 @@ struct Context {
 #endif
 
   // Next window/item data
-  ID CurrentFocusScopeId;     // == g.FocusScopeStack.back()
-  ItemFlags CurrentItemFlags; // == g.ItemFlagsStack.back()
-  ID DebugLocateId; // Storage for DebugLocateItemOnHover() feature: this is
-                    // read by ItemAdd() so we keep it in a hot/cached location
+  int CurrentFocusScopeId; // == g.FocusScopeStack.back()
+  int CurrentItemFlags;    // == g.ItemFlagsStack.back()
+  int DebugLocateId; // Storage for DebugLocateItemOnHover() feature: this is
+                     // read by ItemAdd() so we keep it in a hot/cached location
   NextItemData NextItemData; // Storage for SetNextItem** functions
   LastItemData
       LastItemData; // Storage for last submitted item (setup by ItemAdd)
@@ -3280,17 +3291,17 @@ struct Context {
   bool DebugShowGroupRects;
 
   // Shared stacks
-  Col DebugFlashStyleColorIdx; // (Keep close to ColorStack to share cache line)
+  int DebugFlashStyleColorIdx; // (Keep close to ColorStack to share cache line)
   Vector<ColorMod> ColorStack; // Stack for PushStyleColor()/PopStyleColor() -
                                // inherited by Begin()
   Vector<StyleMod> StyleVarStack; // Stack for PushStyleVar()/PopStyleVar() -
                                   // inherited by Begin()
   Vector<::Font *>
       FontStack; // Stack for PushFont()/PopFont() - inherited by Begin()
-  Vector<ID>
+  Vector<unsigned int>
       FocusScopeStack; // Stack for PushFocusScope()/PopFocusScope() - inherited
                        // by BeginChild(), pushed into by Begin()
-  Vector<ItemFlags> ItemFlagsStack;  // Stack for PushItemFlag()/PopItemFlag()
+  Vector<int> ItemFlagsStack;        // Stack for PushItemFlag()/PopItemFlag()
                                      // - inherited by Begin()
   Vector<GroupData> GroupStack;      // Stack for BeginGroup()/EndGroup() -
                                      // not inherited by Begin()
@@ -3315,7 +3326,7 @@ struct Context {
       MouseLastHoveredViewport; // Last known viewport that was hovered by mouse
                                 // (even if we are not hovering any viewport any
                                 // more) + honoring the _NoInputs flag.
-  ID PlatformLastFocusedViewportId;
+  int PlatformLastFocusedViewportId;
   PlatformMonitor
       FallbackMonitor; // Virtual monitor used as fallback if backend doesn't
                        // provide monitor information.
@@ -3328,31 +3339,31 @@ struct Context {
                                  // counter
 
   // Gamepad/keyboard Navigation
-  Window *NavWindow;    // Focused window for navigation. Could be called
-                        // 'FocusedWindow'
-  ID NavId;             // Focused item for navigation
-  ID NavFocusScopeId;   // Identify a selection scope (selection code often
-                        // wants to "clear other items" when landing on an
-                        // item of the selection set)
-  ID NavActivateId;     // ~~ (g.ActiveId == 0) && (IsKeyPressed(Key_Space) ||
-                        // IsKeyDown(Key_Enter) ||
-                        // IsKeyPressed(Key_NavGamepadActivate)) ? NavId : 0,
-                        // also set when calling ActivateItem()
-  ID NavActivateDownId; // ~~ IsKeyDown(Key_Space) ||
-                        // IsKeyDown(Key_Enter) ||
-                        // IsKeyDown(Key_NavGamepadActivate) ? NavId : 0
-  ID NavActivatePressedId; // ~~ IsKeyPressed(Key_Space) ||
-                           // IsKeyPressed(Key_Enter) ||
-                           // IsKeyPressed(Key_NavGamepadActivate) ?
-                           // NavId : 0 (no repeat)
-  ActivateFlags NavActivateFlags;
-  ID NavJustMovedToId;           // Just navigated to this id (result of a
-                                 // successfully MoveRequest).
-  ID NavJustMovedToFocusScopeId; // Just navigated to this focus scope id
-                                 // (result of a successfully MoveRequest).
-  KeyChord NavJustMovedToKeyMods;
-  ID NavNextActivateId; // Set by ActivateItem(), queued until next frame.
-  ActivateFlags NavNextActivateFlags;
+  Window *NavWindow;     // Focused window for navigation. Could be called
+                         // 'FocusedWindow'
+  int NavId;             // Focused item for navigation
+  int NavFocusScopeId;   // Identify a selection scope (selection code often
+                         // wants to "clear other items" when landing on an
+                         // item of the selection set)
+  int NavActivateId;     // ~~ (g.ActiveId == 0) && (IsKeyPressed(Key_Space) ||
+                         // IsKeyDown(Key_Enter) ||
+                         // IsKeyPressed(Key_NavGamepadActivate)) ? NavId : 0,
+                         // also set when calling ActivateItem()
+  int NavActivateDownId; // ~~ IsKeyDown(Key_Space) ||
+                         // IsKeyDown(Key_Enter) ||
+                         // IsKeyDown(Key_NavGamepadActivate) ? NavId : 0
+  int NavActivatePressedId; // ~~ IsKeyPressed(Key_Space) ||
+                            // IsKeyPressed(Key_Enter) ||
+                            // IsKeyPressed(Key_NavGamepadActivate) ?
+                            // NavId : 0 (no repeat)
+  int NavActivateFlags;
+  int NavJustMovedToId;           // Just navigated to this id (result of a
+                                  // successfully MoveRequest).
+  int NavJustMovedToFocusScopeId; // Just navigated to this focus scope id
+                                  // (result of a successfully MoveRequest).
+  int NavJustMovedToKeyMods;
+  int NavNextActivateId; // Set by ActivateItem(), queued until next frame.
+  int NavNextActivateFlags;
   InputSource NavInputSource; // Keyboard or Gamepad mode? THIS CAN ONLY BE
                               // InputSource_Keyboard or InputSource_Mouse
   NavLayer NavLayer; // Layer we are navigating on. For now the system is
@@ -3391,12 +3402,12 @@ struct Context {
   bool NavMoveScoringItems; // Move request submitted, still scoring incoming
                             // items
   bool NavMoveForwardToNextFrame;
-  NavMoveFlags NavMoveFlags;
-  ScrollFlags NavMoveScrollFlags;
-  KeyChord NavMoveKeyMods;
-  Dir NavMoveDir; // Direction of the move request (left/right/up/down)
-  Dir NavMoveDirForDebug;
-  Dir NavMoveClipDir;  // FIXME-NAV: Describe the purpose of this better.
+  int NavMoveFlags;
+  int NavMoveScrollFlags;
+  int NavMoveKeyMods;
+  int NavMoveDir; // Direction of the move request (left/right/up/down)
+  int NavMoveDirForDebug;
+  int NavMoveClipDir;  // FIXME-NAV: Describe the purpose of this better.
                        // Might want to rename?
   Rect NavScoringRect; // Rectangle used for scoring, in screen space. Based
                        // of window->NavRectRel[], modified for directional
@@ -3421,13 +3432,13 @@ struct Context {
 
   // Navigation: Windowing (CTRL+TAB for list, or Menu button + keys or
   // directional pads to move/resize)
-  KeyChord ConfigNavWindowingKeyNext; // = Mod_Ctrl | Key_Tab,
-                                      // for reconfiguration (see #4828)
-  KeyChord ConfigNavWindowingKeyPrev; // = Mod_Ctrl | Mod_Shift |
-                                      // Key_Tab
-  Window *NavWindowingTarget; // Target window when doing CTRL+Tab (or Pad
-                              // Menu + FocusPrev/Next), this window is
-                              // temporarily displayed top-most!
+  int ConfigNavWindowingKeyNext; // = Mod_Ctrl | Key_Tab,
+                                 // for reconfiguration (see #4828)
+  int ConfigNavWindowingKeyPrev; // = Mod_Ctrl | Mod_Shift |
+                                 // Key_Tab
+  Window *NavWindowingTarget;    // Target window when doing CTRL+Tab (or Pad
+                                 // Menu + FocusPrev/Next), this window is
+                                 // temporarily displayed top-most!
   Window
       *NavWindowingTargetAnim; // Record of last valid NavWindowingTarget until
                                // DimBgRatio and NavWindowingHighlightAlpha
@@ -3452,27 +3463,27 @@ struct Context {
   bool
       DragDropWithinTarget; // Set when within a BeginDragDropXXX/EndDragDropXXX
                             // block for a drag target.
-  DragDropFlags DragDropSourceFlags;
+  int DragDropSourceFlags;
   int DragDropSourceFrameCount;
   int DragDropMouseButton;
   Payload DragDropPayload;
   Rect DragDropTargetRect; // Store rectangle of current target candidate (we
                            // favor small targets when overlapping)
   Rect DragDropTargetClipRect; // Store ClipRect at the time of item's drawing
-  ID DragDropTargetId;
-  DragDropFlags DragDropAcceptFlags;
+  int DragDropTargetId;
+  int DragDropAcceptFlags;
   float DragDropAcceptIdCurrRectSurface; // Target item surface (we resolve
                                          // overlapping targets by prioritizing
                                          // the smaller surface)
-  ID DragDropAcceptIdCurr;      // Target item id (set at the time of accepting
-                                // the payload)
-  ID DragDropAcceptIdPrev;      // Target item id from previous frame (we need
-                                // to store this to allow for overlapping drag
-                                // and drop targets)
-  int DragDropAcceptFrameCount; // Last time a target expressed a desire to
-                                // accept the source
-  ID DragDropHoldJustPressedId; // Set when holding a payload just made
-                                // ButtonBehavior() return a press.
+  int DragDropAcceptIdCurr;      // Target item id (set at the time of accepting
+                                 // the payload)
+  int DragDropAcceptIdPrev;      // Target item id from previous frame (we need
+                                 // to store this to allow for overlapping drag
+                                 // and drop targets)
+  int DragDropAcceptFrameCount;  // Last time a target expressed a desire to
+                                 // accept the source
+  int DragDropHoldJustPressedId; // Set when holding a payload just made
+                                 // ButtonBehavior() return a press.
   Vector<unsigned char>
       DragDropPayloadBufHeap; // We don't expose the Vector<> directly,
                               // Payload only holds pointer+size
@@ -3502,21 +3513,21 @@ struct Context {
   Vector<ShrinkWidthItem> ShrinkWidthBuffer;
 
   // Hover Delay system
-  ID HoverItemDelayId;
-  ID HoverItemDelayIdPreviousFrame;
+  int HoverItemDelayId;
+  int HoverItemDelayIdPreviousFrame;
   float HoverItemDelayTimer; // Currently used by IsItemHovered()
   float
       HoverItemDelayClearTimer; // Currently used by IsItemHovered(): grace time
                                 // before g.TooltipHoverTimer gets cleared.
-  ID HoverItemUnlockedStationaryId;   // Mouse has once been stationary on
-                                      // this item. Only reset after
-                                      // departing the item.
-  ID HoverWindowUnlockedStationaryId; // Mouse has once been stationary on
-                                      // this window. Only reset after
-                                      // departing the window.
+  int HoverItemUnlockedStationaryId;   // Mouse has once been stationary on
+                                       // this item. Only reset after
+                                       // departing the item.
+  int HoverWindowUnlockedStationaryId; // Mouse has once been stationary on
+                                       // this window. Only reset after
+                                       // departing the window.
 
   // Mouse state
-  MouseCursor MouseCursor;
+  int MouseCursor;
   float MouseStationaryTimer; // Time the mouse has been stationary (with some
                               // loose heuristic)
   Vec2 MouseLastValidPos;
@@ -3524,21 +3535,21 @@ struct Context {
   // Widget state
   InputTextState InputTextState;
   InputTextDeactivatedState InputTextDeactivatedState;
-  ::Font InputTextPasswordFont;
-  ID TempInputId; // Temporary text input when CTRL+clicking on a slider, etc.
-  ColorEditFlags ColorEditOptions; // Store user options for color edit widgets
-  ID ColorEditCurrentID;   // Set temporarily while inside of the parent-most
+  struct Font InputTextPasswordFont;
+  int TempInputId; // Temporary text input when CTRL+clicking on a slider, etc.
+  int ColorEditOptions;    // Store user options for color edit widgets
+  int ColorEditCurrentID;  // Set temporarily while inside of the parent-most
                            // ColorEdit4/ColorPicker4 (because they call each
                            // others).
-  ID ColorEditSavedID;     // ID we are saving/restoring HS for
+  int ColorEditSavedID;    // int we are saving/restoring HS for
   float ColorEditSavedHue; // Backup of last Hue associated to LastColor, so we
                            // can restore Hue in lossy RGB<>HSV round trips
   float ColorEditSavedSat; // Backup of last Saturation associated to LastColor,
                            // so we can restore Saturation in lossy RGB<>HSV
                            // round trips
-  U32 ColorEditSavedColor; // RGB value with alpha set to 0.
-  Vec4 ColorPickerRef;     // Initial/reference color at the time of opening the
-                           // color picker.
+  unsigned int ColorEditSavedColor; // RGB value with alpha set to 0.
+  Vec4 ColorPickerRef; // Initial/reference color at the time of opening the
+                       // color picker.
   ComboPreviewData ComboPreviewData;
   Rect WindowResizeBorderExpectedRect; // Expected border rect, switch to
                                        // relative edit if moving
@@ -3563,15 +3574,16 @@ struct Context {
   short TooltipOverrideCount;
   Vector<char>
       ClipboardHandlerData; // If no custom clipboard handler is defined
-  Vector<ID> MenusIdSubmittedThisFrame; // A list of menu IDs that were
-                                        // rendered at least once
-  TypingSelectState TypingSelectState;  // State for GetTypingSelectRequest()
+  Vector<unsigned int> MenusIdSubmittedThisFrame; // A list of menu IDs that
+                                                  // were rendered at least once
+  TypingSelectState TypingSelectState; // State for GetTypingSelectRequest()
 
   // Platform support
-  PlatformImeData PlatformImeData;       // Data updated by current frame
-  ::PlatformImeData PlatformImeDataPrev; // Previous frame data (when changing
-                                         // we will call io.SetPlatformImeDataFn
-  ID PlatformImeViewport;
+  PlatformImeData PlatformImeData; // Data updated by current frame
+  struct PlatformImeData
+      PlatformImeDataPrev; // Previous frame data (when changing
+                           // we will call io.SetPlatformImeDataFn
+  int PlatformImeViewport;
 
   // Extensions
   // FIXME: We could provide an API to register one slot in an array held in
@@ -3589,7 +3601,7 @@ struct Context {
   ChunkStream<WindowSettings> SettingsWindows; // Window .ini settings entries
   ChunkStream<TableSettings> SettingsTables;   // Table .ini settings entries
   Vector<ContextHook> Hooks; // Hooks for extensions (e.g. test engine)
-  ID HookIdNext;             // Next available HookId
+  int HookIdNext;            // Next available HookId
 
   // Localization
   const char *LocalizationTable[LocKey_COUNT];
@@ -3611,19 +3623,20 @@ struct Context {
                                // not specified in the LogXXX function call.
 
   // Debug Tools
-  DebugLogFlags DebugLogFlags;
+  int DebugLogFlags;
   TextBuffer DebugLogBuf;
   TextIndex DebugLogIndex;
-  U8 DebugLogClipperAutoDisableFrames;
-  U8 DebugLocateFrames; // For DebugLocateItemOnHover(). This is used together
-                        // with DebugLocateId which is in a hot/cached spot
-                        // above.
-  S8 DebugBeginReturnValueCullDepth; // Cycle between 0..9 then wrap around.
-  bool DebugItemPickerActive;        // Item picker is active (started with
-                                     // DebugStartItemPicker())
-  U8 DebugItemPickerMouseButton;
-  ID DebugItemPickerBreakId; // Will call DEBUG_BREAK() when
-                             // encountering this ID
+  unsigned char DebugLogClipperAutoDisableFrames;
+  unsigned char DebugLocateFrames; // For DebugLocateItemOnHover(). This is used
+                                   // together with DebugLocateId which is in a
+                                   // hot/cached spot above.
+  signed char
+      DebugBeginReturnValueCullDepth; // Cycle between 0..9 then wrap around.
+  bool DebugItemPickerActive;         // Item picker is active (started with
+                                      // DebugStartItemPicker())
+  unsigned char DebugItemPickerMouseButton;
+  int DebugItemPickerBreakId; // Will call DEBUG_BREAK() when
+                              // encountering this unsigned int
   float DebugFlashStyleColorTime;
   Vec4 DebugFlashStyleColorBackup;
   MetricsConfig DebugMetricsConfig;
@@ -3904,17 +3917,17 @@ struct API WindowTempData {
   MenuColumns
       MenuColumns; // Simplified columns storage for menu items measurement
   int TreeDepth;   // Current tree depth.
-  U32 TreeJumpToParentOnPopMask; // Store a copy of !g.NavIdIsAlive for
-                                 // TreeDepth 0..31.. Could be turned into a
-                                 // U64 if necessary.
+  unsigned int
+      TreeJumpToParentOnPopMask; // Store a copy of !g.NavIdIsAlive for
+                                 // TreeDepth 0..31.. Could be turned
+                                 // into a unsigned long long if necessary.
   Vector<Window *> ChildWindows;
   Storage *StateStorage;      // Current persistent per-window storage (store
                               // e.g. tree node open/close state)
   OldColumns *CurrentColumns; // Current columns set
   int CurrentTableIdx;        // Current table index (into g.Tables)
-  LayoutType LayoutType;
-  ::LayoutType
-      ParentLayoutType; // Layout type of parent window at the time of Begin()
+  int LayoutType;
+  int ParentLayoutType; // Layout type of parent window at the time of Begin()
 
   // Local parameters stacks
   // We store the current settings outside of the vectors to increase memory
@@ -3934,15 +3947,15 @@ struct API WindowTempData {
 struct API Window {
   Context *Ctx; // Parent UI context (needs to be set explicitly by parent).
   char *Name;   // Window name, owned by the window.
-  ID ID;        // == HashStr(Name)
-  WindowFlags Flags, FlagsPreviousFrame; // See enum WindowFlags_
-  ChildFlags ChildFlags;   // Set when window is a child window. See enum
-                           // ChildFlags_
+  int ID;       // == HashStr(Name)
+  int Flags, FlagsPreviousFrame; // See enum WindowFlags_
+  int ChildFlags;                // Set when window is a child window. See enum
+                                 // ChildFlags_
   WindowClass WindowClass; // Advanced users only. Set with SetNextWindowClass()
   ViewportP *Viewport;     // Always set in Begin(). Inactive windows may have a
                            // NULL value here if their viewport was discarded.
-  ::ID ViewportId;         // We backup the viewport id (since the viewport may
-                   // disappear or never be created if the window is inactive)
+  int ViewportId;          // We backup the viewport id (since the viewport may
+                  // disappear or never be created if the window is inactive)
   Vec2 ViewportPos; // We backup the viewport position (since the viewport may
                     // disappear or never be created if the window is inactive)
   int ViewportAllowPlatformMonitorExtend; // Reset to -1 every frame (index is
@@ -3981,10 +3994,10 @@ struct API Window {
                        // regular decoration sizes).
   int NameBufLen;      // Size of buffer storing Name. May be larger than
                        // strlen(Name)!
-  ::ID MoveId;         // == window->GetID("#MOVE")
-  ::ID TabId;          // == window->GetID("#TAB")
-  ::ID ChildId; // ID of corresponding item in parent window (for navigation
-                // to return from child window to parent window)
+  int MoveId;          // == window->GetID("#MOVE")
+  int TabId;           // == window->GetID("#TAB")
+  int ChildId; // int of corresponding item in parent window (for navigation
+               // to return from child window to parent window)
   Vec2 Scroll;
   Vec2 ScrollMax;
   Vec2 ScrollTarget; // target scroll position. stored as cursor position with
@@ -4029,26 +4042,27 @@ struct API Window {
                                  // order related issues.
   short FocusOrder; // Order within WindowsFocusOrder[], altered when windows
                     // are focused.
-  ::ID PopupId;     // ID in the popup stack when this window is used as a
-                    // popup/menu (because we use generic Name/ID for recycling)
-  S8 AutoFitFramesX, AutoFitFramesY;
+  int PopupId;      // int in the popup stack when this window is used as a
+                    // popup/menu (because we use generic Name/unsigned int for
+                    // recycling)
+  signed char AutoFitFramesX, AutoFitFramesY;
   bool AutoFitOnlyGrows;
-  Dir AutoPosLastDirection;
-  S8 HiddenFramesCanSkipItems;      // Hide the window for N frames
-  S8 HiddenFramesCannotSkipItems;   // Hide the window for N frames while
-                                    // allowing items to be submitted so we can
-                                    // measure their size
-  S8 HiddenFramesForRenderOnly;     // Hide the window until frame N at Render()
-                                    // time only
-  S8 DisableInputsFrames;           // Disable window interactions for N frames
-  Cond SetWindowPosAllowFlags : 8;  // store acceptable condition flags for
-                                    // SetNextWindowPos() use.
-  Cond SetWindowSizeAllowFlags : 8; // store acceptable condition flags for
-                                    // SetNextWindowSize() use.
-  Cond SetWindowCollapsedAllowFlags : 8; // store acceptable condition flags for
-                                         // SetNextWindowCollapsed() use.
-  Cond SetWindowDockAllowFlags : 8;      // store acceptable condition flags for
-                                         // SetNextWindowDock() use.
+  int AutoPosLastDirection;
+  signed char HiddenFramesCanSkipItems;    // Hide the window for N frames
+  signed char HiddenFramesCannotSkipItems; // Hide the window for N frames while
+                                           // allowing items to be submitted so
+                                           // we can measure their size
+  signed char HiddenFramesForRenderOnly;   // Hide the window until frame N at
+                                           // Render() time only
+  signed char DisableInputsFrames; // Disable window interactions for N frames
+  int SetWindowPosAllowFlags : 8;  // store acceptable condition flags for
+                                   // SetNextWindowPos() use.
+  int SetWindowSizeAllowFlags : 8; // store acceptable condition flags for
+                                   // SetNextWindowSize() use.
+  int SetWindowCollapsedAllowFlags : 8; // store acceptable condition flags for
+                                        // SetNextWindowCollapsed() use.
+  int SetWindowDockAllowFlags : 8;      // store acceptable condition flags for
+                                        // SetNextWindowDock() use.
   Vec2 SetWindowPosVal;   // store window position when using a non-zero Pivot
                           // (position set needs to be processed when we know
                           // the window size)
@@ -4056,12 +4070,12 @@ struct API Window {
                           // when positioning from top-left corner; Vec2(0.5f,
                           // 0.5f) for centering; Vec2(1, 1) for bottom right.
 
-  Vector<::ID> IDStack; // ID stack. ID are hashes seeded with the value at
-                        // the top of the stack. (In theory this should be
-                        // in the TempData structure)
-  WindowTempData DC;    // Temporary per-window data, reset at the beginning
-                        // of the frame. This used to be called
-                        // DrawContext, hence the "DC" variable name.
+  Vector<int> IDStack; // int stack. int are hashes seeded with the value at
+                       // the top of the stack. (In theory this should be
+                       // in the TempData structure)
+  WindowTempData DC;   // Temporary per-window data, reset at the beginning
+                       // of the frame. This used to be called
+                       // DrawContext, hence the "DC" variable name.
 
   // The best way to understand what those rectangles are is to use the
   // 'Metrics->Tools->Show Windows Rectangles' viewer. The main 'OuterRect',
@@ -4106,7 +4120,7 @@ struct API Window {
 
   DrawList *DrawList; // == &DrawListInst (for backward compatibility reason
                       // with code using internal.hpp we keep this a pointer)
-  ::DrawList DrawListInst;
+  struct DrawList DrawListInst;
   Window *ParentWindow; // If we are a child _or_ popup _or_ docked window,
                         // this is pointing to our parent. Otherwise NULL.
   Window *ParentWindowInBeginStack;
@@ -4128,14 +4142,14 @@ struct API Window {
                               // child window we came from. (This could probably
                               // be made implicit if we kept g.Windows sorted by
                               // last focused including child window.)
-  ::ID NavLastIds[NavLayer_COUNT]; // Last known NavId for this window,
+  int NavLastIds[NavLayer_COUNT];  // Last known NavId for this window,
                                    // per layer (0/1)
   Rect NavRectRel[NavLayer_COUNT]; // Reference rectangle, in window
                                    // relative space
   Vec2 NavPreferredScoringPosRel
-      [NavLayer_COUNT];     // Preferred X/Y position updated when moving on a
-                            // given axis, reset to FLT_MAX.
-  ::ID NavRootFocusScopeId; // Focus Scope ID at the time of Begin()
+      [NavLayer_COUNT];    // Preferred X/Y position updated when moving on a
+                           // given axis, reset to FLT_MAX.
+  int NavRootFocusScopeId; // Focus Scope int at the time of Begin()
 
   int MemoryDrawListIdxCapacity; // Backup of last idx/vtx count, so when waking
                                  // up the window we can preallocate and avoid
@@ -4161,20 +4175,22 @@ struct API Window {
   DockNode *DockNode; // Which node are we docked into. Important: Prefer
                       // testing DockIsActive in many cases as this will
                       // still be set when the dock node is hidden.
-  ::DockNode *DockNodeAsHost; // Which node are we owning (for parent windows)
-  ::ID DockId; // Backup of last valid DockNode->ID, so single window remember
-               // their dock node id even when they are not bound any more
-  ItemStatusFlags DockTabItemStatusFlags;
+  struct DockNode
+      *DockNodeAsHost; // Which node are we owning (for parent windows)
+  int DockId;          // Backup of last valid DockNode->ID, so single window
+              // remember their dock node id even when they are not bound any
+              // more
+  int DockTabItemStatusFlags;
   Rect DockTabItemRect;
 
 public:
   Window(Context *context, const char *name);
   ~Window();
 
-  ::ID GetID(const char *str, const char *str_end = NULL);
-  ::ID GetID(const void *ptr);
-  ::ID GetID(int n);
-  ::ID GetIDFromRectangle(const Rect &r_abs);
+  int GetID(const char *str, const char *str_end = NULL);
+  int GetID(const void *ptr);
+  int GetID(int n);
+  int GetIDFromRectangle(const Rect &r_abs);
 
   // We don't use g.FontSize because the window may be != g.CurrentWindow.
   Rect Rect() const {
@@ -4239,8 +4255,8 @@ enum TabItemFlagsPrivate_ {
 
 // Storage for one active tab item (sizeof() 48 bytes)
 struct TabItem {
-  ID ID;
-  TabItemFlags Flags;
+  int ID;
+  int Flags;
   Window *Window; // When TabItem is part of a DockNode's TabBar, we hold
                   // on to a window.
   int LastFrameVisible;
@@ -4250,11 +4266,12 @@ struct TabItem {
   float Width;           // Width currently displayed
   float ContentWidth;    // Width of label, stored during BeginTabItem() call
   float RequestedWidth; // Width optionally requested by caller, -1.0f is unused
-  S32 NameOffset;       // When Window==NULL, offset to name within parent
-                        // TabBar::TabsNames
-  S16 BeginOrder;       // BeginTabItem() order, used to re-order tabs after
-                        // toggling TabBarFlags_Reorderable
-  S16 IndexDuringLayout; // Index only used during TabBarLayout(). Tabs gets
+  signed int NameOffset;   // When Window==NULL, offset to name within parent
+                           // TabBar::TabsNames
+  signed short BeginOrder; // BeginTabItem() order, used to re-order tabs after
+                           // toggling TabBarFlags_Reorderable
+  signed short
+      IndexDuringLayout; // Index only used during TabBarLayout(). Tabs gets
                          // reordered so 'Tabs[n].IndexDuringLayout == n' but
                          // may mismatch during additions.
   bool WantClose;        // Marked as closed by SetTabItemClosed()
@@ -4271,13 +4288,13 @@ struct TabItem {
 // Storage for a tab bar (sizeof() 152 bytes)
 struct API TabBar {
   Vector<TabItem> Tabs;
-  TabBarFlags Flags;
-  ID ID;                  // Zero for tab-bars used by docking
-  ::ID SelectedTabId;     // Selected tab/window
-  ::ID NextSelectedTabId; // Next selected tab/window. Will also trigger a
-                          // scrolling animation
-  ::ID VisibleTabId;      // Can occasionally be != SelectedTabId (e.g. when
-                          // previewing contents for CTRL+TAB preview)
+  int Flags;
+  int ID;                // Zero for tab-bars used by docking
+  int SelectedTabId;     // Selected tab/window
+  int NextSelectedTabId; // Next selected tab/window. Will also trigger a
+                         // scrolling animation
+  int VisibleTabId;      // Can occasionally be != SelectedTabId (e.g. when
+                         // previewing contents for CTRL+TAB preview)
   int CurrFrameVisible;
   int PrevFrameVisible;
   Rect BarRect;
@@ -4295,16 +4312,16 @@ struct API TabBar {
   float ScrollingRectMaxX;
   float SeparatorMinX;
   float SeparatorMaxX;
-  ::ID ReorderRequestTabId;
-  S16 ReorderRequestOffset;
-  S8 BeginCount;
+  int ReorderRequestTabId;
+  signed short ReorderRequestOffset;
+  signed char BeginCount;
   bool WantLayout;
   bool VisibleTabWasSubmitted;
   bool TabsAddedNew; // Set to true when a new tab item or button has been added
                      // to the tab bar during last frame
-  S16 TabsActiveCount; // Number of tabs submitted this frame.
-  S16 LastTabItemIdx;  // Index of last BeginTabItem() tab for use by
-                       // EndTabItem()
+  signed short TabsActiveCount; // Number of tabs submitted this frame.
+  signed short LastTabItemIdx;  // Index of last BeginTabItem() tab for use by
+                                // EndTabItem()
   float ItemSpacingY;
   Vec2 FramePadding; // style.FramePadding locked at the time of BeginTabBar()
   Vec2 BackupCursorPos;
@@ -4324,8 +4341,8 @@ struct API TabBar {
 #define TABLE_MAX_COLUMNS 512 // May be further lifted
 
 // Our current column maximum is 64 but we may raise that in the future.
-typedef S16 TableColumnIdx;
-typedef U16 TableDrawChannelIdx;
+typedef signed short TableColumnIdx;
+typedef unsigned short TableDrawChannelIdx;
 
 // [Internal] sizeof() ~ 112
 // We use the terminology "Enabled" to refer to a column that is not Hidden by
@@ -4334,8 +4351,8 @@ typedef U16 TableDrawChannelIdx;
 // user-facing api such as IsItemVisible() / IsRectVisible() which use "Visible"
 // to mean "not clipped".
 struct TableColumn {
-  TableColumnFlags Flags; // Flags after some patching (not directly same as
-                          // provided by user). See TableColumnFlags_
+  int Flags;        // Flags after some patching (not directly same as
+                    // provided by user). See TableColumnFlags_
   float WidthGiven; // Final/actual width visible == (MaxX - MinX), locked in
                     // TableUpdateLayout(). May be > WidthRequest to honor
                     // minimum width, may be < WidthRequest to honor shrinking
@@ -4352,7 +4369,7 @@ struct TableColumn {
       InitStretchWeightOrWidth; // Value passed to TableSetupColumn(). For Width
                                 // it is a content width (_without padding_).
   Rect ClipRect;                // Clipping rectangle for the column
-  ID UserID;                    // Optional, value passed to TableSetupColumn()
+  int UserID;                   // Optional, value passed to TableSetupColumn()
   float WorkMinX;  // Contents region min ~(MinX + CellPaddingX + CellSpacingX1)
                    // == cursor start position when entering column
   float WorkMaxX;  // Contents region max ~(MaxX - CellPaddingX - CellSpacingX2)
@@ -4367,7 +4384,7 @@ struct TableColumn {
                                 // desired size, to avoid creating extraneous
                                 // draw calls
   float ContentMaxXHeadersIdeal;
-  S16 NameOffset;              // Offset into parent ColumnsNames[]
+  signed short NameOffset;     // Offset into parent ColumnsNames[]
   TableColumnIdx DisplayOrder; // Index within Table's IndexToDisplayOrder[]
                                // (column may be reordered by users)
   TableColumnIdx IndexWithinEnabledSet; // Index within enabled/visible set
@@ -4400,19 +4417,20 @@ struct TableColumn {
   bool IsSkipItems;     // Do we want item submissions to this column to be
                         // completely ignored (no layout will happen).
   bool IsPreserveWidthAuto;
-  S8 NavLayerCurrent;      // NavLayer in 1 byte
-  U8 AutoFitQueue;         // Queue of 8 values for the next 8 frames to request
-                           // auto-fit
-  U8 CannotSkipItemsQueue; // Queue of 8 values for the next 8 frames to
-                           // disable Clipped/SkipItem
-  U8 SortDirection : 2;    // SortDirection_Ascending or
-                           // SortDirection_Descending
-  U8 SortDirectionsAvailCount : 2; // Number of available sort directions (0
-                                   // to 3)
-  U8 SortDirectionsAvailMask : 4;  // Mask of available sort directions (1-bit
-                                   // each)
-  U8 SortDirectionsAvailList;      // Ordered list of available sort directions
-                                   // (2-bits each, total 8-bits)
+  signed char NavLayerCurrent; // NavLayer in 1 byte
+  unsigned char AutoFitQueue;  // Queue of 8 values for the next 8 frames to
+                               // request auto-fit
+  unsigned char CannotSkipItemsQueue; // Queue of 8 values for the next 8 frames
+                                      // to disable Clipped/SkipItem
+  unsigned char SortDirection : 2;    // SortDirection_Ascending or
+                                      // SortDirection_Descending
+  unsigned char SortDirectionsAvailCount : 2; // Number of available sort
+                                              // directions (0 to 3)
+  unsigned char SortDirectionsAvailMask : 4;  // Mask of available sort
+                                              // directions (1-bit each)
+  unsigned char
+      SortDirectionsAvailList; // Ordered list of available sort directions
+                               // (2-bits each, total 8-bits)
 
   TableColumn() {
     memset(this, 0, sizeof(*this));
@@ -4422,14 +4440,15 @@ struct TableColumn {
     PrevEnabledColumn = NextEnabledColumn = -1;
     SortOrder = -1;
     SortDirection = SortDirection_None;
-    DrawChannelCurrent = DrawChannelFrozen = DrawChannelUnfrozen = (U8)-1;
+    DrawChannelCurrent = DrawChannelFrozen = DrawChannelUnfrozen =
+        (unsigned char)-1;
   }
 };
 
 // Transient cell data stored per row.
 // sizeof() ~ 6
 struct TableCellData {
-  U32 BgColor;           // Actual color
+  unsigned int BgColor;  // Actual color
   TableColumnIdx Column; // Column number
 };
 
@@ -4437,7 +4456,7 @@ struct TableCellData {
 // do not need to be preserved aside from debug needs. Does that means they
 // could be moved to TableTempData?) sizeof() ~ 24 bytes
 struct TableInstanceData {
-  ID TableInstanceID;
+  int TableInstanceID;
   float LastOuterHeight;         // Outer height from last frame
   float LastTopHeadersRowHeight; // Height of first consecutive header rows from
                                  // last frame (FIXME: this is used assuming
@@ -4458,8 +4477,8 @@ struct TableInstanceData {
 // TableTempData: e.g. SortSpecs, incoming RowData sizeof() ~ 580 bytes +
 // heap allocs described in TableBeginInitMemory()
 struct API Table {
-  ID ID;
-  TableFlags Flags;
+  int ID;
+  int Flags;
   void *RawData; // Single allocation to hold Columns[], DisplayOrderToIndex[]
                  // and RowCellData[]
   TableTempData *TempData;   // Transient data while table is active. Point
@@ -4479,35 +4498,36 @@ struct API Table {
   BitArrayPtr VisibleMaskByIndex; // Column Index -> IsVisibleX|IsVisibleY map
                                   // (== not hidden by user/api && not hidden
                                   // by scrolling/cliprect)
-  TableFlags
-      SettingsLoadedFlags; // Which data were loaded from the .ini file (e.g.
+
+  int SettingsLoadedFlags; // Which data were loaded from the .ini file (e.g.
                            // when order is not altered we won't save order)
   int SettingsOffset;      // Offset in g.SettingsTables
   int LastFrameActive;
   int ColumnsCount; // Number of columns declared in BeginTable()
   int CurrentRow;
   int CurrentColumn;
-  S16 InstanceCurrent; // Count of BeginTable() calls with same ID in the same
+  signed short
+      InstanceCurrent; // Count of BeginTable() calls with same int in the same
                        // frame (generally 0). This is a little bit similar to
                        // BeginCount for a window, but multiple table with same
-                       // ID look are multiple tables, they are just synched.
-  S16 InstanceInteracted; // Mark which instance (generally 0) of the same ID
-                          // is being interacted with
+                       // int look are multiple tables, they are just synched.
+  signed short InstanceInteracted; // Mark which instance (generally 0) of the
+                                   // same unsigned int is being interacted with
   float RowPosY1;
   float RowPosY2;
   float RowMinHeight;    // Height submitted to TableNextRow()
   float RowCellPaddingY; // Top and bottom padding. Reloaded during row change.
   float RowTextBaseline;
   float RowIndentOffsetX;
-  TableRowFlags RowFlags : 16; // Current row flags, see TableRowFlags_
-  TableRowFlags LastRowFlags : 16;
+  int RowFlags : 16; // Current row flags, see TableRowFlags_
+  int LastRowFlags : 16;
   int RowBgColorCounter; // Counter for alternating background colors (can be
                          // fast-forwarded by e.g clipper), not same as
                          // CurrentRow because header rows typically don't
                          // increase this.
-  U32 RowBgColor[2];     // Background color override for current row.
-  U32 BorderColorStrong;
-  U32 BorderColorLight;
+  unsigned int RowBgColor[2]; // Background color override for current row.
+  unsigned int BorderColorStrong;
+  unsigned int BorderColorLight;
   float BorderX1;
   float BorderX2;
   float HostIndentX;
@@ -4706,13 +4726,13 @@ struct API TableTempData {
 // sizeof() ~ 12
 struct TableColumnSettings {
   float WidthOrWeight;
-  ID UserID;
+  int UserID;
   TableColumnIdx Index;
   TableColumnIdx DisplayOrder;
   TableColumnIdx SortOrder;
-  U8 SortDirection : 2;
-  U8 IsEnabled : 1; // "Visible" in ini file
-  U8 IsStretch : 1;
+  unsigned char SortDirection : 2;
+  unsigned char IsEnabled : 1; // "Visible" in ini file
+  unsigned char IsStretch : 1;
 
   TableColumnSettings() {
     WidthOrWeight = 0.0f;
@@ -4728,10 +4748,10 @@ struct TableColumnSettings {
 // This is designed to be stored in a single ChunkStream (1 header followed by
 // N TableColumnSettings, etc.)
 struct TableSettings {
-  ID ID;                // Set to 0 to invalidate/delete the setting
-  TableFlags SaveFlags; // Indicate data we want to save using the
-                        // Resizable/Reorderable/Sortable/Hideable flags
-                        // (could be using its own flags..)
+  int ID;         // Set to 0 to invalidate/delete the setting
+  int SaveFlags;  // Indicate data we want to save using the
+                  // Resizable/Reorderable/Sortable/Hideable flags
+                  // (could be using its own flags..)
   float RefScale; // Reference scale to be able to rescale columns on font/dpi
                   // changes.
   TableColumnIdx ColumnsCount;
@@ -4770,9 +4790,9 @@ inline Window *GetCurrentWindow() {
   g.CurrentWindow->WriteAccessed = true;
   return g.CurrentWindow;
 }
-API Window *FindWindowByID(ID id);
+API Window *FindWindowByID(int id);
 API Window *FindWindowByName(const char *name);
-API void UpdateWindowParentAndRootLinks(Window *window, WindowFlags flags,
+API void UpdateWindowParentAndRootLinks(Window *window, int flags,
                                         Window *parent_window);
 API Vec2 CalcWindowNextAutoFitSize(Window *window);
 API bool IsWindowChildOf(Window *window, Window *potential_parent,
@@ -4780,9 +4800,9 @@ API bool IsWindowChildOf(Window *window, Window *potential_parent,
 API bool IsWindowWithinBeginStackOf(Window *window, Window *potential_parent);
 API bool IsWindowAbove(Window *potential_above, Window *potential_below);
 API bool IsWindowNavFocusable(Window *window);
-API void SetWindowPos(Window *window, const Vec2 &pos, Cond cond = 0);
-API void SetWindowSize(Window *window, const Vec2 &size, Cond cond = 0);
-API void SetWindowCollapsed(Window *window, bool collapsed, Cond cond = 0);
+API void SetWindowPos(Window *window, const Vec2 &pos, int cond = 0);
+API void SetWindowSize(Window *window, const Vec2 &size, int cond = 0);
+API void SetWindowCollapsed(Window *window, bool collapsed, int cond = 0);
 API void SetWindowHitTestHole(Window *window, const Vec2 &pos,
                               const Vec2 &size);
 API void SetWindowHiddenAndSkipItemsForCurrentFrame(Window *window);
@@ -4802,11 +4822,10 @@ inline Vec2 WindowPosRelToAbs(Window *window, const Vec2 &p) {
 }
 
 // Windows: Display Order and Focus Order
-API void FocusWindow(Window *window, FocusRequestFlags flags = 0);
+API void FocusWindow(Window *window, int flags = 0);
 API void FocusTopMostWindowUnderOne(Window *under_this_window,
                                     Window *ignore_window,
-                                    Viewport *filter_viewport,
-                                    FocusRequestFlags flags);
+                                    Viewport *filter_viewport, int flags);
 API void BringWindowToFocusFront(Window *window);
 API void BringWindowToDisplayFront(Window *window);
 API void BringWindowToDisplayBack(Window *window);
@@ -4843,8 +4862,8 @@ API void UpdateMouseMovingWindowNewFrame();
 API void UpdateMouseMovingWindowEndFrame();
 
 // Generic context hooks
-API ID AddContextHook(Context *context, const ContextHook *hook);
-API void RemoveContextHook(Context *context, ID hook_to_remove);
+API int AddContextHook(Context *context, const ContextHook *hook);
+API void RemoveContextHook(Context *context, int hook_to_remove);
 API void CallContextHooks(Context *context, ContextHookType type);
 
 // Viewports
@@ -4868,7 +4887,7 @@ API SettingsHandler *FindSettingsHandler(const char *type_name);
 
 // Settings - Windows
 API WindowSettings *CreateNewWindowSettings(const char *name);
-API WindowSettings *FindWindowSettingsByID(ID id);
+API WindowSettings *FindWindowSettingsByID(int id);
 API WindowSettings *FindWindowSettingsByWindow(Window *window);
 API void ClearWindowSettings(const char *name);
 
@@ -4887,10 +4906,9 @@ API void SetScrollFromPosX(Window *window, float local_x, float center_x_ratio);
 API void SetScrollFromPosY(Window *window, float local_y, float center_y_ratio);
 
 // Early work-in-progress API (ScrollToItem() will become public)
-API void ScrollToItem(ScrollFlags flags = 0);
-API void ScrollToRect(Window *window, const Rect &rect, ScrollFlags flags = 0);
-API Vec2 ScrollToRectEx(Window *window, const Rect &rect,
-                        ScrollFlags flags = 0);
+API void ScrollToItem(int flags = 0);
+API void ScrollToRect(Window *window, const Rect &rect, int flags = 0);
+API Vec2 ScrollToRectEx(Window *window, const Rect &rect, int flags = 0);
 // #ifndef DISABLE_OBSOLETE_FUNCTIONS
 inline void ScrollToBringRectIntoView(Window *window, const Rect &rect) {
   ScrollToRect(window, rect, ScrollFlags_KeepVisibleEdgeY);
@@ -4898,49 +4916,50 @@ inline void ScrollToBringRectIntoView(Window *window, const Rect &rect) {
 // #endif
 
 // Basic Accessors
-inline ItemStatusFlags GetItemStatusFlags() {
+inline int GetItemStatusFlags() {
   Context &g = *GGui;
   return g.LastItemData.StatusFlags;
 }
-inline ItemFlags GetItemFlags() {
+inline int GetItemFlags() {
   Context &g = *GGui;
   return g.LastItemData.InFlags;
 }
-inline ID GetActiveID() {
+inline int GetActiveID() {
   Context &g = *GGui;
   return g.ActiveId;
 }
-inline ID GetFocusID() {
+inline int GetFocusID() {
   Context &g = *GGui;
   return g.NavId;
 }
-API void SetActiveID(ID id, Window *window);
-API void SetFocusID(ID id, Window *window);
+API void SetActiveID(int id, Window *window);
+API void SetFocusID(int id, Window *window);
 API void ClearActiveID();
-API ID GetHoveredID();
-API void SetHoveredID(ID id);
-API void KeepAliveID(ID id);
+API int GetHoveredID();
+API void SetHoveredID(int id);
+API void KeepAliveID(int id);
 API void
-MarkItemEdited(ID id); // Mark data associated to given item as "edited",
-                       // used by IsItemDeactivatedAfterEdit() function.
+MarkItemEdited(int id); // Mark data associated to given item as "edited",
+                        // used by IsItemDeactivatedAfterEdit() function.
 API void
-PushOverrideID(ID id); // Push given value as-is at the top of the ID stack
-                       // (whereas PushID combines old and new hashes)
-API ID GetIDWithSeed(const char *str_id_begin, const char *str_id_end, ID seed);
-API ID GetIDWithSeed(int n, ID seed);
+PushOverrideID(int id); // Push given value as-is at the top of the int stack
+                        // (whereas PushID combines old and new hashes)
+API int GetIDWithSeed(const char *str_id_begin, const char *str_id_end,
+                      int seed);
+API int GetIDWithSeed(int n, int seed);
 
 // Basic Helpers for widget code
 API void ItemSize(const Vec2 &size, float text_baseline_y = -1.0f);
 inline void ItemSize(const Rect &bb, float text_baseline_y = -1.0f) {
   ItemSize(bb.GetSize(), text_baseline_y);
 } // FIXME: This is a misleading API since we expect CursorPos to be bb.Min.
-API bool ItemAdd(const Rect &bb, ID id, const Rect *nav_bb = NULL,
-                 ItemFlags extra_flags = 0);
-API bool ItemHoverable(const Rect &bb, ID id, ItemFlags item_flags);
-API bool IsWindowContentHoverable(Window *window, HoveredFlags flags = 0);
-API bool IsClippedEx(const Rect &bb, ID id);
-API void SetLastItemData(ID item_id, ItemFlags in_flags,
-                         ItemStatusFlags status_flags, const Rect &item_rect);
+API bool ItemAdd(const Rect &bb, int id, const Rect *nav_bb = NULL,
+                 int extra_flags = 0);
+API bool ItemHoverable(const Rect &bb, int id, int item_flags);
+API bool IsWindowContentHoverable(Window *window, int flags = 0);
+API bool IsClippedEx(const Rect &bb, int id);
+API void SetLastItemData(int item_id, int in_flags, int status_flags,
+                         const Rect &item_rect);
 API Vec2 CalcItemSize(Vec2 size, float default_w, float default_h);
 API float CalcWrapWidthForPos(const Vec2 &pos, float wrap_pos_x);
 API void PushMultiItemsWidths(int components, float width_full);
@@ -4952,9 +4971,9 @@ API Vec2 GetContentRegionMaxAbs();
 API void ShrinkWidths(ShrinkWidthItem *items, int count, float width_excess);
 
 // Parameter stacks (shared)
-API void PushItemFlag(ItemFlags option, bool enabled);
+API void PushItemFlag(int option, bool enabled);
 API void PopItemFlag();
-API const DataVarInfo *GetStyleVarInfo(StyleVar idx);
+API const DataVarInfo *GetStyleVarInfo(int idx);
 
 // Logging/Capture
 API void LogBegin(
@@ -4968,18 +4987,17 @@ API void LogRenderedText(const Vec2 *ref_pos, const char *text,
 API void LogSetNextTextDecoration(const char *prefix, const char *suffix);
 
 // Popups, Modals, Tooltips
-API bool BeginChildEx(const char *name, ID id, const Vec2 &size_arg,
-                      ChildFlags child_flags, WindowFlags window_flags);
-API void OpenPopupEx(ID id, PopupFlags popup_flags = PopupFlags_None);
+API bool BeginChildEx(const char *name, int id, const Vec2 &size_arg,
+                      int child_flags, int window_flags);
+API void OpenPopupEx(int id, int popup_flags = PopupFlags_None);
 API void ClosePopupToLevel(int remaining,
                            bool restore_focus_to_window_under_popup);
 API void ClosePopupsOverWindow(Window *ref_window,
                                bool restore_focus_to_window_under_popup);
 API void ClosePopupsExceptModals();
-API bool IsPopupOpen(ID id, PopupFlags popup_flags);
-API bool BeginPopupEx(ID id, WindowFlags extra_flags);
-API bool BeginTooltipEx(TooltipFlags tooltip_flags,
-                        WindowFlags extra_window_flags);
+API bool IsPopupOpen(int id, int popup_flags);
+API bool BeginPopupEx(int id, int extra_flags);
+API bool BeginTooltipEx(int tooltip_flags, int extra_window_flags);
 API bool BeginTooltipHidden();
 API Rect GetPopupAllowedExtentRect(Window *window);
 API Window *GetTopMostPopupModal();
@@ -4987,20 +5005,20 @@ API Window *GetTopMostAndVisiblePopupModal();
 API Window *FindBlockingModal(Window *window);
 API Vec2 FindBestWindowPosForPopup(Window *window);
 API Vec2 FindBestWindowPosForPopupEx(const Vec2 &ref_pos, const Vec2 &size,
-                                     Dir *last_dir, const Rect &r_outer,
+                                     int *last_dir, const Rect &r_outer,
                                      const Rect &r_avoid,
                                      PopupPositionPolicy policy);
 
 // Menus
-API bool BeginViewportSideBar(const char *name, Viewport *viewport, Dir dir,
-                              float size, WindowFlags window_flags);
+API bool BeginViewportSideBar(const char *name, Viewport *viewport, int dir,
+                              float size, int window_flags);
 API bool BeginMenuEx(const char *label, const char *icon, bool enabled = true);
 API bool MenuItemEx(const char *label, const char *icon,
                     const char *shortcut = NULL, bool selected = false,
                     bool enabled = true);
 
 // Combos
-API bool BeginComboPopup(ID popup_id, const Rect &bb, ComboFlags flags);
+API bool BeginComboPopup(int popup_id, const Rect &bb, int flags);
 API bool BeginComboPreview();
 API void EndComboPreview();
 
@@ -5008,23 +5026,21 @@ API void EndComboPreview();
 API void NavInitWindow(Window *window, bool force_reinit);
 API void NavInitRequestApplyResult();
 API bool NavMoveRequestButNoResultYet();
-API void NavMoveRequestSubmit(Dir move_dir, Dir clip_dir,
-                              NavMoveFlags move_flags,
-                              ScrollFlags scroll_flags);
-API void NavMoveRequestForward(Dir move_dir, Dir clip_dir,
-                               NavMoveFlags move_flags,
-                               ScrollFlags scroll_flags);
+API void NavMoveRequestSubmit(int move_dir, int clip_dir, int move_flags,
+                              int scroll_flags);
+API void NavMoveRequestForward(int move_dir, int clip_dir, int move_flags,
+                               int scroll_flags);
 API void NavMoveRequestResolveWithLastItem(NavItemData *result);
 API void NavMoveRequestResolveWithPastTreeNode(NavItemData *result,
                                                NavTreeNodeData *tree_node_data);
 API void NavMoveRequestCancel();
 API void NavMoveRequestApplyResult();
-API void NavMoveRequestTryWrapping(Window *window, NavMoveFlags move_flags);
+API void NavMoveRequestTryWrapping(Window *window, int move_flags);
 API void NavClearPreferredPosForAxis(Axis axis);
 API void NavRestoreHighlightAfterMove();
 API void NavUpdateCurrentWindowIsScrollPushableX();
 API void SetNavWindow(Window *window);
-API void SetNavID(ID id, NavLayer nav_layer, ID focus_scope_id,
+API void SetNavID(int id, NavLayer nav_layer, int focus_scope_id,
                   const Rect &rect_rel);
 
 // Focus/Activation
@@ -5035,9 +5051,9 @@ API void SetNavID(ID id, NavLayer nav_layer, ID focus_scope_id,
 // easy ones.
 API void FocusItem(); // Focus last item (no selection/activation).
 API void
-ActivateItemByID(ID id); // Activate an item by ID (button, checkbox, tree node
-                         // etc.). Activation is queued and processed on the
-                         // next frame when the item is encountered again.
+ActivateItemByID(int id); // Activate an item by int (button, checkbox, tree
+                          // node etc.). Activation is queued and processed on
+                          // the next frame when the item is encountered again.
 
 // Inputs
 // FIXME: Eventually we should aim to move e.g. IsActiveIdUsingKey() into
@@ -5065,7 +5081,7 @@ inline bool IsMouseKey(Key key) {
 inline bool IsAliasKey(Key key) {
   return key >= Key_Aliases_BEGIN && key < Key_Aliases_END;
 }
-inline KeyChord ConvertShortcutMod(KeyChord key_chord) {
+inline int ConvertShortcutMod(int key_chord) {
   Context &g = *GGui;
   ASSERT_PARANOID(key_chord & Mod_Shortcut);
   return (key_chord & ~Mod_Shortcut) |
@@ -5092,23 +5108,22 @@ inline KeyData *GetKeyData(Key key) {
   Context &g = *GGui;
   return GetKeyData(&g, key);
 }
-API void GetKeyChordName(KeyChord key_chord, char *out_buf, int out_buf_size);
-inline Key MouseButtonToKey(MouseButton button) {
+API void GetKeyChordName(int key_chord, char *out_buf, int out_buf_size);
+inline Key MouseButtonToKey(int button) {
   ASSERT(button >= 0 && button < MouseButton_COUNT);
   return (Key)(Key_MouseLeft + button);
 }
-API bool IsMouseDragPastThreshold(MouseButton button,
-                                  float lock_threshold = -1.0f);
+API bool IsMouseDragPastThreshold(int button, float lock_threshold = -1.0f);
 API Vec2 GetKeyMagnitude2d(Key key_left, Key key_right, Key key_up,
                            Key key_down);
 API float GetNavTweakPressedAmount(Axis axis);
 API int CalcTypematicRepeatAmount(float t0, float t1, float repeat_delay,
                                   float repeat_rate);
-API void GetTypematicRepeatRate(InputFlags flags, float *repeat_delay,
+API void GetTypematicRepeatRate(int flags, float *repeat_delay,
                                 float *repeat_rate);
 API void TeleportMousePos(const Vec2 &pos);
 API void SetActiveIdUsingAllKeyboardKeys();
-inline bool IsActiveIdUsingNavDir(Dir dir) {
+inline bool IsActiveIdUsingNavDir(int dir) {
   Context &g = *GGui;
   return (g.ActiveIdUsingNavDirMask & (1 << dir)) != 0;
 }
@@ -5119,7 +5134,7 @@ inline bool IsActiveIdUsingNavDir(Dir dir) {
 // - Ownership is most often claimed as a result of reacting to a press/down
 // event (but occasionally may be claimed ahead).
 // - Input queries can then read input by specifying KeyOwner_Any (== 0),
-// KeyOwner_None (== -1) or a custom ID.
+// KeyOwner_None (== -1) or a custom unsigned int.
 // - Legacy input queries (without specifying an owner or _Any or _None) are
 // equivalent to using KeyOwner_Any (== 0).
 // - Input ownership is automatically released on the frame after a key is
@@ -5136,18 +5151,17 @@ inline bool IsActiveIdUsingNavDir(Dir dir) {
 // Set/Test idioms. We will need to move forward step by step.
 //   Please open a GitHub Issue to submit your usage scenario or if there's a
 //   use case you need solved.
-API ID GetKeyOwner(Key key);
-API void SetKeyOwner(Key key, ID owner_id, InputFlags flags = 0);
-API void SetKeyOwnersForKeyChord(KeyChord key, ID owner_id,
-                                 InputFlags flags = 0);
+API int GetKeyOwner(Key key);
+API void SetKeyOwner(Key key, int owner_id, int flags = 0);
+API void SetKeyOwnersForKeyChord(int key, int owner_id, int flags = 0);
 API void SetItemKeyOwner(
     Key key,
-    InputFlags flags = 0); // Set key owner to last item if it is hovered or
-                           // active. Equivalent to 'if (IsItemHovered() ||
-                           // IsItemActive()) { SetKeyOwner(key, GetItemID());'.
+    int flags = 0); // Set key owner to last item if it is hovered or
+                    // active. Equivalent to 'if (IsItemHovered() ||
+                    // IsItemActive()) { SetKeyOwner(key, GetItemID());'.
 API bool TestKeyOwner(Key key,
-                      ID owner_id); // Test that key is either not owned,
-                                    // either owned by 'owner_id'
+                      int owner_id); // Test that key is either not owned,
+                                     // either owned by 'owner_id'
 inline KeyOwnerData *GetKeyOwnerData(Context *ctx, Key key) {
   if (key & Mod_Mask_)
     key = ConvertSingleModFlagToKey(ctx, key);
@@ -5161,32 +5175,32 @@ inline KeyOwnerData *GetKeyOwnerData(Context *ctx, Key key) {
 // repeat, new IsKeyPressed() requires _EXPLICIT_ InputFlags_Repeat flag.
 // - Expected to be later promoted to public API, the prototypes are designed to
 // replace existing ones (since owner_id can default to Any == 0)
-// - Specifying a value for 'ID owner' will test that EITHER the key is NOT
-// owned (UNLESS locked), EITHER the key is owned by 'owner'.
+// - Specifying a value for 'unsigned int owner' will test that EITHER the key
+// is NOT owned (UNLESS locked), EITHER the key is owned by 'owner'.
 //   Legacy functions use KeyOwner_Any meaning that they typically ignore
 //   ownership, unless a call to SetKeyOwner() explicitly used
 //   InputFlags_LockThisFrame or InputFlags_LockUntilRelease.
 // - Binding generators may want to ignore those for now, or suffix them with
 // Ex() until we decide if this gets moved into public API.
-API bool IsKeyDown(Key key, ID owner_id);
+API bool IsKeyDown(Key key, int owner_id);
 API bool IsKeyPressed(
-    Key key, ID owner_id,
-    InputFlags flags =
+    Key key, int owner_id,
+    int flags =
         0); // Important: when transitioning from old to new IsKeyPressed(): old
             // API has "bool repeat = true", so would default to repeat. New API
             // requiress explicit InputFlags_Repeat.
-API bool IsKeyReleased(Key key, ID owner_id);
-API bool IsMouseDown(MouseButton button, ID owner_id);
-API bool IsMouseClicked(MouseButton button, ID owner_id, InputFlags flags = 0);
-API bool IsMouseReleased(MouseButton button, ID owner_id);
-API bool IsMouseDoubleClicked(MouseButton button, ID owner_id);
+API bool IsKeyReleased(Key key, int owner_id);
+API bool IsMouseDown(int button, int owner_id);
+API bool IsMouseClicked(int button, int owner_id, int flags = 0);
+API bool IsMouseReleased(int button, int owner_id);
+API bool IsMouseDoubleClicked(int button, int owner_id);
 
 // [EXPERIMENTAL] Shortcut Routing
-// - KeyChord = a Key optionally OR-red with
+// - int = a Key optionally OR-red with
 // Mod_Alt/Mod_Ctrl/Mod_Shift/Mod_Super.
 //     Key_C                 (accepted by functions taking Key or
-//     KeyChord) Key_C | Mod_Ctrl (accepted by functions taking
-//     KeyChord)
+//     int) Key_C | Mod_Ctrl (accepted by functions taking
+//     int)
 //   ONLY Mod_XXX values are legal to 'OR' with an Key. You CANNOT
 //   'OR' two Key values.
 // - When using one of the routing flags (e.g. InputFlags_RouteFocused):
@@ -5198,36 +5212,34 @@ API bool IsMouseDoubleClicked(MouseButton button, ID owner_id);
 // policies to select the winning route.
 // - Multiple read sites may use the same owner id and will all get the granted
 // route.
-// - For routing: when owner_id is 0 we use the current Focus Scope ID as a
+// - For routing: when owner_id is 0 we use the current Focus Scope int as a
 // default owner in order to identify our location.
 // - TL;DR;
 //   - IsKeyChordPressed() compares mods + call IsKeyPressed() -> function has
 //   no side-effect.
 //   - Shortcut() submits a route then if currently can be routed calls
 //   IsKeyChordPressed() -> function has (desirable) side-effects.
-API bool IsKeyChordPressed(KeyChord key_chord, ID owner_id,
-                           InputFlags flags = 0);
-API bool Shortcut(KeyChord key_chord, ID owner_id = 0, InputFlags flags = 0);
-API bool SetShortcutRouting(KeyChord key_chord, ID owner_id = 0,
-                            InputFlags flags = 0);
-API bool TestShortcutRouting(KeyChord key_chord, ID owner_id);
-API KeyRoutingData *GetShortcutRoutingData(KeyChord key_chord);
+API bool IsKeyChordPressed(int key_chord, int owner_id, int flags = 0);
+API bool Shortcut(int key_chord, int owner_id = 0, int flags = 0);
+API bool SetShortcutRouting(int key_chord, int owner_id = 0, int flags = 0);
+API bool TestShortcutRouting(int key_chord, int owner_id);
+API KeyRoutingData *GetShortcutRoutingData(int key_chord);
 
 // Docking
 // (some functions are only declared in gui.cpp, see Docking section)
 API void DockContextInitialize(Context *ctx);
 API void DockContextShutdown(Context *ctx);
 API void
-DockContextClearNodes(Context *ctx, ID root_id,
+DockContextClearNodes(Context *ctx, int root_id,
                       bool clear_settings_refs); // Use root_id==0 to clear all
 API void DockContextRebuildNodes(Context *ctx);
 API void DockContextNewFrameUpdateUndocking(Context *ctx);
 API void DockContextNewFrameUpdateDocking(Context *ctx);
 API void DockContextEndFrame(Context *ctx);
-API ID DockContextGenNodeID(Context *ctx);
+API int DockContextGenNodeID(Context *ctx);
 API void DockContextQueueDock(Context *ctx, Window *target,
                               DockNode *target_node, Window *payload,
-                              Dir split_dir, float split_ratio,
+                              int split_dir, float split_ratio,
                               bool split_outer);
 API void DockContextQueueUndockWindow(Context *ctx, Window *window);
 API void DockContextQueueUndockNode(Context *ctx, DockNode *node);
@@ -5237,9 +5249,9 @@ DockContextProcessUndockWindow(Context *ctx, Window *window,
 API void DockContextProcessUndockNode(Context *ctx, DockNode *node);
 API bool DockContextCalcDropPosForDocking(Window *target, DockNode *target_node,
                                           Window *payload_window,
-                                          DockNode *payload_node, Dir split_dir,
+                                          DockNode *payload_node, int split_dir,
                                           bool split_outer, Vec2 *out_pos);
-API DockNode *DockContextFindNodeByID(Context *ctx, ID id);
+API DockNode *DockContextFindNodeByID(Context *ctx, int id);
 API void DockNodeWindowMenuHandler_Default(Context *ctx, DockNode *node,
                                            TabBar *tab_bar);
 API bool DockNodeBeginAmendTabBar(DockNode *node);
@@ -5265,7 +5277,7 @@ inline int DockNodeGetDepth(const DockNode *node) {
   }
   return depth;
 }
-inline ID DockNodeGetWindowMenuButtonId(const DockNode *node) {
+inline int DockNodeGetWindowMenuButtonId(const DockNode *node) {
   return HashStr("#COLLAPSE", 0, node->ID);
 }
 inline DockNode *GetWindowDockNode() {
@@ -5276,7 +5288,7 @@ API bool GetWindowAlwaysWantOwnTabBar(Window *window);
 API void BeginDocked(Window *window, bool *p_open);
 API void BeginDockableDragDropSource(Window *window);
 API void BeginDockableDragDropTarget(Window *window);
-API void SetWindowDock(Window *window, ID dock_id, Cond cond);
+API void SetWindowDock(Window *window, int dock_id, int cond);
 
 // Docking - Builder function needs to be generally called before the node is
 // used/submitted.
@@ -5295,35 +5307,35 @@ API void SetWindowDock(Window *window, ID dock_id, Cond cond);
 //   to call DockBuilderSetNodeSize() beforehand. If you don't, the resulting
 //   split sizes may not be reliable.
 // - Call DockBuilderFinish() after you are done.
-API void DockBuilderDockWindow(const char *window_name, ID node_id);
-API DockNode *DockBuilderGetNode(ID node_id);
-inline DockNode *DockBuilderGetCentralNode(ID node_id) {
+API void DockBuilderDockWindow(const char *window_name, int node_id);
+API DockNode *DockBuilderGetNode(int node_id);
+inline DockNode *DockBuilderGetCentralNode(int node_id) {
   DockNode *node = DockBuilderGetNode(node_id);
   if (!node)
     return NULL;
   return DockNodeGetRootNode(node)->CentralNode;
 }
-API ID DockBuilderAddNode(ID node_id = 0, DockNodeFlags flags = 0);
+API int DockBuilderAddNode(int node_id = 0, int flags = 0);
 API void DockBuilderRemoveNode(
-    ID node_id); // Remove node and all its child, undock all windows
-API void DockBuilderRemoveNodeDockedWindows(ID node_id,
+    int node_id); // Remove node and all its child, undock all windows
+API void DockBuilderRemoveNodeDockedWindows(int node_id,
                                             bool clear_settings_refs = true);
 API void DockBuilderRemoveNodeChildNodes(
-    ID node_id); // Remove all split/hierarchy. All remaining docked windows
-                 // will be re-docked to the remaining root node (node_id).
-API void DockBuilderSetNodePos(ID node_id, Vec2 pos);
-API void DockBuilderSetNodeSize(ID node_id, Vec2 size);
-API ID DockBuilderSplitNode(
-    ID node_id, Dir split_dir, float size_ratio_for_node_at_dir,
-    ID *out_id_at_dir,
-    ID *out_id_at_opposite_dir); // Create 2 child nodes in this parent node.
-API void DockBuilderCopyDockSpace(ID src_dockspace_id, ID dst_dockspace_id,
+    int node_id); // Remove all split/hierarchy. All remaining docked windows
+                  // will be re-docked to the remaining root node (node_id).
+API void DockBuilderSetNodePos(int node_id, Vec2 pos);
+API void DockBuilderSetNodeSize(int node_id, Vec2 size);
+API int DockBuilderSplitNode(
+    int node_id, int split_dir, float size_ratio_for_node_at_dir,
+    int *out_id_at_dir,
+    int *out_id_at_opposite_dir); // Create 2 child nodes in this parent node.
+API void DockBuilderCopyDockSpace(int src_dockspace_id, int dst_dockspace_id,
                                   Vector<const char *> *in_window_remap_pairs);
-API void DockBuilderCopyNode(ID src_node_id, ID dst_node_id,
-                             Vector<ID> *out_node_remap_pairs);
+API void DockBuilderCopyNode(int src_node_id, int dst_node_id,
+                             Vector<unsigned int> *out_node_remap_pairs);
 API void DockBuilderCopyWindowSettings(const char *src_name,
                                        const char *dst_name);
-API void DockBuilderFinish(ID node_id);
+API void DockBuilderFinish(int node_id);
 
 // [EXPERIMENTAL] Focus Scope
 // This is generally used to identify a unique input location (for e.g. a
@@ -5335,25 +5347,25 @@ API void DockBuilderFinish(ID node_id);
 //   BeginSelectionGroup()/EndSelectionGroup() api, it would likely call
 //   PushFocusScope()/EndFocusScope()
 // - Shortcut routing also use focus scope as a default location identifier if
-// an owner is not provided. We don't use the ID Stack for this as it is common
+// an owner is not provided. We don't use the int Stack for this as it is common
 // to want them separate.
-API void PushFocusScope(ID id);
+API void PushFocusScope(int id);
 API void PopFocusScope();
-inline ID GetCurrentFocusScope() {
+inline int GetCurrentFocusScope() {
   Context &g = *GGui;
   return g.CurrentFocusScopeId;
 } // Focus scope we are outputting into, set by PushFocusScope()
 
 // Drag and Drop
 API bool IsDragDropActive();
-API bool BeginDragDropTargetCustom(const Rect &bb, ID id);
+API bool BeginDragDropTargetCustom(const Rect &bb, int id);
 API void ClearDragDrop();
 API bool IsDragDropPayloadBeingAccepted();
 API void RenderDragDropTargetRect(const Rect &bb, const Rect &item_clip_rect);
 
 // Typing-Select API
 API TypingSelectRequest *
-GetTypingSelectRequest(TypingSelectFlags flags = TypingSelectFlags_None);
+GetTypingSelectRequest(int flags = TypingSelectFlags_None);
 API int TypingSelectFindMatch(TypingSelectRequest *req, int items_count,
                               const char *(*get_item_name_func)(void *, int),
                               void *user_data, int nav_item_idx);
@@ -5372,22 +5384,21 @@ API void SetWindowClipRectBeforeSetChannel(Window *window,
                                            const Rect &clip_rect);
 API void BeginColumns(
     const char *str_id, int count,
-    OldColumnFlags flags =
-        0); // setup number of columns. use an identifier to distinguish
-            // multiple column sets. close with EndColumns().
+    int flags = 0); // setup number of columns. use an identifier to distinguish
+                    // multiple column sets. close with EndColumns().
 API void EndColumns(); // close columns
 API void PushColumnClipRect(int column_index);
 API void PushColumnsBackground();
 API void PopColumnsBackground();
-API ID GetColumnsID(const char *str_id, int count);
-API OldColumns *FindOrCreateColumns(Window *window, ID id);
+API int GetColumnsID(const char *str_id, int count);
+API OldColumns *FindOrCreateColumns(Window *window, int id);
 API float GetColumnOffsetFromNorm(const OldColumns *columns, float offset_norm);
 API float GetColumnNormFromOffset(const OldColumns *columns, float offset);
 
 // Tables: Candidates for public API
 API void TableOpenContextMenu(int column_n = -1);
 API void TableSetColumnWidth(int column_n, float width);
-API void TableSetColumnSortDirection(int column_n, SortDirection sort_direction,
+API void TableSetColumnSortDirection(int column_n, int sort_direction,
                                      bool append_to_sort_specs);
 API int
 TableGetHoveredColumn(); // May use (TableGetColumnFlags() &
@@ -5409,9 +5420,9 @@ inline Table *GetCurrentTable() {
   Context &g = *GGui;
   return g.CurrentTable;
 }
-API Table *TableFindByID(ID id);
-API bool BeginTableEx(const char *name, ID id, int columns_count,
-                      TableFlags flags = 0, const Vec2 &outer_size = Vec2(0, 0),
+API Table *TableFindByID(int id);
+API bool BeginTableEx(const char *name, int id, int columns_count,
+                      int flags = 0, const Vec2 &outer_size = Vec2(0, 0),
                       float inner_width = 0.0f);
 API void TableBeginInitMemory(Table *table, int columns_count);
 API void TableBeginApplyRequests(Table *table);
@@ -5421,7 +5432,7 @@ API void TableUpdateBorders(Table *table);
 API void TableUpdateColumnsWeightFromWidth(Table *table);
 API void TableDrawBorders(Table *table);
 API void TableDrawDefaultContextMenu(Table *table,
-                                     TableFlags flags_for_section_to_display);
+                                     int flags_for_section_to_display);
 API bool TableBeginContextMenuPopup(Table *table);
 API void TableMergeDrawChannels(Table *table);
 inline TableInstanceData *TableGetInstanceData(Table *table, int instance_no) {
@@ -5429,12 +5440,12 @@ inline TableInstanceData *TableGetInstanceData(Table *table, int instance_no) {
     return &table->InstanceDataFirst;
   return &table->InstanceDataExtra[instance_no - 1];
 }
-inline ID TableGetInstanceID(Table *table, int instance_no) {
+inline int TableGetInstanceID(Table *table, int instance_no) {
   return TableGetInstanceData(table, instance_no)->TableInstanceID;
 }
 API void TableSortSpecsSanitize(Table *table);
 API void TableSortSpecsBuild(Table *table);
-API SortDirection TableGetColumnNextSortDirection(TableColumn *column);
+API int TableGetColumnNextSortDirection(TableColumn *column);
 API void TableFixColumnSortDirection(Table *table, TableColumn *column);
 API float TableGetColumnWidthAuto(Table *table, TableColumn *column);
 API void TableBeginRow(Table *table);
@@ -5443,7 +5454,7 @@ API void TableBeginCell(Table *table, int column_n);
 API void TableEndCell(Table *table);
 API Rect TableGetCellBgRect(const Table *table, int column_n);
 API const char *TableGetColumnName(const Table *table, int column_n);
-API ID TableGetColumnResizeID(Table *table, int column_n, int instance_no = 0);
+API int TableGetColumnResizeID(Table *table, int column_n, int instance_no = 0);
 API float TableGetMaxColumnWidth(const Table *table, int column_n);
 API void TableSetColumnWidthAutoSingle(Table *table, int column_n);
 API void TableSetColumnWidthAutoAll(Table *table);
@@ -5458,16 +5469,16 @@ API void TableSaveSettings(Table *table);
 API void TableResetSettings(Table *table);
 API TableSettings *TableGetBoundSettings(Table *table);
 API void TableSettingsAddSettingsHandler();
-API TableSettings *TableSettingsCreate(ID id, int columns_count);
-API TableSettings *TableSettingsFindByID(ID id);
+API TableSettings *TableSettingsCreate(int id, int columns_count);
+API TableSettings *TableSettingsFindByID(int id);
 
 // Tab Bars
 inline TabBar *GetCurrentTabBar() {
   Context &g = *GGui;
   return g.CurrentTabBar;
 }
-API bool BeginTabBarEx(TabBar *tab_bar, const Rect &bb, TabBarFlags flags);
-API TabItem *TabBarFindTabByID(TabBar *tab_bar, ID tab_id);
+API bool BeginTabBarEx(TabBar *tab_bar, const Rect &bb, int flags);
+API TabItem *TabBarFindTabByID(TabBar *tab_bar, int tab_id);
 API TabItem *TabBarFindTabByOrder(TabBar *tab_bar, int order);
 API TabItem *TabBarFindMostRecentlySelectedTabForActiveWindow(TabBar *tab_bar);
 API TabItem *TabBarGetCurrentTab(TabBar *tab_bar);
@@ -5475,25 +5486,26 @@ inline int TabBarGetTabOrder(TabBar *tab_bar, TabItem *tab) {
   return tab_bar->Tabs.index_from_ptr(tab);
 }
 API const char *TabBarGetTabName(TabBar *tab_bar, TabItem *tab);
-API void TabBarAddTab(TabBar *tab_bar, TabItemFlags tab_flags, Window *window);
-API void TabBarRemoveTab(TabBar *tab_bar, ID tab_id);
+API void TabBarAddTab(TabBar *tab_bar, int tab_flags, Window *window);
+API void TabBarRemoveTab(TabBar *tab_bar, int tab_id);
 API void TabBarCloseTab(TabBar *tab_bar, TabItem *tab);
 API void TabBarQueueFocus(TabBar *tab_bar, TabItem *tab);
 API void TabBarQueueReorder(TabBar *tab_bar, TabItem *tab, int offset);
 API void TabBarQueueReorderFromMousePos(TabBar *tab_bar, TabItem *tab,
                                         Vec2 mouse_pos);
 API bool TabBarProcessReorder(TabBar *tab_bar);
-API bool TabItemEx(TabBar *tab_bar, const char *label, bool *p_open,
-                   TabItemFlags flags, Window *docked_window);
+API bool TabItemEx(TabBar *tab_bar, const char *label, bool *p_open, int flags,
+                   Window *docked_window);
 API Vec2 TabItemCalcSize(const char *label,
                          bool has_close_button_or_unsaved_marker);
 API Vec2 TabItemCalcSize(Window *window);
-API void TabItemBackground(DrawList *draw_list, const Rect &bb,
-                           TabItemFlags flags, U32 col);
-API void TabItemLabelAndCloseButton(
-    DrawList *draw_list, const Rect &bb, TabItemFlags flags, Vec2 frame_padding,
-    const char *label, ID tab_id, ID close_button_id, bool is_contents_visible,
-    bool *out_just_closed, bool *out_text_clipped);
+API void TabItemBackground(DrawList *draw_list, const Rect &bb, int flags,
+                           unsigned int col);
+API void
+TabItemLabelAndCloseButton(DrawList *draw_list, const Rect &bb, int flags,
+                           Vec2 frame_padding, const char *label, int tab_id,
+                           int close_button_id, bool is_contents_visible,
+                           bool *out_just_closed, bool *out_text_clipped);
 
 // Render helpers
 // AVOID USING OUTSIDE OF GUI.CPP! NOT FOR PUBLIC CONSUMPTION. THOSE FUNCTIONS
@@ -5520,93 +5532,95 @@ API void RenderTextEllipsis(DrawList *draw_list, const Vec2 &pos_min,
                             float ellipsis_max_x, const char *text,
                             const char *text_end,
                             const Vec2 *text_size_if_known);
-API void RenderFrame(Vec2 p_min, Vec2 p_max, U32 fill_col, bool border = true,
-                     float rounding = 0.0f);
+API void RenderFrame(Vec2 p_min, Vec2 p_max, unsigned int fill_col,
+                     bool border = true, float rounding = 0.0f);
 API void RenderFrameBorder(Vec2 p_min, Vec2 p_max, float rounding = 0.0f);
 API void RenderColorRectWithAlphaCheckerboard(DrawList *draw_list, Vec2 p_min,
-                                              Vec2 p_max, U32 fill_col,
+                                              Vec2 p_max, unsigned int fill_col,
                                               float grid_step, Vec2 grid_off,
                                               float rounding = 0.0f,
-                                              DrawFlags flags = 0);
-API void
-RenderNavHighlight(const Rect &bb, ID id,
-                   NavHighlightFlags flags =
-                       NavHighlightFlags_TypeDefault); // Navigation highlight
+                                              int flags = 0);
+API void RenderNavHighlight(
+    const Rect &bb, int id,
+    int flags = NavHighlightFlags_TypeDefault); // Navigation highlight
 API const char *FindRenderedTextEnd(
     const char *text,
     const char *text_end =
         NULL); // Find the optional ## from which we stop displaying text.
-API void RenderMouseCursor(Vec2 pos, float scale, MouseCursor mouse_cursor,
-                           U32 col_fill, U32 col_border, U32 col_shadow);
+API void RenderMouseCursor(Vec2 pos, float scale, int mouse_cursor,
+                           unsigned int col_fill, unsigned int col_border,
+                           unsigned int col_shadow);
 
 // Render helpers (those functions don't access any Gui state!)
-API void RenderArrow(DrawList *draw_list, Vec2 pos, U32 col, Dir dir,
+API void RenderArrow(DrawList *draw_list, Vec2 pos, unsigned int col, int dir,
                      float scale = 1.0f);
-API void RenderBullet(DrawList *draw_list, Vec2 pos, U32 col);
-API void RenderCheckMark(DrawList *draw_list, Vec2 pos, U32 col, float sz);
+API void RenderBullet(DrawList *draw_list, Vec2 pos, unsigned int col);
+API void RenderCheckMark(DrawList *draw_list, Vec2 pos, unsigned int col,
+                         float sz);
 API void RenderArrowPointingAt(DrawList *draw_list, Vec2 pos, Vec2 half_sz,
-                               Dir direction, U32 col);
+                               int direction, unsigned int col);
 API void RenderArrowDockMenu(DrawList *draw_list, Vec2 p_min, float sz,
-                             U32 col);
-API void RenderRectFilledRangeH(DrawList *draw_list, const Rect &rect, U32 col,
-                                float x_start_norm, float x_end_norm,
-                                float rounding);
+                             unsigned int col);
+API void RenderRectFilledRangeH(DrawList *draw_list, const Rect &rect,
+                                unsigned int col, float x_start_norm,
+                                float x_end_norm, float rounding);
 API void RenderRectFilledWithHole(DrawList *draw_list, const Rect &outer,
-                                  const Rect &inner, U32 col, float rounding);
-API DrawFlags CalcRoundingFlagsForRectInRect(const Rect &r_in,
-                                             const Rect &r_outer,
-                                             float threshold);
+                                  const Rect &inner, unsigned int col,
+                                  float rounding);
+API int CalcRoundingFlagsForRectInRect(const Rect &r_in, const Rect &r_outer,
+                                       float threshold);
 
 // Widgets
-API void TextEx(const char *text, const char *text_end = NULL,
-                TextFlags flags = 0);
+API void TextEx(const char *text, const char *text_end = NULL, int flags = 0);
 API bool ButtonEx(const char *label, const Vec2 &size_arg = Vec2(0, 0),
-                  ButtonFlags flags = 0);
-API bool ArrowButtonEx(const char *str_id, Dir dir, Vec2 size_arg,
-                       ButtonFlags flags = 0);
-API bool ImageButtonEx(ID id, TextureID texture_id, const Vec2 &image_size,
+                  int flags = 0);
+API bool ArrowButtonEx(const char *str_id, int dir, Vec2 size_arg,
+                       int flags = 0);
+API bool ImageButtonEx(int id, TextureID texture_id, const Vec2 &image_size,
                        const Vec2 &uv0, const Vec2 &uv1, const Vec4 &bg_col,
-                       const Vec4 &tint_col, ButtonFlags flags = 0);
-API void SeparatorEx(SeparatorFlags flags, float thickness = 1.0f);
-API void SeparatorTextEx(ID id, const char *label, const char *label_end,
+                       const Vec4 &tint_col, int flags = 0);
+API void SeparatorEx(int flags, float thickness = 1.0f);
+API void SeparatorTextEx(int id, const char *label, const char *label_end,
                          float extra_width);
-API bool CheckboxFlags(const char *label, S64 *flags, S64 flags_value);
-API bool CheckboxFlags(const char *label, U64 *flags, U64 flags_value);
+API bool CheckboxFlags(const char *label, signed long long *flags,
+                       signed long long flags_value);
+API bool CheckboxFlags(const char *label, unsigned long long *flags,
+                       unsigned long long flags_value);
 
 // Widgets: Window Decorations
-API bool CloseButton(ID id, const Vec2 &pos);
-API bool CollapseButton(ID id, const Vec2 &pos, DockNode *dock_node);
+API bool CloseButton(int id, const Vec2 &pos);
+API bool CollapseButton(int id, const Vec2 &pos, DockNode *dock_node);
 API void Scrollbar(Axis axis);
-API bool ScrollbarEx(const Rect &bb, ID id, Axis axis, S64 *p_scroll_v,
-                     S64 avail_v, S64 contents_v, DrawFlags flags);
+API bool ScrollbarEx(const Rect &bb, int id, Axis axis,
+                     signed long long *p_scroll_v, signed long long avail_v,
+                     signed long long contents_v, int flags);
 API Rect GetWindowScrollbarRect(Window *window, Axis axis);
-API ID GetWindowScrollbarID(Window *window, Axis axis);
-API ID GetWindowResizeCornerID(Window *window,
-                               int n); // 0..3: corners
-API ID GetWindowResizeBorderID(Window *window, Dir dir);
+API int GetWindowScrollbarID(Window *window, Axis axis);
+API int GetWindowResizeCornerID(Window *window,
+                                int n); // 0..3: corners
+API int GetWindowResizeBorderID(Window *window, int dir);
 
 // Widgets low-level behaviors
-API bool ButtonBehavior(const Rect &bb, ID id, bool *out_hovered,
-                        bool *out_held, ButtonFlags flags = 0);
-API bool DragBehavior(ID id, DataType data_type, void *p_v, float v_speed,
+API bool ButtonBehavior(const Rect &bb, int id, bool *out_hovered,
+                        bool *out_held, int flags = 0);
+API bool DragBehavior(int id, int data_type, void *p_v, float v_speed,
                       const void *p_min, const void *p_max, const char *format,
-                      SliderFlags flags);
-API bool SliderBehavior(const Rect &bb, ID id, DataType data_type, void *p_v,
+                      int flags);
+API bool SliderBehavior(const Rect &bb, int id, int data_type, void *p_v,
                         const void *p_min, const void *p_max,
-                        const char *format, SliderFlags flags,
-                        Rect *out_grab_bb);
-API bool SplitterBehavior(const Rect &bb, ID id, Axis axis, float *size1,
+                        const char *format, int flags, Rect *out_grab_bb);
+API bool SplitterBehavior(const Rect &bb, int id, Axis axis, float *size1,
                           float *size2, float min_size1, float min_size2,
                           float hover_extend = 0.0f,
-                          float hover_visibility_delay = 0.0f, U32 bg_col = 0);
-API bool TreeNodeBehavior(ID id, TreeNodeFlags flags, const char *label,
+                          float hover_visibility_delay = 0.0f,
+                          unsigned int bg_col = 0);
+API bool TreeNodeBehavior(int id, int flags, const char *label,
                           const char *label_end = NULL);
-API void TreePushOverrideID(ID id);
-API void TreeNodeSetOpen(ID id, bool open);
+API void TreePushOverrideID(int id);
+API void TreeNodeSetOpen(int id, bool open);
 API bool TreeNodeUpdateNextOpen(
-    ID id,
-    TreeNodeFlags
-        flags); // Return open state. Consume previous SetNextItemOpen() data,
+    int id,
+    int flags); // Return open state. Consume previous SetNextItemOpen() data,
                 // if any. May return true when logging.
 API void SetNextItemSelectionUserData(SelectionUserData selection_user_data);
 
@@ -5617,63 +5631,61 @@ API void SetNextItemSelectionUserData(SelectionUserData selection_user_data);
 // RoundScalarWithFormatT<float, float>(const char* format, DataType
 // data_type, float v); "
 template <typename T, typename SIGNED_T, typename FLOAT_T>
-API float ScaleRatioFromValueT(DataType data_type, T v, T v_min, T v_max,
-                               bool is_logarithmic,
-                               float logarithmic_zero_epsilon,
-                               float zero_deadzone_size);
+API float
+ScaleRatioFromValueT(int data_type, T v, T v_min, T v_max, bool is_logarithmic,
+                     float logarithmic_zero_epsilon, float zero_deadzone_size);
 template <typename T, typename SIGNED_T, typename FLOAT_T>
-API T ScaleValueFromRatioT(DataType data_type, float t, T v_min, T v_max,
+API T ScaleValueFromRatioT(int data_type, float t, T v_min, T v_max,
                            bool is_logarithmic, float logarithmic_zero_epsilon,
                            float zero_deadzone_size);
 template <typename T, typename SIGNED_T, typename FLOAT_T>
-API bool DragBehaviorT(DataType data_type, T *v, float v_speed, T v_min,
-                       T v_max, const char *format, SliderFlags flags);
+API bool DragBehaviorT(int data_type, T *v, float v_speed, T v_min, T v_max,
+                       const char *format, int flags);
 template <typename T, typename SIGNED_T, typename FLOAT_T>
-API bool SliderBehaviorT(const Rect &bb, ID id, DataType data_type, T *v,
-                         T v_min, T v_max, const char *format,
-                         SliderFlags flags, Rect *out_grab_bb);
+API bool SliderBehaviorT(const Rect &bb, int id, int data_type, T *v, T v_min,
+                         T v_max, const char *format, int flags,
+                         Rect *out_grab_bb);
 template <typename T>
-API T RoundScalarWithFormatT(const char *format, DataType data_type, T v);
+API T RoundScalarWithFormatT(const char *format, int data_type, T v);
 template <typename T>
 API bool CheckboxFlagsT(const char *label, T *flags, T flags_value);
 
 // Data type helpers
-API const DataTypeInfo *DataTypeGetInfo(DataType data_type);
-API int DataTypeFormatString(char *buf, int buf_size, DataType data_type,
+API const DataTypeInfo *DataTypeGetInfo(int data_type);
+API int DataTypeFormatString(char *buf, int buf_size, int data_type,
                              const void *p_data, const char *format);
-API void DataTypeApplyOp(DataType data_type, int op, void *output,
-                         const void *arg_1, const void *arg_2);
-API bool DataTypeApplyFromText(const char *buf, DataType data_type,
-                               void *p_data, const char *format);
-API int DataTypeCompare(DataType data_type, const void *arg_1,
-                        const void *arg_2);
-API bool DataTypeClamp(DataType data_type, void *p_data, const void *p_min,
+API void DataTypeApplyOp(int data_type, int op, void *output, const void *arg_1,
+                         const void *arg_2);
+API bool DataTypeApplyFromText(const char *buf, int data_type, void *p_data,
+                               const char *format);
+API int DataTypeCompare(int data_type, const void *arg_1, const void *arg_2);
+API bool DataTypeClamp(int data_type, void *p_data, const void *p_min,
                        const void *p_max);
 
 // InputText
 API bool InputTextEx(const char *label, const char *hint, char *buf,
-                     int buf_size, const Vec2 &size_arg, InputTextFlags flags,
+                     int buf_size, const Vec2 &size_arg, int flags,
                      InputTextCallback callback = NULL, void *user_data = NULL);
-API void InputTextDeactivateHook(ID id);
-API bool TempInputText(const Rect &bb, ID id, const char *label, char *buf,
-                       int buf_size, InputTextFlags flags);
-API bool TempInputScalar(const Rect &bb, ID id, const char *label,
-                         DataType data_type, void *p_data, const char *format,
+API void InputTextDeactivateHook(int id);
+API bool TempInputText(const Rect &bb, int id, const char *label, char *buf,
+                       int buf_size, int flags);
+API bool TempInputScalar(const Rect &bb, int id, const char *label,
+                         int data_type, void *p_data, const char *format,
                          const void *p_clamp_min = NULL,
                          const void *p_clamp_max = NULL);
-inline bool TempInputIsActive(ID id) {
+inline bool TempInputIsActive(int id) {
   Context &g = *GGui;
   return (g.ActiveId == id && g.TempInputId == id);
 }
-inline InputTextState *GetInputTextState(ID id) {
+inline InputTextState *GetInputTextState(int id) {
   Context &g = *GGui;
   return (id != 0 && g.InputTextState.ID == id) ? &g.InputTextState : NULL;
 } // Get input text state if active
 
 // Color
-API void ColorTooltip(const char *text, const float *col, ColorEditFlags flags);
-API void ColorEditOptionsPopup(const float *col, ColorEditFlags flags);
-API void ColorPickerOptionsPopup(const float *ref_col, ColorEditFlags flags);
+API void ColorTooltip(const char *text, const float *col, int flags);
+API void ColorEditOptionsPopup(const float *col, int flags);
+API void ColorPickerOptionsPopup(const float *ref_col, int flags);
 
 // Plot
 API int PlotEx(PlotType plot_type, const char *label,
@@ -5682,10 +5694,9 @@ API int PlotEx(PlotType plot_type, const char *label,
                float scale_min, float scale_max, const Vec2 &size_arg);
 
 // Shade functions (write over already created vertices)
-API void
-ShadeVertsLinearColorGradientKeepAlpha(DrawList *draw_list, int vert_start_idx,
-                                       int vert_end_idx, Vec2 gradient_p0,
-                                       Vec2 gradient_p1, U32 col0, U32 col1);
+API void ShadeVertsLinearColorGradientKeepAlpha(
+    DrawList *draw_list, int vert_start_idx, int vert_end_idx, Vec2 gradient_p0,
+    Vec2 gradient_p1, unsigned int col0, unsigned int col1);
 API void ShadeVertsLinearUV(DrawList *draw_list, int vert_start_idx,
                             int vert_end_idx, const Vec2 &a, const Vec2 &b,
                             const Vec2 &uv_a, const Vec2 &uv_b, bool clamp);
@@ -5711,21 +5722,21 @@ API void ErrorCheckEndFrameRecover(ErrorLogCallback log_callback,
 API void ErrorCheckEndWindowRecover(ErrorLogCallback log_callback,
                                     void *user_data = NULL);
 API void ErrorCheckUsingSetCursorPosToExtendParentBoundaries();
-API void DebugDrawCursorPos(U32 col = COL32(255, 0, 0, 255));
-API void DebugDrawLineExtents(U32 col = COL32(255, 0, 0, 255));
-API void DebugDrawItemRect(U32 col = COL32(255, 0, 0, 255));
+API void DebugDrawCursorPos(unsigned int col = COL32(255, 0, 0, 255));
+API void DebugDrawLineExtents(unsigned int col = COL32(255, 0, 0, 255));
+API void DebugDrawItemRect(unsigned int col = COL32(255, 0, 0, 255));
 API void
-DebugLocateItem(ID target_id); // Call sparingly: only 1 at the same time!
-API void
-DebugLocateItemOnHover(ID target_id); // Only call on reaction to a mouse Hover:
-                                      // because only 1 at the same time!
+DebugLocateItem(int target_id); // Call sparingly: only 1 at the same time!
+API void DebugLocateItemOnHover(
+    int target_id); // Only call on reaction to a mouse Hover:
+                    // because only 1 at the same time!
 API void DebugLocateItemResolveWithLastItem();
 inline void DebugStartItemPicker() {
   Context &g = *GGui;
   g.DebugItemPickerActive = true;
 }
 API void ShowFontAtlas(FontAtlas *atlas);
-API void DebugHookIdInfo(ID id, DataType data_type, const void *data_id,
+API void DebugHookIdInfo(int id, int data_type, const void *data_id,
                          const void *data_id_end);
 API void DebugNodeColumns(OldColumns *columns);
 API void DebugNodeDockNode(DockNode *node, const char *label);
@@ -5759,7 +5770,7 @@ API void DebugRenderViewportThumbnail(DrawList *draw_list, ViewportP *viewport,
 inline void SetItemUsingMouseWheel() {
   SetItemKeyOwner(Key_MouseWheelY);
 } // Changed in 1.89
-inline bool TreeNodeBehaviorIsOpen(ID id, TreeNodeFlags flags = 0) {
+inline bool TreeNodeBehaviorIsOpen(int id, int flags = 0) {
   return TreeNodeUpdateNextOpen(id, flags);
 } // Renamed in 1.89
 
@@ -5776,7 +5787,7 @@ inline bool TreeNodeBehaviorIsOpen(ID id, TreeNodeFlags flags = 0) {
 // Widget code are simplified as there's no need to call
 // FocusableItemUnregister() while managing the transition from regular widget
 // to TempInputText()
-inline bool FocusableItemRegister(Window *window, ID id) {
+inline bool FocusableItemRegister(Window *window, int id) {
   ASSERT(0);
   UNUSED(window);
   UNUSED(id);
@@ -5836,12 +5847,12 @@ API void FontAtlasBuildMultiplyRectAlpha8(const unsigned char table[256],
 
 #ifdef ENABLE_TEST_ENGINE
 extern void
-TestEngineHook_ItemAdd(Context *ctx, ID id, const Rect &bb,
+TestEngineHook_ItemAdd(Context *ctx, int id, const Rect &bb,
                        const LastItemData *item_data); // item_data may be NULL
-extern void TestEngineHook_ItemInfo(Context *ctx, ID id, const char *label,
-                                    ItemStatusFlags flags);
+extern void TestEngineHook_ItemInfo(Context *ctx, int id, const char *label,
+                                    int flags);
 extern void TestEngineHook_Log(Context *ctx, const char *fmt, ...);
-extern const char *TestEngine_FindItemDebugLabel(Context *ctx, ID id);
+extern const char *TestEngine_FindItemDebugLabel(Context *ctx, int id);
 
 // In VERSION_NUM >= 18934: changed TEST_ENGINE_ITEM_ADD(bb,id) to
 // TEST_ENGINE_ITEM_ADD(id,bb,item_data);

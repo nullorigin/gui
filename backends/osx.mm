@@ -18,7 +18,7 @@
 //  'io.ConfigFlags |= ConfigFlags_NavEnableGamepad'. [X] Platform: IME
 //  support. [X] Platform: Multi-viewport / platform windows.
 
-#import "gui.hpp"
+#import "../gui.hpp"
 #ifndef DISABLE
 #import "osx.hpp"
 #import <Carbon/Carbon.h>
@@ -477,8 +477,8 @@ bool OSX_Init(NSView *view) {
 
   // Setup backend capabilities flags
   io.BackendFlags |=
-      BackendFlags_HasMouseCursors; // We can honor GetMouseCursor() values
-                                    // (optional)
+      BackendFlags_HasMouseCursors; // We can honor GetMouseCursor()
+                                    // values (optional)
   // io.BackendFlags |= BackendFlags_HasSetMousePos;          // We can
   // honor io.WantSetMousePos requests (optional, rarely used)
   io.BackendFlags |=
@@ -618,7 +618,7 @@ static void OSX_UpdateMouseCursor() {
   if (io.ConfigFlags & ConfigFlags_NoMouseCursorChange)
     return;
 
-  MouseCursor cursor = Gui::GetMouseCursor();
+  int cursor = Gui::GetMouseCursor();
   if (io.MouseDrawCursor || cursor == MouseCursor_None) {
     // Hide OS mouse cursor if imgui is drawing it or if it wants no cursor
     if (!bd->MouseCursorHidden) {

@@ -9,7 +9,7 @@
 //  ConfigFlags_ViewportsEnable'.
 
 // Important: to compile on 32-bit systems, this backend requires code to be
-// compiled with '#define TextureID U64'. See dx12.cpp file for
+// compiled with '#define TextureID unsigned long long'. See dx12.cpp file for
 // details.
 
 #pragma once

@@ -206,7 +206,7 @@ void DX9_RenderDrawData(DrawData *draw_data) {
   // config.hpp and
   //  1) to avoid repacking colors:   #define USE_BGRA_PACKED_COLOR
   //  2) to avoid repacking vertices: #define OVERRIDE_DRAWVERT_STRUCT_LAYOUT
-  //  struct DrawVert { Vec2 pos; float z; U32 col; Vec2 uv; }
+  //  struct DrawVert { Vec2 pos; float z; unsigned int col; Vec2 uv; }
   for (int n = 0; n < draw_data->CmdListsCount; n++) {
     const DrawList *cmd_list = draw_data->CmdLists[n];
     const DrawVert *vtx_src = cmd_list->VtxBuffer.Data;
@@ -349,10 +349,10 @@ static bool DX9_CreateFontsTexture() {
   // devices)
 #ifndef USE_BGRA_PACKED_COLOR
   if (io.Fonts->TexPixelsUseColors) {
-    U32 *dst_start =
-        (U32 *)Gui::MemAlloc((size_t)width * height * bytes_per_pixel);
-    for (U32 *src = (U32 *)pixels, *dst = dst_start,
-             *dst_end = dst_start + (size_t)width * height;
+    unsigned int *dst_start =
+        (unsigned int *)Gui::MemAlloc((size_t)width * height * bytes_per_pixel);
+    for (unsigned int *src = (unsigned int *)pixels, *dst = dst_start,
+                      *dst_end = dst_start + (size_t)width * height;
          dst < dst_end; src++, dst++)
       *dst = COL_TO_DX9_ARGB(*src);
     pixels = (unsigned char *)dst_start;

@@ -165,7 +165,7 @@
 //         some glyph)
 //
 //      Glyph index
-//         A font-specific integer ID representing a glyph
+//         A font-specific integer int representing a glyph
 //
 //      Baseline
 //         Glyph shapes are defined relative to a baseline, which is the
@@ -511,9 +511,9 @@ typedef char tt__check_size16[sizeof(tt_int16) == 2 ? 1 : -1];
 #define __INCLUDE_TRUETYPE_H__
 
 #ifdef STBTT_STATIC
-#define STBTT_DEF static
+#define extern static
 #else
-#define STBTT_DEF extern
+#define extern extern
 #endif
 
 #ifdef __cplusplus
@@ -539,7 +539,7 @@ typedef struct {
   float xoff, yoff, xadvance;
 } tt_bakedchar;
 
-STBTT_DEF int tt_BakeFontBitmap(
+extern int tt_BakeFontBitmap(
     const unsigned char *data,
     int offset,         // font location (use offset=0 for plain .ttf)
     float pixel_height, // height of font in pixels
@@ -556,7 +556,7 @@ typedef struct {
   float x1, y1, s1, t1; // bottom-right
 } tt_aligned_quad;
 
-STBTT_DEF void tt_GetBakedQuad(
+extern void tt_GetBakedQuad(
     const tt_bakedchar *chardata, int pw, int ph, // same data as above
     int char_index,                               // character to display
     float *xpos,
@@ -573,9 +573,9 @@ STBTT_DEF void tt_GetBakedQuad(
 //
 // It's inefficient; you might want to c&p it and optimize it.
 
-STBTT_DEF void tt_GetScaledFontVMetrics(const unsigned char *fontdata,
-                                        int index, float size, float *ascent,
-                                        float *descent, float *lineGap);
+extern void tt_GetScaledFontVMetrics(const unsigned char *fontdata, int index,
+                                     float size, float *ascent, float *descent,
+                                     float *lineGap);
 // Query the font vertical metrics without having to create a font first.
 
 //////////////////////////////////////////////////////////////////////////////
@@ -597,9 +597,9 @@ typedef struct tt_fontinfo tt_fontinfo;
 typedef struct stbrp_rect stbrp_rect;
 #endif
 
-STBTT_DEF int tt_PackBegin(tt_pack_context *spc, unsigned char *pixels,
-                           int width, int height, int stride_in_bytes,
-                           int padding, void *alloc_context);
+extern int tt_PackBegin(tt_pack_context *spc, unsigned char *pixels, int width,
+                        int height, int stride_in_bytes, int padding,
+                        void *alloc_context);
 // Initializes a packing context stored in the passed-in tt_pack_context.
 // Future calls using this context will pack characters into the bitmap passed
 // in here: a 1-channel bitmap that is width * height. stride_in_bytes is
@@ -610,16 +610,16 @@ STBTT_DEF int tt_PackBegin(tt_pack_context *spc, unsigned char *pixels,
 //
 // Returns 0 on failure, 1 on success.
 
-STBTT_DEF void tt_PackEnd(tt_pack_context *spc);
+extern void tt_PackEnd(tt_pack_context *spc);
 // Cleans up the packing context and frees all memory.
 
 #define STBTT_POINT_SIZE(x) (-(x))
 
-STBTT_DEF int tt_PackFontRange(tt_pack_context *spc,
-                               const unsigned char *fontdata, int font_index,
-                               float font_size, int first_unicode_char_in_range,
-                               int num_chars_in_range,
-                               tt_packedchar *chardata_for_range);
+extern int tt_PackFontRange(tt_pack_context *spc, const unsigned char *fontdata,
+                            int font_index, float font_size,
+                            int first_unicode_char_in_range,
+                            int num_chars_in_range,
+                            tt_packedchar *chardata_for_range);
 // Creates character bitmaps from the font_index'th font found in fontdata (use
 // font_index=0 if you don't know what that is). It creates num_chars_in_range
 // bitmaps for characters with unicode values starting at
@@ -648,17 +648,17 @@ typedef struct {
       v_oversample; // don't set these, they're used internally
 } tt_pack_range;
 
-STBTT_DEF int tt_PackFontRanges(tt_pack_context *spc,
-                                const unsigned char *fontdata, int font_index,
-                                tt_pack_range *ranges, int num_ranges);
+extern int tt_PackFontRanges(tt_pack_context *spc,
+                             const unsigned char *fontdata, int font_index,
+                             tt_pack_range *ranges, int num_ranges);
 // Creates character bitmaps from multiple ranges of characters stored in
 // ranges. This will usually create a better-packed bitmap than multiple
 // calls to tt_PackFontRange. Note that you can call this multiple
 // times within a single PackBegin/PackEnd.
 
-STBTT_DEF void tt_PackSetOversampling(tt_pack_context *spc,
-                                      unsigned int h_oversample,
-                                      unsigned int v_oversample);
+extern void tt_PackSetOversampling(tt_pack_context *spc,
+                                   unsigned int h_oversample,
+                                   unsigned int v_oversample);
 // Oversampling a font increases the quality by allowing higher-quality subpixel
 // positioning, and is especially valuable at smaller text sizes.
 //
@@ -674,13 +674,13 @@ STBTT_DEF void tt_PackSetOversampling(tt_pack_context *spc,
 // To use with PackFontRangesGather etc., you must set it before calls
 // call to PackFontRangesGatherRects.
 
-STBTT_DEF void tt_PackSetSkipMissingCodepoints(tt_pack_context *spc, int skip);
+extern void tt_PackSetSkipMissingCodepoints(tt_pack_context *spc, int skip);
 // If skip != 0, this tells truetype to skip any codepoints for which
 // there is no corresponding glyph. If skip=0, which is the default, then
 // codepoints without a glyph recived the font's "missing character" glyph,
 // typically an empty box by convention.
 
-STBTT_DEF void tt_GetPackedQuad(
+extern void tt_GetPackedQuad(
     const tt_packedchar *chardata, int pw, int ph, // same data as above
     int char_index,                                // character to display
     float *xpos,
@@ -688,17 +688,16 @@ STBTT_DEF void tt_GetPackedQuad(
     tt_aligned_quad *q, // output: quad to draw
     int align_to_integer);
 
-STBTT_DEF int tt_PackFontRangesGatherRects(tt_pack_context *spc,
-                                           const tt_fontinfo *info,
-                                           tt_pack_range *ranges,
-                                           int num_ranges, stbrp_rect *rects);
-STBTT_DEF void tt_PackFontRangesPackRects(tt_pack_context *spc,
-                                          stbrp_rect *rects, int num_rects);
-STBTT_DEF int tt_PackFontRangesRenderIntoRects(tt_pack_context *spc,
-                                               const tt_fontinfo *info,
-                                               tt_pack_range *ranges,
-                                               int num_ranges,
-                                               stbrp_rect *rects);
+extern int tt_PackFontRangesGatherRects(tt_pack_context *spc,
+                                        const tt_fontinfo *info,
+                                        tt_pack_range *ranges, int num_ranges,
+                                        stbrp_rect *rects);
+extern void tt_PackFontRangesPackRects(tt_pack_context *spc, stbrp_rect *rects,
+                                       int num_rects);
+extern int tt_PackFontRangesRenderIntoRects(tt_pack_context *spc,
+                                            const tt_fontinfo *info,
+                                            tt_pack_range *ranges,
+                                            int num_ranges, stbrp_rect *rects);
 // Calling these functions in sequence is roughly equivalent to calling
 // tt_PackFontRanges(). If you more control over the packing of multiple
 // fonts, or if you want to pack custom data into a font texture, take a look
@@ -730,14 +729,14 @@ struct tt_pack_context {
 //
 //
 
-STBTT_DEF int tt_GetNumberOfFonts(const unsigned char *data);
+extern int tt_GetNumberOfFonts(const unsigned char *data);
 // This function will determine the number of fonts in a font file.  TrueType
 // collection (.ttc) files may contain multiple fonts, while TrueType font
 // (.ttf) files only contain one font. The number of fonts can be used for
 // indexing with the previous function where the index is between zero and one
 // less than the total fonts. If an error occurs, -1 is returned.
 
-STBTT_DEF int tt_GetFontOffsetForIndex(const unsigned char *data, int index);
+extern int tt_GetFontOffsetForIndex(const unsigned char *data, int index);
 // Each .ttf/.ttc file may have more than one font. Each font has a sequential
 // index number starting from 0. Call this function to get the font offset for
 // a given index; it returns -1 if the index is out of range. A regular .ttf
@@ -766,8 +765,8 @@ struct tt_fontinfo {
   tt__buf fdselect;    // map from glyph to fontdict
 };
 
-STBTT_DEF int tt_InitFont(tt_fontinfo *info, const unsigned char *data,
-                          int offset);
+extern int tt_InitFont(tt_fontinfo *info, const unsigned char *data,
+                       int offset);
 // Given an offset into the file that defines a font, this function builds
 // the necessary cached info for the rest of the system. You must allocate
 // the tt_fontinfo yourself, and tt_InitFont will fill it out. You don't
@@ -778,7 +777,7 @@ STBTT_DEF int tt_InitFont(tt_fontinfo *info, const unsigned char *data,
 //
 // CHARACTER TO GLYPH-INDEX CONVERSIOn
 
-STBTT_DEF int tt_FindGlyphIndex(const tt_fontinfo *info, int unicode_codepoint);
+extern int tt_FindGlyphIndex(const tt_fontinfo *info, int unicode_codepoint);
 // If you're going to perform multiple operations on the same character
 // and you want a speed-up, call this function with the character you're
 // going to process, then use glyph-based functions instead of the
@@ -790,7 +789,7 @@ STBTT_DEF int tt_FindGlyphIndex(const tt_fontinfo *info, int unicode_codepoint);
 // CHARACTER PROPERTIES
 //
 
-STBTT_DEF float tt_ScaleForPixelHeight(const tt_fontinfo *info, float pixels);
+extern float tt_ScaleForPixelHeight(const tt_fontinfo *info, float pixels);
 // computes a scale factor to produce a font whose "height" is 'pixels' tall.
 // Height is measured as the distance from the highest ascender to the lowest
 // descender; in other words, it's equivalent to calling tt_GetFontVMetrics
@@ -799,14 +798,14 @@ STBTT_DEF float tt_ScaleForPixelHeight(const tt_fontinfo *info, float pixels);
 // so if you prefer to measure height by the ascent only, use a similar
 // calculation.
 
-STBTT_DEF float tt_ScaleForMappingEmToPixels(const tt_fontinfo *info,
-                                             float pixels);
+extern float tt_ScaleForMappingEmToPixels(const tt_fontinfo *info,
+                                          float pixels);
 // computes a scale factor to produce a font whose EM size is mapped to
 // 'pixels' tall. This is probably what traditional APIs compute, but
 // I'm not positive.
 
-STBTT_DEF void tt_GetFontVMetrics(const tt_fontinfo *info, int *ascent,
-                                  int *descent, int *lineGap);
+extern void tt_GetFontVMetrics(const tt_fontinfo *info, int *ascent,
+                               int *descent, int *lineGap);
 // ascent is the coordinate above the baseline the font extends; descent
 // is the coordinate below the baseline the font extends (i.e. it is typically
 // negative) lineGap is the spacing between one row's descent and the next row's
@@ -815,39 +814,39 @@ STBTT_DEF void tt_GetFontVMetrics(const tt_fontinfo *info, int *ascent,
 //   these are expressed in unscaled coordinates, so you must multiply by
 //   the scale factor for a given size
 
-STBTT_DEF int tt_GetFontVMetricsOS2(const tt_fontinfo *info, int *typoAscent,
-                                    int *typoDescent, int *typoLineGap);
+extern int tt_GetFontVMetricsOS2(const tt_fontinfo *info, int *typoAscent,
+                                 int *typoDescent, int *typoLineGap);
 // analogous to GetFontVMetrics, but returns the "typographic" values from the
 // OS/2 table (specific to MS/Windows TTF files).
 //
 // Returns 1 on success (table present), 0 on failure.
 
-STBTT_DEF void tt_GetFontBoundingBox(const tt_fontinfo *info, int *x0, int *y0,
-                                     int *x1, int *y1);
+extern void tt_GetFontBoundingBox(const tt_fontinfo *info, int *x0, int *y0,
+                                  int *x1, int *y1);
 // the bounding box around all possible characters
 
-STBTT_DEF void tt_GetCodepointHMetrics(const tt_fontinfo *info, int codepoint,
-                                       int *advanceWidth, int *leftSideBearing);
+extern void tt_GetCodepointHMetrics(const tt_fontinfo *info, int codepoint,
+                                    int *advanceWidth, int *leftSideBearing);
 // leftSideBearing is the offset from the current horizontal position to the
 // left edge of the character advanceWidth is the offset from the current
 // horizontal position to the next horizontal position
 //   these are expressed in unscaled coordinates
 
-STBTT_DEF int tt_GetCodepointKernAdvance(const tt_fontinfo *info, int ch1,
-                                         int ch2);
+extern int tt_GetCodepointKernAdvance(const tt_fontinfo *info, int ch1,
+                                      int ch2);
 // an additional amount to add to the 'advance' value between ch1 and ch2
 
-STBTT_DEF int tt_GetCodepointBox(const tt_fontinfo *info, int codepoint,
-                                 int *x0, int *y0, int *x1, int *y1);
+extern int tt_GetCodepointBox(const tt_fontinfo *info, int codepoint, int *x0,
+                              int *y0, int *x1, int *y1);
 // Gets the bounding box of the visible part of the glyph, in unscaled
 // coordinates
 
-STBTT_DEF void tt_GetGlyphHMetrics(const tt_fontinfo *info, int glyph_index,
-                                   int *advanceWidth, int *leftSideBearing);
-STBTT_DEF int tt_GetGlyphKernAdvance(const tt_fontinfo *info, int glyph1,
-                                     int glyph2);
-STBTT_DEF int tt_GetGlyphBox(const tt_fontinfo *info, int glyph_index, int *x0,
-                             int *y0, int *x1, int *y1);
+extern void tt_GetGlyphHMetrics(const tt_fontinfo *info, int glyph_index,
+                                int *advanceWidth, int *leftSideBearing);
+extern int tt_GetGlyphKernAdvance(const tt_fontinfo *info, int glyph1,
+                                  int glyph2);
+extern int tt_GetGlyphBox(const tt_fontinfo *info, int glyph_index, int *x0,
+                          int *y0, int *x1, int *y1);
 // as above, but takes one or more glyph indices for greater efficiency
 
 typedef struct tt_kerningentry {
@@ -856,9 +855,9 @@ typedef struct tt_kerningentry {
   int advance;
 } tt_kerningentry;
 
-STBTT_DEF int tt_GetKerningTableLength(const tt_fontinfo *info);
-STBTT_DEF int tt_GetKerningTable(const tt_fontinfo *info,
-                                 tt_kerningentry *table, int table_length);
+extern int tt_GetKerningTableLength(const tt_fontinfo *info);
+extern int tt_GetKerningTable(const tt_fontinfo *info, tt_kerningentry *table,
+                              int table_length);
 // Retrieves a complete list of all of the kerning pairs provided by the font
 // tt_GetKerningTable never writes more than table_length entries and returns
 // how many entries it did write. The table will be sorted by (a.glyph1 ==
@@ -885,13 +884,13 @@ typedef struct {
 } tt_vertex;
 #endif
 
-STBTT_DEF int tt_IsGlyphEmpty(const tt_fontinfo *info, int glyph_index);
+extern int tt_IsGlyphEmpty(const tt_fontinfo *info, int glyph_index);
 // returns non-zero if nothing is drawn for this glyph
 
-STBTT_DEF int tt_GetCodepointShape(const tt_fontinfo *info,
-                                   int unicode_codepoint, tt_vertex **vertices);
-STBTT_DEF int tt_GetGlyphShape(const tt_fontinfo *info, int glyph_index,
-                               tt_vertex **vertices);
+extern int tt_GetCodepointShape(const tt_fontinfo *info, int unicode_codepoint,
+                                tt_vertex **vertices);
+extern int tt_GetGlyphShape(const tt_fontinfo *info, int glyph_index,
+                            tt_vertex **vertices);
 // returns # of vertices and fills *vertices with the pointer to them
 //   these are expressed in "unscaled" coordinates
 //
@@ -902,13 +901,13 @@ STBTT_DEF int tt_GetGlyphShape(const tt_fontinfo *info, int glyph_index,
 // draws a quadratic bezier from previous endpoint to
 // its x,y, using cx,cy as the bezier control point.
 
-STBTT_DEF void tt_FreeShape(const tt_fontinfo *info, tt_vertex *vertices);
+extern void tt_FreeShape(const tt_fontinfo *info, tt_vertex *vertices);
 // frees the data allocated above
 
-STBTT_DEF unsigned char *tt_FindSVGDoc(const tt_fontinfo *info, int gl);
-STBTT_DEF int tt_GetCodepointSVG(const tt_fontinfo *info, int unicode_codepoint,
-                                 const char **svg);
-STBTT_DEF int tt_GetGlyphSVG(const tt_fontinfo *info, int gl, const char **svg);
+extern unsigned char *tt_FindSVGDoc(const tt_fontinfo *info, int gl);
+extern int tt_GetCodepointSVG(const tt_fontinfo *info, int unicode_codepoint,
+                              const char **svg);
+extern int tt_GetGlyphSVG(const tt_fontinfo *info, int gl, const char **svg);
 // fills svg with the character's SVG data.
 // returns data size or 0 if SVG not found.
 
@@ -917,14 +916,13 @@ STBTT_DEF int tt_GetGlyphSVG(const tt_fontinfo *info, int gl, const char **svg);
 // BITMAP RENDERING
 //
 
-STBTT_DEF void tt_FreeBitmap(unsigned char *bitmap, void *userdata);
+extern void tt_FreeBitmap(unsigned char *bitmap, void *userdata);
 // frees the bitmap allocated below
 
-STBTT_DEF unsigned char *tt_GetCodepointBitmap(const tt_fontinfo *info,
-                                               float scale_x, float scale_y,
-                                               int codepoint, int *width,
-                                               int *height, int *xoff,
-                                               int *yoff);
+extern unsigned char *tt_GetCodepointBitmap(const tt_fontinfo *info,
+                                            float scale_x, float scale_y,
+                                            int codepoint, int *width,
+                                            int *height, int *xoff, int *yoff);
 // allocates a large-enough single-channel 8bpp bitmap and renders the
 // specified character/glyph at the specified scale into it, with
 // antialiasing. 0 is no coverage (transparent), 255 is fully covered (opaque).
@@ -934,7 +932,7 @@ STBTT_DEF unsigned char *tt_GetCodepointBitmap(const tt_fontinfo *info,
 // xoff/yoff are the offset it pixel space from the glyph origin to the top-left
 // of the bitmap
 
-STBTT_DEF unsigned char *
+extern unsigned char *
 tt_GetCodepointBitmapSubpixel(const tt_fontinfo *info, float scale_x,
                               float scale_y, float shift_x, float shift_y,
                               int codepoint, int *width, int *height, int *xoff,
@@ -942,25 +940,25 @@ tt_GetCodepointBitmapSubpixel(const tt_fontinfo *info, float scale_x,
 // the same as tt_GetCodepoitnBitmap, but you can specify a subpixel
 // shift for the character
 
-STBTT_DEF void tt_MakeCodepointBitmap(const tt_fontinfo *info,
-                                      unsigned char *output, int out_w,
-                                      int out_h, int out_stride, float scale_x,
-                                      float scale_y, int codepoint);
+extern void tt_MakeCodepointBitmap(const tt_fontinfo *info,
+                                   unsigned char *output, int out_w, int out_h,
+                                   int out_stride, float scale_x, float scale_y,
+                                   int codepoint);
 // the same as tt_GetCodepointBitmap, but you pass in storage for the bitmap
 // in the form of 'output', with row spacing of 'out_stride' bytes. the bitmap
 // is clipped to out_w/out_h bytes. Call tt_GetCodepointBitmapBox to get the
 // width and height and positioning info for it first.
 
-STBTT_DEF void tt_MakeCodepointBitmapSubpixel(const tt_fontinfo *info,
-                                              unsigned char *output, int out_w,
-                                              int out_h, int out_stride,
-                                              float scale_x, float scale_y,
-                                              float shift_x, float shift_y,
-                                              int codepoint);
+extern void tt_MakeCodepointBitmapSubpixel(const tt_fontinfo *info,
+                                           unsigned char *output, int out_w,
+                                           int out_h, int out_stride,
+                                           float scale_x, float scale_y,
+                                           float shift_x, float shift_y,
+                                           int codepoint);
 // same as tt_MakeCodepointBitmap, but you can specify a subpixel
 // shift for the character
 
-STBTT_DEF void tt_MakeCodepointBitmapSubpixelPrefilter(
+extern void tt_MakeCodepointBitmapSubpixelPrefilter(
     const tt_fontinfo *info, unsigned char *output, int out_w, int out_h,
     int out_stride, float scale_x, float scale_y, float shift_x, float shift_y,
     int oversample_x, int oversample_y, float *sub_x, float *sub_y,
@@ -968,55 +966,51 @@ STBTT_DEF void tt_MakeCodepointBitmapSubpixelPrefilter(
 // same as tt_MakeCodepointBitmapSubpixel, but prefiltering
 // is performed (see tt_PackSetOversampling)
 
-STBTT_DEF void tt_GetCodepointBitmapBox(const tt_fontinfo *font, int codepoint,
-                                        float scale_x, float scale_y, int *ix0,
-                                        int *iy0, int *ix1, int *iy1);
+extern void tt_GetCodepointBitmapBox(const tt_fontinfo *font, int codepoint,
+                                     float scale_x, float scale_y, int *ix0,
+                                     int *iy0, int *ix1, int *iy1);
 // get the bbox of the bitmap centered around the glyph origin; so the
 // bitmap width is ix1-ix0, height is iy1-iy0, and location to place
 // the bitmap top left is (leftSideBearing*scale,iy0).
 // (Note that the bitmap uses y-increases-down, but the shape uses
 // y-increases-up, so CodepointBitmapBox and CodepointBox are inverted.)
 
-STBTT_DEF void tt_GetCodepointBitmapBoxSubpixel(const tt_fontinfo *font,
-                                                int codepoint, float scale_x,
-                                                float scale_y, float shift_x,
-                                                float shift_y, int *ix0,
-                                                int *iy0, int *ix1, int *iy1);
+extern void tt_GetCodepointBitmapBoxSubpixel(const tt_fontinfo *font,
+                                             int codepoint, float scale_x,
+                                             float scale_y, float shift_x,
+                                             float shift_y, int *ix0, int *iy0,
+                                             int *ix1, int *iy1);
 // same as tt_GetCodepointBitmapBox, but you can specify a subpixel
 // shift for the character
 
 // the following functions are equivalent to the above functions, but operate
 // on glyph indices instead of Unicode codepoints (for efficiency)
-STBTT_DEF unsigned char *tt_GetGlyphBitmap(const tt_fontinfo *info,
-                                           float scale_x, float scale_y,
-                                           int glyph, int *width, int *height,
-                                           int *xoff, int *yoff);
-STBTT_DEF unsigned char *
+extern unsigned char *tt_GetGlyphBitmap(const tt_fontinfo *info, float scale_x,
+                                        float scale_y, int glyph, int *width,
+                                        int *height, int *xoff, int *yoff);
+extern unsigned char *
 tt_GetGlyphBitmapSubpixel(const tt_fontinfo *info, float scale_x, float scale_y,
                           float shift_x, float shift_y, int glyph, int *width,
                           int *height, int *xoff, int *yoff);
-STBTT_DEF void tt_MakeGlyphBitmap(const tt_fontinfo *info,
-                                  unsigned char *output, int out_w, int out_h,
-                                  int out_stride, float scale_x, float scale_y,
-                                  int glyph);
-STBTT_DEF void tt_MakeGlyphBitmapSubpixel(const tt_fontinfo *info,
-                                          unsigned char *output, int out_w,
-                                          int out_h, int out_stride,
-                                          float scale_x, float scale_y,
-                                          float shift_x, float shift_y,
-                                          int glyph);
-STBTT_DEF void tt_MakeGlyphBitmapSubpixelPrefilter(
+extern void tt_MakeGlyphBitmap(const tt_fontinfo *info, unsigned char *output,
+                               int out_w, int out_h, int out_stride,
+                               float scale_x, float scale_y, int glyph);
+extern void tt_MakeGlyphBitmapSubpixel(const tt_fontinfo *info,
+                                       unsigned char *output, int out_w,
+                                       int out_h, int out_stride, float scale_x,
+                                       float scale_y, float shift_x,
+                                       float shift_y, int glyph);
+extern void tt_MakeGlyphBitmapSubpixelPrefilter(
     const tt_fontinfo *info, unsigned char *output, int out_w, int out_h,
     int out_stride, float scale_x, float scale_y, float shift_x, float shift_y,
     int oversample_x, int oversample_y, float *sub_x, float *sub_y, int glyph);
-STBTT_DEF void tt_GetGlyphBitmapBox(const tt_fontinfo *font, int glyph,
-                                    float scale_x, float scale_y, int *ix0,
-                                    int *iy0, int *ix1, int *iy1);
-STBTT_DEF void tt_GetGlyphBitmapBoxSubpixel(const tt_fontinfo *font, int glyph,
-                                            float scale_x, float scale_y,
-                                            float shift_x, float shift_y,
-                                            int *ix0, int *iy0, int *ix1,
-                                            int *iy1);
+extern void tt_GetGlyphBitmapBox(const tt_fontinfo *font, int glyph,
+                                 float scale_x, float scale_y, int *ix0,
+                                 int *iy0, int *ix1, int *iy1);
+extern void tt_GetGlyphBitmapBoxSubpixel(const tt_fontinfo *font, int glyph,
+                                         float scale_x, float scale_y,
+                                         float shift_x, float shift_y, int *ix0,
+                                         int *iy0, int *ix1, int *iy1);
 
 // @TODO: don't expose this structure
 typedef struct {
@@ -1025,7 +1019,7 @@ typedef struct {
 } tt__bitmap;
 
 // rasterize a shape with quadratic beziers into a bitmap
-STBTT_DEF void
+extern void
 tt_Rasterize(tt__bitmap *result,           // 1-channel bitmap to draw into
              float flatness_in_pixels,     // allowable error of curve in pixels
              tt_vertex *vertices,          // array of vertices defining shape
@@ -1041,20 +1035,19 @@ tt_Rasterize(tt__bitmap *result,           // 1-channel bitmap to draw into
 //
 // Signed Distance Function (or Field) rendering
 
-STBTT_DEF void tt_FreeSDF(unsigned char *bitmap, void *userdata);
+extern void tt_FreeSDF(unsigned char *bitmap, void *userdata);
 // frees the SDF bitmap allocated below
 
-STBTT_DEF unsigned char *tt_GetGlyphSDF(const tt_fontinfo *info, float scale,
-                                        int glyph, int padding,
-                                        unsigned char onedge_value,
-                                        float pixel_dist_scale, int *width,
-                                        int *height, int *xoff, int *yoff);
-STBTT_DEF unsigned char *tt_GetCodepointSDF(const tt_fontinfo *info,
-                                            float scale, int codepoint,
-                                            int padding,
-                                            unsigned char onedge_value,
-                                            float pixel_dist_scale, int *width,
-                                            int *height, int *xoff, int *yoff);
+extern unsigned char *tt_GetGlyphSDF(const tt_fontinfo *info, float scale,
+                                     int glyph, int padding,
+                                     unsigned char onedge_value,
+                                     float pixel_dist_scale, int *width,
+                                     int *height, int *xoff, int *yoff);
+extern unsigned char *tt_GetCodepointSDF(const tt_fontinfo *info, float scale,
+                                         int codepoint, int padding,
+                                         unsigned char onedge_value,
+                                         float pixel_dist_scale, int *width,
+                                         int *height, int *xoff, int *yoff);
 // These functions compute a discretized SDF field for a single character,
 // suitable for storing in a single-channel texture, sampling with bilinear
 // filtering, and testing against larger than some threshold to produce scalable
@@ -1131,8 +1124,8 @@ STBTT_DEF unsigned char *tt_GetCodepointSDF(const tt_fontinfo *info,
 //             from the file yourself and do your own comparisons on them.
 //             You have to have called tt_InitFont() first.
 
-STBTT_DEF int tt_FindMatchingFont(const unsigned char *fontdata,
-                                  const char *name, int flags);
+extern int tt_FindMatchingFont(const unsigned char *fontdata, const char *name,
+                               int flags);
 // returns the offset (not index) of the font that matches, or -1 if none
 //   if you use STBTT_MACSTYLE_DONTCARE, use a font name like "Arial Bold".
 //   if you use any other flag, use a font name like "Arial"; this checks
@@ -1144,15 +1137,15 @@ STBTT_DEF int tt_FindMatchingFont(const unsigned char *fontdata,
 #define STBTT_MACSTYLE_NONE                                                    \
   8 // <= not same as 0, this makes us check the bitfield is 0
 
-STBTT_DEF int tt_CompareUTF8toUTF16_bigendian(const char *s1, int len1,
-                                              const char *s2, int len2);
+extern int tt_CompareUTF8toUTF16_bigendian(const char *s1, int len1,
+                                           const char *s2, int len2);
 // returns 1/0 whether the first string interpreted as utf8 is identical to
 // the second string interpreted as big-endian utf16... useful for strings from
 // next func
 
-STBTT_DEF const char *tt_GetFontNameString(const tt_fontinfo *font, int *length,
-                                           int platformID, int encodingID,
-                                           int languageID, int nameID);
+extern const char *tt_GetFontNameString(const tt_fontinfo *font, int *length,
+                                        int platformID, int encodingID,
+                                        int languageID, int nameID);
 // returns the string (which may be big-endian double byte, e.g. for unicode)
 // and puts the length in bytes in *length.
 //
@@ -1641,8 +1634,7 @@ static int tt_InitFont_internal(tt_fontinfo *info, unsigned char *data,
   return 1;
 }
 
-STBTT_DEF int tt_FindGlyphIndex(const tt_fontinfo *info,
-                                int unicode_codepoint) {
+extern int tt_FindGlyphIndex(const tt_fontinfo *info, int unicode_codepoint) {
   tt_uint8 *data = info->data;
   tt_uint32 index_map = info->index_map;
 
@@ -1741,9 +1733,8 @@ STBTT_DEF int tt_FindGlyphIndex(const tt_fontinfo *info,
   return 0;
 }
 
-STBTT_DEF int tt_GetCodepointShape(const tt_fontinfo *info,
-                                   int unicode_codepoint,
-                                   tt_vertex **vertices) {
+extern int tt_GetCodepointShape(const tt_fontinfo *info, int unicode_codepoint,
+                                tt_vertex **vertices) {
   return tt_GetGlyphShape(info, tt_FindGlyphIndex(info, unicode_codepoint),
                           vertices);
 }
@@ -1782,8 +1773,8 @@ static int tt__GetGlyfOffset(const tt_fontinfo *info, int glyph_index) {
 static int tt__GetGlyphInfoT2(const tt_fontinfo *info, int glyph_index, int *x0,
                               int *y0, int *x1, int *y1);
 
-STBTT_DEF int tt_GetGlyphBox(const tt_fontinfo *info, int glyph_index, int *x0,
-                             int *y0, int *x1, int *y1) {
+extern int tt_GetGlyphBox(const tt_fontinfo *info, int glyph_index, int *x0,
+                          int *y0, int *x1, int *y1) {
   if (info->cff.size) {
     tt__GetGlyphInfoT2(info, glyph_index, x0, y0, x1, y1);
   } else {
@@ -1803,13 +1794,13 @@ STBTT_DEF int tt_GetGlyphBox(const tt_fontinfo *info, int glyph_index, int *x0,
   return 1;
 }
 
-STBTT_DEF int tt_GetCodepointBox(const tt_fontinfo *info, int codepoint,
-                                 int *x0, int *y0, int *x1, int *y1) {
+extern int tt_GetCodepointBox(const tt_fontinfo *info, int codepoint, int *x0,
+                              int *y0, int *x1, int *y1) {
   return tt_GetGlyphBox(info, tt_FindGlyphIndex(info, codepoint), x0, y0, x1,
                         y1);
 }
 
-STBTT_DEF int tt_IsGlyphEmpty(const tt_fontinfo *info, int glyph_index) {
+extern int tt_IsGlyphEmpty(const tt_fontinfo *info, int glyph_index) {
   tt_int16 numberOfContours;
   int g;
   if (info->cff.size)
@@ -2539,16 +2530,16 @@ static int tt__GetGlyphInfoT2(const tt_fontinfo *info, int glyph_index, int *x0,
   return r ? c.num_vertices : 0;
 }
 
-STBTT_DEF int tt_GetGlyphShape(const tt_fontinfo *info, int glyph_index,
-                               tt_vertex **pvertices) {
+extern int tt_GetGlyphShape(const tt_fontinfo *info, int glyph_index,
+                            tt_vertex **pvertices) {
   if (!info->cff.size)
     return tt__GetGlyphShapeTT(info, glyph_index, pvertices);
   else
     return tt__GetGlyphShapeT2(info, glyph_index, pvertices);
 }
 
-STBTT_DEF void tt_GetGlyphHMetrics(const tt_fontinfo *info, int glyph_index,
-                                   int *advanceWidth, int *leftSideBearing) {
+extern void tt_GetGlyphHMetrics(const tt_fontinfo *info, int glyph_index,
+                                int *advanceWidth, int *leftSideBearing) {
   tt_uint16 numOfLongHorMetrics = ttUSHORT(info->data + info->hhea + 34);
   if (glyph_index < numOfLongHorMetrics) {
     if (advanceWidth)
@@ -2566,7 +2557,7 @@ STBTT_DEF void tt_GetGlyphHMetrics(const tt_fontinfo *info, int glyph_index,
   }
 }
 
-STBTT_DEF int tt_GetKerningTableLength(const tt_fontinfo *info) {
+extern int tt_GetKerningTableLength(const tt_fontinfo *info) {
   tt_uint8 *data = info->data + info->kern;
 
   // we only look at the first table. it must be 'horizontal' and format 0.
@@ -2580,8 +2571,8 @@ STBTT_DEF int tt_GetKerningTableLength(const tt_fontinfo *info) {
   return ttUSHORT(data + 10);
 }
 
-STBTT_DEF int tt_GetKerningTable(const tt_fontinfo *info,
-                                 tt_kerningentry *table, int table_length) {
+extern int tt_GetKerningTable(const tt_fontinfo *info, tt_kerningentry *table,
+                              int table_length) {
   tt_uint8 *data = info->data + info->kern;
   int k, length;
 
@@ -2864,7 +2855,7 @@ static tt_int32 tt__GetGlyphGPOSInfoAdvance(const tt_fontinfo *info, int glyph1,
   return 0;
 }
 
-STBTT_DEF int tt_GetGlyphKernAdvance(const tt_fontinfo *info, int g1, int g2) {
+extern int tt_GetGlyphKernAdvance(const tt_fontinfo *info, int g1, int g2) {
   int xAdvance = 0;
 
   if (info->gpos)
@@ -2875,8 +2866,8 @@ STBTT_DEF int tt_GetGlyphKernAdvance(const tt_fontinfo *info, int g1, int g2) {
   return xAdvance;
 }
 
-STBTT_DEF int tt_GetCodepointKernAdvance(const tt_fontinfo *info, int ch1,
-                                         int ch2) {
+extern int tt_GetCodepointKernAdvance(const tt_fontinfo *info, int ch1,
+                                      int ch2) {
   if (!info->kern && !info->gpos) // if no kerning table, don't waste time
                                   // looking up both codepoint->glyphs
     return 0;
@@ -2884,15 +2875,14 @@ STBTT_DEF int tt_GetCodepointKernAdvance(const tt_fontinfo *info, int ch1,
                                 tt_FindGlyphIndex(info, ch2));
 }
 
-STBTT_DEF void tt_GetCodepointHMetrics(const tt_fontinfo *info, int codepoint,
-                                       int *advanceWidth,
-                                       int *leftSideBearing) {
+extern void tt_GetCodepointHMetrics(const tt_fontinfo *info, int codepoint,
+                                    int *advanceWidth, int *leftSideBearing) {
   tt_GetGlyphHMetrics(info, tt_FindGlyphIndex(info, codepoint), advanceWidth,
                       leftSideBearing);
 }
 
-STBTT_DEF void tt_GetFontVMetrics(const tt_fontinfo *info, int *ascent,
-                                  int *descent, int *lineGap) {
+extern void tt_GetFontVMetrics(const tt_fontinfo *info, int *ascent,
+                               int *descent, int *lineGap) {
   if (ascent)
     *ascent = ttSHORT(info->data + info->hhea + 4);
   if (descent)
@@ -2901,8 +2891,8 @@ STBTT_DEF void tt_GetFontVMetrics(const tt_fontinfo *info, int *ascent,
     *lineGap = ttSHORT(info->data + info->hhea + 8);
 }
 
-STBTT_DEF int tt_GetFontVMetricsOS2(const tt_fontinfo *info, int *typoAscent,
-                                    int *typoDescent, int *typoLineGap) {
+extern int tt_GetFontVMetricsOS2(const tt_fontinfo *info, int *typoAscent,
+                                 int *typoDescent, int *typoLineGap) {
   int tab = tt__find_table(info->data, info->fontstart, "OS/2");
   if (!tab)
     return 0;
@@ -2915,31 +2905,31 @@ STBTT_DEF int tt_GetFontVMetricsOS2(const tt_fontinfo *info, int *typoAscent,
   return 1;
 }
 
-STBTT_DEF void tt_GetFontBoundingBox(const tt_fontinfo *info, int *x0, int *y0,
-                                     int *x1, int *y1) {
+extern void tt_GetFontBoundingBox(const tt_fontinfo *info, int *x0, int *y0,
+                                  int *x1, int *y1) {
   *x0 = ttSHORT(info->data + info->head + 36);
   *y0 = ttSHORT(info->data + info->head + 38);
   *x1 = ttSHORT(info->data + info->head + 40);
   *y1 = ttSHORT(info->data + info->head + 42);
 }
 
-STBTT_DEF float tt_ScaleForPixelHeight(const tt_fontinfo *info, float height) {
+extern float tt_ScaleForPixelHeight(const tt_fontinfo *info, float height) {
   int fheight = ttSHORT(info->data + info->hhea + 4) -
                 ttSHORT(info->data + info->hhea + 6);
   return (float)height / fheight;
 }
 
-STBTT_DEF float tt_ScaleForMappingEmToPixels(const tt_fontinfo *info,
-                                             float pixels) {
+extern float tt_ScaleForMappingEmToPixels(const tt_fontinfo *info,
+                                          float pixels) {
   int unitsPerEm = ttUSHORT(info->data + info->head + 18);
   return pixels / unitsPerEm;
 }
 
-STBTT_DEF void tt_FreeShape(const tt_fontinfo *info, tt_vertex *v) {
+extern void tt_FreeShape(const tt_fontinfo *info, tt_vertex *v) {
   STBTT_free(v, info->userdata);
 }
 
-STBTT_DEF tt_uint8 *tt_FindSVGDoc(const tt_fontinfo *info, int gl) {
+extern tt_uint8 *tt_FindSVGDoc(const tt_fontinfo *info, int gl) {
   int i;
   tt_uint8 *data = info->data;
   tt_uint8 *svg_doc_list = data + tt__get_svg((tt_fontinfo *)info);
@@ -2955,8 +2945,7 @@ STBTT_DEF tt_uint8 *tt_FindSVGDoc(const tt_fontinfo *info, int gl) {
   return 0;
 }
 
-STBTT_DEF int tt_GetGlyphSVG(const tt_fontinfo *info, int gl,
-                             const char **svg) {
+extern int tt_GetGlyphSVG(const tt_fontinfo *info, int gl, const char **svg) {
   tt_uint8 *data = info->data;
   tt_uint8 *svg_doc;
 
@@ -2972,8 +2961,8 @@ STBTT_DEF int tt_GetGlyphSVG(const tt_fontinfo *info, int gl,
   }
 }
 
-STBTT_DEF int tt_GetCodepointSVG(const tt_fontinfo *info, int unicode_codepoint,
-                                 const char **svg) {
+extern int tt_GetCodepointSVG(const tt_fontinfo *info, int unicode_codepoint,
+                              const char **svg) {
   return tt_GetGlyphSVG(info, tt_FindGlyphIndex(info, unicode_codepoint), svg);
 }
 
@@ -2982,11 +2971,10 @@ STBTT_DEF int tt_GetCodepointSVG(const tt_fontinfo *info, int unicode_codepoint,
 // antialiasing software rasterizer
 //
 
-STBTT_DEF void tt_GetGlyphBitmapBoxSubpixel(const tt_fontinfo *font, int glyph,
-                                            float scale_x, float scale_y,
-                                            float shift_x, float shift_y,
-                                            int *ix0, int *iy0, int *ix1,
-                                            int *iy1) {
+extern void tt_GetGlyphBitmapBoxSubpixel(const tt_fontinfo *font, int glyph,
+                                         float scale_x, float scale_y,
+                                         float shift_x, float shift_y, int *ix0,
+                                         int *iy0, int *ix1, int *iy1) {
   int x0 = 0, y0 = 0, x1, y1; // =0 suppresses compiler warning
   if (!tt_GetGlyphBox(font, glyph, &x0, &y0, &x1, &y1)) {
     // e.g. space character
@@ -3012,26 +3000,26 @@ STBTT_DEF void tt_GetGlyphBitmapBoxSubpixel(const tt_fontinfo *font, int glyph,
   }
 }
 
-STBTT_DEF void tt_GetGlyphBitmapBox(const tt_fontinfo *font, int glyph,
-                                    float scale_x, float scale_y, int *ix0,
-                                    int *iy0, int *ix1, int *iy1) {
+extern void tt_GetGlyphBitmapBox(const tt_fontinfo *font, int glyph,
+                                 float scale_x, float scale_y, int *ix0,
+                                 int *iy0, int *ix1, int *iy1) {
   tt_GetGlyphBitmapBoxSubpixel(font, glyph, scale_x, scale_y, 0.0f, 0.0f, ix0,
                                iy0, ix1, iy1);
 }
 
-STBTT_DEF void tt_GetCodepointBitmapBoxSubpixel(const tt_fontinfo *font,
-                                                int codepoint, float scale_x,
-                                                float scale_y, float shift_x,
-                                                float shift_y, int *ix0,
-                                                int *iy0, int *ix1, int *iy1) {
+extern void tt_GetCodepointBitmapBoxSubpixel(const tt_fontinfo *font,
+                                             int codepoint, float scale_x,
+                                             float scale_y, float shift_x,
+                                             float shift_y, int *ix0, int *iy0,
+                                             int *ix1, int *iy1) {
   tt_GetGlyphBitmapBoxSubpixel(font, tt_FindGlyphIndex(font, codepoint),
                                scale_x, scale_y, shift_x, shift_y, ix0, iy0,
                                ix1, iy1);
 }
 
-STBTT_DEF void tt_GetCodepointBitmapBox(const tt_fontinfo *font, int codepoint,
-                                        float scale_x, float scale_y, int *ix0,
-                                        int *iy0, int *ix1, int *iy1) {
+extern void tt_GetCodepointBitmapBox(const tt_fontinfo *font, int codepoint,
+                                     float scale_x, float scale_y, int *ix0,
+                                     int *iy0, int *ix1, int *iy1) {
   tt_GetCodepointBitmapBoxSubpixel(font, codepoint, scale_x, scale_y, 0.0f,
                                    0.0f, ix0, iy0, ix1, iy1);
 }
@@ -4060,10 +4048,10 @@ error:
   return NULL;
 }
 
-STBTT_DEF void tt_Rasterize(tt__bitmap *result, float flatness_in_pixels,
-                            tt_vertex *vertices, int num_verts, float scale_x,
-                            float scale_y, float shift_x, float shift_y,
-                            int x_off, int y_off, int invert, void *userdata) {
+extern void tt_Rasterize(tt__bitmap *result, float flatness_in_pixels,
+                         tt_vertex *vertices, int num_verts, float scale_x,
+                         float scale_y, float shift_x, float shift_y, int x_off,
+                         int y_off, int invert, void *userdata) {
   float scale = scale_x > scale_y ? scale_y : scale_x;
   int winding_count = 0;
   int *winding_lengths = NULL;
@@ -4078,11 +4066,11 @@ STBTT_DEF void tt_Rasterize(tt__bitmap *result, float flatness_in_pixels,
   }
 }
 
-STBTT_DEF void tt_FreeBitmap(unsigned char *bitmap, void *userdata) {
+extern void tt_FreeBitmap(unsigned char *bitmap, void *userdata) {
   STBTT_free(bitmap, userdata);
 }
 
-STBTT_DEF unsigned char *
+extern unsigned char *
 tt_GetGlyphBitmapSubpixel(const tt_fontinfo *info, float scale_x, float scale_y,
                           float shift_x, float shift_y, int glyph, int *width,
                           int *height, int *xoff, int *yoff) {
@@ -4131,20 +4119,18 @@ tt_GetGlyphBitmapSubpixel(const tt_fontinfo *info, float scale_x, float scale_y,
   return gbm.pixels;
 }
 
-STBTT_DEF unsigned char *tt_GetGlyphBitmap(const tt_fontinfo *info,
-                                           float scale_x, float scale_y,
-                                           int glyph, int *width, int *height,
-                                           int *xoff, int *yoff) {
+extern unsigned char *tt_GetGlyphBitmap(const tt_fontinfo *info, float scale_x,
+                                        float scale_y, int glyph, int *width,
+                                        int *height, int *xoff, int *yoff) {
   return tt_GetGlyphBitmapSubpixel(info, scale_x, scale_y, 0.0f, 0.0f, glyph,
                                    width, height, xoff, yoff);
 }
 
-STBTT_DEF void tt_MakeGlyphBitmapSubpixel(const tt_fontinfo *info,
-                                          unsigned char *output, int out_w,
-                                          int out_h, int out_stride,
-                                          float scale_x, float scale_y,
-                                          float shift_x, float shift_y,
-                                          int glyph) {
+extern void tt_MakeGlyphBitmapSubpixel(const tt_fontinfo *info,
+                                       unsigned char *output, int out_w,
+                                       int out_h, int out_stride, float scale_x,
+                                       float scale_y, float shift_x,
+                                       float shift_y, int glyph) {
   int ix0, iy0;
   tt_vertex *vertices;
   int num_verts = tt_GetGlyphShape(info, glyph, &vertices);
@@ -4164,15 +4150,14 @@ STBTT_DEF void tt_MakeGlyphBitmapSubpixel(const tt_fontinfo *info,
   STBTT_free(vertices, info->userdata);
 }
 
-STBTT_DEF void tt_MakeGlyphBitmap(const tt_fontinfo *info,
-                                  unsigned char *output, int out_w, int out_h,
-                                  int out_stride, float scale_x, float scale_y,
-                                  int glyph) {
+extern void tt_MakeGlyphBitmap(const tt_fontinfo *info, unsigned char *output,
+                               int out_w, int out_h, int out_stride,
+                               float scale_x, float scale_y, int glyph) {
   tt_MakeGlyphBitmapSubpixel(info, output, out_w, out_h, out_stride, scale_x,
                              scale_y, 0.0f, 0.0f, glyph);
 }
 
-STBTT_DEF unsigned char *
+extern unsigned char *
 tt_GetCodepointBitmapSubpixel(const tt_fontinfo *info, float scale_x,
                               float scale_y, float shift_x, float shift_y,
                               int codepoint, int *width, int *height, int *xoff,
@@ -4182,7 +4167,7 @@ tt_GetCodepointBitmapSubpixel(const tt_fontinfo *info, float scale_x,
                                    height, xoff, yoff);
 }
 
-STBTT_DEF void tt_MakeCodepointBitmapSubpixelPrefilter(
+extern void tt_MakeCodepointBitmapSubpixelPrefilter(
     const tt_fontinfo *info, unsigned char *output, int out_w, int out_h,
     int out_stride, float scale_x, float scale_y, float shift_x, float shift_y,
     int oversample_x, int oversample_y, float *sub_x, float *sub_y,
@@ -4193,30 +4178,29 @@ STBTT_DEF void tt_MakeCodepointBitmapSubpixelPrefilter(
                                       tt_FindGlyphIndex(info, codepoint));
 }
 
-STBTT_DEF void tt_MakeCodepointBitmapSubpixel(const tt_fontinfo *info,
-                                              unsigned char *output, int out_w,
-                                              int out_h, int out_stride,
-                                              float scale_x, float scale_y,
-                                              float shift_x, float shift_y,
-                                              int codepoint) {
+extern void tt_MakeCodepointBitmapSubpixel(const tt_fontinfo *info,
+                                           unsigned char *output, int out_w,
+                                           int out_h, int out_stride,
+                                           float scale_x, float scale_y,
+                                           float shift_x, float shift_y,
+                                           int codepoint) {
   tt_MakeGlyphBitmapSubpixel(info, output, out_w, out_h, out_stride, scale_x,
                              scale_y, shift_x, shift_y,
                              tt_FindGlyphIndex(info, codepoint));
 }
 
-STBTT_DEF unsigned char *tt_GetCodepointBitmap(const tt_fontinfo *info,
-                                               float scale_x, float scale_y,
-                                               int codepoint, int *width,
-                                               int *height, int *xoff,
-                                               int *yoff) {
+extern unsigned char *tt_GetCodepointBitmap(const tt_fontinfo *info,
+                                            float scale_x, float scale_y,
+                                            int codepoint, int *width,
+                                            int *height, int *xoff, int *yoff) {
   return tt_GetCodepointBitmapSubpixel(info, scale_x, scale_y, 0.0f, 0.0f,
                                        codepoint, width, height, xoff, yoff);
 }
 
-STBTT_DEF void tt_MakeCodepointBitmap(const tt_fontinfo *info,
-                                      unsigned char *output, int out_w,
-                                      int out_h, int out_stride, float scale_x,
-                                      float scale_y, int codepoint) {
+extern void tt_MakeCodepointBitmap(const tt_fontinfo *info,
+                                   unsigned char *output, int out_w, int out_h,
+                                   int out_stride, float scale_x, float scale_y,
+                                   int codepoint) {
   tt_MakeCodepointBitmapSubpixel(info, output, out_w, out_h, out_stride,
                                  scale_x, scale_y, 0.0f, 0.0f, codepoint);
 }
@@ -4275,9 +4259,9 @@ static int tt_BakeFontBitmap_internal(
   return bottom_y;
 }
 
-STBTT_DEF void tt_GetBakedQuad(const tt_bakedchar *chardata, int pw, int ph,
-                               int char_index, float *xpos, float *ypos,
-                               tt_aligned_quad *q, int opengl_fillrule) {
+extern void tt_GetBakedQuad(const tt_bakedchar *chardata, int pw, int ph,
+                            int char_index, float *xpos, float *ypos,
+                            tt_aligned_quad *q, int opengl_fillrule) {
   float d3d_bias = opengl_fillrule ? 0 : -0.5f;
   float ipw = 1.0f / pw, iph = 1.0f / ph;
   const tt_bakedchar *b = chardata + char_index;
@@ -4371,9 +4355,9 @@ static void stbrp_pack_rects(stbrp_context *con, stbrp_rect *rects,
 // This is SUPER-AWESOME (tm Ryan Gordon) packing using rect_pack.h. If
 // rect_pack.h isn't available, it uses the BakeFontBitmap strategy.
 
-STBTT_DEF int tt_PackBegin(tt_pack_context *spc, unsigned char *pixels, int pw,
-                           int ph, int stride_in_bytes, int padding,
-                           void *alloc_context) {
+extern int tt_PackBegin(tt_pack_context *spc, unsigned char *pixels, int pw,
+                        int ph, int stride_in_bytes, int padding,
+                        void *alloc_context) {
   stbrp_context *context =
       (stbrp_context *)STBTT_malloc(sizeof(*context), alloc_context);
   int num_nodes = pw - padding;
@@ -4408,14 +4392,14 @@ STBTT_DEF int tt_PackBegin(tt_pack_context *spc, unsigned char *pixels, int pw,
   return 1;
 }
 
-STBTT_DEF void tt_PackEnd(tt_pack_context *spc) {
+extern void tt_PackEnd(tt_pack_context *spc) {
   STBTT_free(spc->nodes, spc->user_allocator_context);
   STBTT_free(spc->pack_info, spc->user_allocator_context);
 }
 
-STBTT_DEF void tt_PackSetOversampling(tt_pack_context *spc,
-                                      unsigned int h_oversample,
-                                      unsigned int v_oversample) {
+extern void tt_PackSetOversampling(tt_pack_context *spc,
+                                   unsigned int h_oversample,
+                                   unsigned int v_oversample) {
   STBTT_assert(h_oversample <= STBTT_MAX_OVERSAMPLE);
   STBTT_assert(v_oversample <= STBTT_MAX_OVERSAMPLE);
   if (h_oversample <= STBTT_MAX_OVERSAMPLE)
@@ -4424,7 +4408,7 @@ STBTT_DEF void tt_PackSetOversampling(tt_pack_context *spc,
     spc->v_oversample = v_oversample;
 }
 
-STBTT_DEF void tt_PackSetSkipMissingCodepoints(tt_pack_context *spc, int skip) {
+extern void tt_PackSetSkipMissingCodepoints(tt_pack_context *spc, int skip) {
   spc->skip_missing = skip;
 }
 
@@ -4578,10 +4562,10 @@ static float tt__oversample_shift(int oversample) {
 
 // rects array must be big enough to accommodate all characters in the given
 // ranges
-STBTT_DEF int tt_PackFontRangesGatherRects(tt_pack_context *spc,
-                                           const tt_fontinfo *info,
-                                           tt_pack_range *ranges,
-                                           int num_ranges, stbrp_rect *rects) {
+extern int tt_PackFontRangesGatherRects(tt_pack_context *spc,
+                                        const tt_fontinfo *info,
+                                        tt_pack_range *ranges, int num_ranges,
+                                        stbrp_rect *rects) {
   int i, j, k;
   int missing_glyph_added = 0;
 
@@ -4618,7 +4602,7 @@ STBTT_DEF int tt_PackFontRangesGatherRects(tt_pack_context *spc,
   return k;
 }
 
-STBTT_DEF void tt_MakeGlyphBitmapSubpixelPrefilter(
+extern void tt_MakeGlyphBitmapSubpixelPrefilter(
     const tt_fontinfo *info, unsigned char *output, int out_w, int out_h,
     int out_stride, float scale_x, float scale_y, float shift_x, float shift_y,
     int prefilter_x, int prefilter_y, float *sub_x, float *sub_y, int glyph) {
@@ -4638,11 +4622,10 @@ STBTT_DEF void tt_MakeGlyphBitmapSubpixelPrefilter(
 
 // rects array must be big enough to accommodate all characters in the given
 // ranges
-STBTT_DEF int tt_PackFontRangesRenderIntoRects(tt_pack_context *spc,
-                                               const tt_fontinfo *info,
-                                               tt_pack_range *ranges,
-                                               int num_ranges,
-                                               stbrp_rect *rects) {
+extern int tt_PackFontRangesRenderIntoRects(tt_pack_context *spc,
+                                            const tt_fontinfo *info,
+                                            tt_pack_range *ranges,
+                                            int num_ranges, stbrp_rect *rects) {
   int i, j, k, missing_glyph = -1, return_value = 1;
 
   // save current values
@@ -4727,14 +4710,14 @@ STBTT_DEF int tt_PackFontRangesRenderIntoRects(tt_pack_context *spc,
   return return_value;
 }
 
-STBTT_DEF void tt_PackFontRangesPackRects(tt_pack_context *spc,
-                                          stbrp_rect *rects, int num_rects) {
+extern void tt_PackFontRangesPackRects(tt_pack_context *spc, stbrp_rect *rects,
+                                       int num_rects) {
   stbrp_pack_rects((stbrp_context *)spc->pack_info, rects, num_rects);
 }
 
-STBTT_DEF int tt_PackFontRanges(tt_pack_context *spc,
-                                const unsigned char *fontdata, int font_index,
-                                tt_pack_range *ranges, int num_ranges) {
+extern int tt_PackFontRanges(tt_pack_context *spc,
+                             const unsigned char *fontdata, int font_index,
+                             tt_pack_range *ranges, int num_ranges) {
   tt_fontinfo info;
   int i, j, n, return_value; // [GUI] removed = 1;
   // stbrp_context *context = (stbrp_context *) spc->pack_info;
@@ -4770,12 +4753,11 @@ STBTT_DEF int tt_PackFontRanges(tt_pack_context *spc,
   return return_value;
 }
 
-STBTT_DEF int tt_PackFontRange(tt_pack_context *spc,
-                               const unsigned char *fontdata, int font_index,
-                               float font_size,
-                               int first_unicode_codepoint_in_range,
-                               int num_chars_in_range,
-                               tt_packedchar *chardata_for_range) {
+extern int tt_PackFontRange(tt_pack_context *spc, const unsigned char *fontdata,
+                            int font_index, float font_size,
+                            int first_unicode_codepoint_in_range,
+                            int num_chars_in_range,
+                            tt_packedchar *chardata_for_range) {
   tt_pack_range range;
   range.first_unicode_codepoint_in_range = first_unicode_codepoint_in_range;
   range.array_of_unicode_codepoints = NULL;
@@ -4785,9 +4767,9 @@ STBTT_DEF int tt_PackFontRange(tt_pack_context *spc,
   return tt_PackFontRanges(spc, fontdata, font_index, &range, 1);
 }
 
-STBTT_DEF void tt_GetScaledFontVMetrics(const unsigned char *fontdata,
-                                        int index, float size, float *ascent,
-                                        float *descent, float *lineGap) {
+extern void tt_GetScaledFontVMetrics(const unsigned char *fontdata, int index,
+                                     float size, float *ascent, float *descent,
+                                     float *lineGap) {
   int i_ascent, i_descent, i_lineGap;
   float scale;
   tt_fontinfo info;
@@ -4800,9 +4782,9 @@ STBTT_DEF void tt_GetScaledFontVMetrics(const unsigned char *fontdata,
   *lineGap = (float)i_lineGap * scale;
 }
 
-STBTT_DEF void tt_GetPackedQuad(const tt_packedchar *chardata, int pw, int ph,
-                                int char_index, float *xpos, float *ypos,
-                                tt_aligned_quad *q, int align_to_integer) {
+extern void tt_GetPackedQuad(const tt_packedchar *chardata, int pw, int ph,
+                             int char_index, float *xpos, float *ypos,
+                             tt_aligned_quad *q, int align_to_integer) {
   float ipw = 1.0f / pw, iph = 1.0f / ph;
   const tt_packedchar *b = chardata + char_index;
 
@@ -5016,11 +4998,11 @@ static int tt__solve_cubic(float a, float b, float c, float *r) {
   }
 }
 
-STBTT_DEF unsigned char *tt_GetGlyphSDF(const tt_fontinfo *info, float scale,
-                                        int glyph, int padding,
-                                        unsigned char onedge_value,
-                                        float pixel_dist_scale, int *width,
-                                        int *height, int *xoff, int *yoff) {
+extern unsigned char *tt_GetGlyphSDF(const tt_fontinfo *info, float scale,
+                                     int glyph, int padding,
+                                     unsigned char onedge_value,
+                                     float pixel_dist_scale, int *width,
+                                     int *height, int *xoff, int *yoff) {
   float scale_x = scale, scale_y = scale;
   int ix0, iy0, ix1, iy1;
   int w, h;
@@ -5227,18 +5209,17 @@ STBTT_DEF unsigned char *tt_GetGlyphSDF(const tt_fontinfo *info, float scale,
   return data;
 }
 
-STBTT_DEF unsigned char *tt_GetCodepointSDF(const tt_fontinfo *info,
-                                            float scale, int codepoint,
-                                            int padding,
-                                            unsigned char onedge_value,
-                                            float pixel_dist_scale, int *width,
-                                            int *height, int *xoff, int *yoff) {
+extern unsigned char *tt_GetCodepointSDF(const tt_fontinfo *info, float scale,
+                                         int codepoint, int padding,
+                                         unsigned char onedge_value,
+                                         float pixel_dist_scale, int *width,
+                                         int *height, int *xoff, int *yoff) {
   return tt_GetGlyphSDF(info, scale, tt_FindGlyphIndex(info, codepoint),
                         padding, onedge_value, pixel_dist_scale, width, height,
                         xoff, yoff);
 }
 
-STBTT_DEF void tt_FreeSDF(unsigned char *bitmap, void *userdata) {
+extern void tt_FreeSDF(unsigned char *bitmap, void *userdata) {
   STBTT_free(bitmap, userdata);
 }
 
@@ -5313,9 +5294,9 @@ static int tt_CompareUTF8toUTF16_bigendian_internal(char *s1, int len1,
 // returns results in whatever encoding you request... but note that 2-byte
 // encodings will be BIG-ENDIAN... use tt_CompareUTF8toUTF16_bigendian() to
 // compare
-STBTT_DEF const char *tt_GetFontNameString(const tt_fontinfo *font, int *length,
-                                           int platformID, int encodingID,
-                                           int languageID, int nameID) {
+extern const char *tt_GetFontNameString(const tt_fontinfo *font, int *length,
+                                        int platformID, int encodingID,
+                                        int languageID, int nameID) {
   tt_int32 i, count, stringOffset;
   tt_uint8 *fc = font->data;
   tt_uint32 offset = font->fontstart;
@@ -5452,36 +5433,36 @@ static int tt_FindMatchingFont_internal(unsigned char *font_collection,
 #pragma GCC diagnostic ignored "-Wcast-qual"
 #endif
 
-STBTT_DEF int tt_BakeFontBitmap(const unsigned char *data, int offset,
-                                float pixel_height, unsigned char *pixels,
-                                int pw, int ph, int first_char, int num_chars,
-                                tt_bakedchar *chardata) {
+extern int tt_BakeFontBitmap(const unsigned char *data, int offset,
+                             float pixel_height, unsigned char *pixels, int pw,
+                             int ph, int first_char, int num_chars,
+                             tt_bakedchar *chardata) {
   return tt_BakeFontBitmap_internal((unsigned char *)data, offset, pixel_height,
                                     pixels, pw, ph, first_char, num_chars,
                                     chardata);
 }
 
-STBTT_DEF int tt_GetFontOffsetForIndex(const unsigned char *data, int index) {
+extern int tt_GetFontOffsetForIndex(const unsigned char *data, int index) {
   return tt_GetFontOffsetForIndex_internal((unsigned char *)data, index);
 }
 
-STBTT_DEF int tt_GetNumberOfFonts(const unsigned char *data) {
+extern int tt_GetNumberOfFonts(const unsigned char *data) {
   return tt_GetNumberOfFonts_internal((unsigned char *)data);
 }
 
-STBTT_DEF int tt_InitFont(tt_fontinfo *info, const unsigned char *data,
-                          int offset) {
+extern int tt_InitFont(tt_fontinfo *info, const unsigned char *data,
+                       int offset) {
   return tt_InitFont_internal(info, (unsigned char *)data, offset);
 }
 
-STBTT_DEF int tt_FindMatchingFont(const unsigned char *fontdata,
-                                  const char *name, int flags) {
+extern int tt_FindMatchingFont(const unsigned char *fontdata, const char *name,
+                               int flags) {
   return tt_FindMatchingFont_internal((unsigned char *)fontdata, (char *)name,
                                       flags);
 }
 
-STBTT_DEF int tt_CompareUTF8toUTF16_bigendian(const char *s1, int len1,
-                                              const char *s2, int len2) {
+extern int tt_CompareUTF8toUTF16_bigendian(const char *s1, int len1,
+                                           const char *s2, int len2) {
   return tt_CompareUTF8toUTF16_bigendian_internal((char *)s1, len1, (char *)s2,
                                                   len2);
 }

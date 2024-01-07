@@ -9,18 +9,18 @@
 //  when creating a new viewport).
 
 // Important: on 32-bit systems, user texture binding is only supported if your
-// imconfig file has '#define TextureID U64'. This is because we need
-// TextureID to carry a 64-bit value and by default TextureID is defined as
+// imconfig file has '#define TextureID unsigned long long'. This is because we
+// need TextureID to carry a 64-bit value and by default TextureID is defined as
 // void*. To build this on 32-bit systems and support texture changes:
 // - [Solution 1] IDE/msbuild: in "Properties/C++/Preprocessor Definitions" add
-// 'TextureID=U64' (this is what we do in our .vcxproj files)
+// 'TextureID=unsigned long long' (this is what we do in our .vcxproj files)
 // - [Solution 2] IDE/msbuild: in "Properties/C++/Preprocessor Definitions" add
 // 'USER_CONFIG="my_config.h"' and inside 'my_config.h' add '#define
-// TextureID U64' and as many other options as you like.
+// TextureID unsigned long long' and as many other options as you like.
 // - [Solution 3] IDE/msbuild: edit config.hpp and add '#define TextureID
-// U64' (prefer solution 2 to create your own config file!)
-// - [Solution 4] command-line: add '/D TextureID=U64' to your cl.exe
-// command-line (this is what we do in our batch files)
+// unsigned long long' (prefer solution 2 to create your own config file!)
+// - [Solution 4] command-line: add '/D TextureID=unsigned long long' to your
+// cl.exe command-line (this is what we do in our batch files)
 
 // Important note to the reader who wish to integrate vulkan.cpp/.h
 // in their own engine/app.
@@ -639,7 +639,7 @@ void Vulkan_RenderDrawData(DrawData *draw_data, VkCommandBuffer command_buffer,
 
         // Bind DescriptorSet with font or user texture
         VkDescriptorSet desc_set[1] = {(VkDescriptorSet)pcmd->TextureId};
-        if (sizeof(TextureID) < sizeof(U64)) {
+        if (sizeof(TextureID) < sizeof(unsigned long long)) {
           // We don't support texture switches if TextureID hasn't been
           // redefined to be 64-bit. Do a flaky check that other textures
           // haven't been used.
@@ -1822,8 +1822,8 @@ static void Vulkan_CreateWindow(Viewport *viewport) {
   // Create surface
   PlatformIO &platform_io = Gui::GetPlatformIO();
   VkResult err = (VkResult)platform_io.Platform_CreateVkSurface(
-      viewport, (U64)v->Instance, (const void *)v->Allocator,
-      (U64 *)&wd->Surface);
+      viewport, (unsigned long long)v->Instance, (const void *)v->Allocator,
+      (unsigned long long *)&wd->Surface);
   check_vk_result(err);
 
   // Check for WSI support

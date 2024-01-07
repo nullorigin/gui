@@ -31,7 +31,7 @@
 //  [SECTION] PLATFORM DEPENDENT HELPERS
 //  [SECTION] METRICS/DEBUGGER WINDOW
 //  [SECTION] DEBUG LOG WINDOW
-//  [SECTION] OTHER DEBUG TOOLS (ITEM PICKER, ID STACK TOOL)
+//  [SECTION] OTHER DEBUG TOOLS (ITEM PICKER, int STACK TOOL)
 //-------------------------------------------------------------------------
 //  [SECTION] INCLUDES
 //-------------------------------------------------------------------------
@@ -246,7 +246,7 @@ static const float DOCKING_TRANSPARENT_PAYLOAD_ALPHA =
 
 static void SetCurrentWindow(Window *window);
 static void FindHoveredWindow();
-static Window *CreateNewWindow(const char *name, WindowFlags flags);
+static Window *CreateNewWindow(const char *name, int flags);
 static Vec2 CalcNextScrollFromScrollTargetAndClamp(Window *window);
 
 static void AddWindowToSortBuffer(Vector<Window *> *out_sorted_windows,
@@ -284,8 +284,8 @@ static void NavEndFrame();
 static bool NavScoreItem(NavItemData *result);
 static void NavApplyItemToResult(NavItemData *result);
 static void NavProcessItem();
-static void NavProcessItemForTabbingRequest(ID id, ItemFlags item_flags,
-                                            NavMoveFlags move_flags);
+static void NavProcessItemForTabbingRequest(int id, int item_flags,
+                                            int move_flags);
 static Vec2 NavCalcPreferredRefPos();
 static void NavSaveLastChildNavWindowIntoParent(Window *nav_window);
 static Window *NavRestoreLastChildNavWindow(Window *window);
@@ -310,29 +310,30 @@ static void UpdateSettings();
 static int UpdateWindowManualResize(Window *window, const Vec2 &size_auto_fit,
                                     int *border_hovered, int *border_held,
                                     int resize_grip_count,
-                                    U32 resize_grip_col[4],
+                                    unsigned int resize_grip_col[4],
                                     const Rect &visibility_rect);
 static void RenderWindowOuterBorders(Window *window);
 static void RenderWindowDecorations(Window *window, const Rect &title_bar_rect,
                                     bool title_bar_is_highlight,
                                     bool handle_borders_and_resize_grips,
                                     int resize_grip_count,
-                                    const U32 resize_grip_col[4],
+                                    const unsigned int resize_grip_col[4],
                                     float resize_grip_draw_size);
 static void RenderWindowTitleBarContents(Window *window,
                                          const Rect &title_bar_rect,
                                          const char *name, bool *p_open);
-static void RenderDimmedBackgroundBehindWindow(Window *window, U32 col);
+static void RenderDimmedBackgroundBehindWindow(Window *window,
+                                               unsigned int col);
 static void RenderDimmedBackgrounds();
 
 // Viewports
-const ID VIEWPORT_DEFAULT_ID =
+const int VIEWPORT_DEFAULT_ID =
     0x11111111; // Using an arbitrary constant instead of e.g.
                 // HashStr("ViewportDefault", 0); so it's easier to spot in
                 // the debugger. The exact value doesn't matter.
-static ViewportP *AddUpdateViewport(Window *window, ID id,
+static ViewportP *AddUpdateViewport(Window *window, int id,
                                     const Vec2 &platform_pos, const Vec2 &size,
-                                    ViewportFlags flags);
+                                    int flags);
 static void DestroyViewport(ViewportP *viewport);
 static void UpdateViewportsNewFrame();
 static void UpdateViewportsEndFrame();
@@ -690,7 +691,7 @@ IO::IO() {
     KeysData[i].DownDuration = KeysData[i].DownDurationPrev = -1.0f;
   }
   AppAcceptingEvents = true;
-  BackendUsingLegacyKeyArrays = (S8)-1;
+  BackendUsingLegacyKeyArrays = (signed char)-1;
   BackendUsingLegacyNavInputArray =
       true; // assume using legacy array until proven wrong
 }
@@ -1005,17 +1006,17 @@ void IO::AddMouseSourceEvent(::MouseSource source) {
   g.InputEventsNextMouseSource = source;
 }
 
-void IO::AddMouseViewportEvent(ID viewport_id) {
+void IO::AddMouseViewportEvent(int viewport_id) {
   ASSERT(Ctx != NULL);
   Context &g = *Ctx;
-  // ASSERT(g.IO.BackendFlags & BackendFlags_HasMouseHoveredViewport);
+  // ASSERT(g.IO.ConfigFlags & BackendFlags_HasMouseHoveredViewport);
   if (!AppAcceptingEvents)
     return;
 
   // Filter duplicate
   const InputEvent *latest_event =
       FindLatestInputEvent(&g, InputEventType_MouseViewport);
-  const ID latest_viewport_id =
+  const int latest_viewport_id =
       latest_event ? latest_event->MouseViewport.HoveredViewportID
                    : g.IO.MouseHoveredViewport;
   if (latest_viewport_id == viewport_id)
@@ -1400,7 +1401,7 @@ void FormatStringToTempBufferV(const char **out_buf, const char **out_buf_end,
 // itself, using a const table allows us to easily:
 // - avoid an unnecessary branch/memory tap, - keep the HashXXX functions
 // usable by static constructors, - make it thread-safe.
-static const U32 GCrc32LookupTable[256] = {
+static const unsigned int GCrc32LookupTable[256] = {
     0x00000000, 0x77073096, 0xEE0E612C, 0x990951BA, 0x076DC419, 0x706AF48F,
     0xE963A535, 0x9E6495A3, 0x0EDB8832, 0x79DCB8A4, 0xE0D5E91E, 0x97D2D988,
     0x09B64C2B, 0x7EB17CBD, 0xE7B82D07, 0x90BF1D91, 0x1DB71064, 0x6AB020F2,
@@ -1451,10 +1452,10 @@ static const U32 GCrc32LookupTable[256] = {
 // operator won't be supported.
 // FIXME-OPT: Replace with e.g. FNV1a hash? CRC32 pretty much randomly access
 // 1KB. Need to do proper measurements.
-ID HashData(const void *data_p, size_t data_size, ID seed) {
-  U32 crc = ~seed;
+int HashData(const void *data_p, size_t data_size, int seed) {
+  unsigned int crc = ~seed;
   const unsigned char *data = (const unsigned char *)data_p;
-  const U32 *crc32_lut = GCrc32LookupTable;
+  const unsigned int *crc32_lut = GCrc32LookupTable;
   while (data_size-- != 0)
     crc = (crc >> 8) ^ crc32_lut[(crc & 0xFF) ^ *data++];
   return ~crc;
@@ -1470,11 +1471,11 @@ ID HashData(const void *data_p, size_t data_size, ID seed) {
 // smaller/faster (measured ~10% diff in Debug build)
 // FIXME-OPT: Replace with e.g. FNV1a hash? CRC32 pretty much randomly access
 // 1KB. Need to do proper measurements.
-ID HashStr(const char *data_p, size_t data_size, ID seed) {
+int HashStr(const char *data_p, size_t data_size, int seed) {
   seed = ~seed;
-  U32 crc = seed;
+  unsigned int crc = seed;
   const unsigned char *data = (const unsigned char *)data_p;
-  const U32 *crc32_lut = GCrc32LookupTable;
+  const unsigned int *crc32_lut = GCrc32LookupTable;
   if (data_size != 0) {
     while (data_size-- != 0) {
       unsigned char c = *data++;
@@ -1526,17 +1527,19 @@ FileHandle FileOpen(const char *filename, const char *mode) {
 // _fseeki64()/_ftelli64() with __int64, waiting for the PR that does that in a
 // very portable pre-C++11 zero-warnings way.
 bool FileClose(FileHandle f) { return fclose(f) == 0; }
-U64 FileGetSize(FileHandle f) {
+unsigned long long FileGetSize(FileHandle f) {
   long off = 0, sz = 0;
   return ((off = ftell(f)) != -1 && !fseek(f, 0, SEEK_END) &&
           (sz = ftell(f)) != -1 && !fseek(f, off, SEEK_SET))
-             ? (U64)sz
-             : (U64)-1;
+             ? (unsigned long long)sz
+             : (unsigned long long)-1;
 }
-U64 FileRead(void *data, U64 sz, U64 count, FileHandle f) {
+unsigned long long FileRead(void *data, unsigned long long sz,
+                            unsigned long long count, FileHandle f) {
   return fread(data, (size_t)sz, (size_t)count, f);
 }
-U64 FileWrite(const void *data, U64 sz, U64 count, FileHandle f) {
+unsigned long long FileWrite(const void *data, unsigned long long sz,
+                             unsigned long long count, FileHandle f) {
   return fwrite(data, (size_t)sz, (size_t)count, f);
 }
 #endif // #ifndef DISABLE_DEFAULT_FILE_FUNCTIONS
@@ -1780,7 +1783,7 @@ MSVC_RUNTIME_CHECKS_RESTORE
 // other API.
 //-----------------------------------------------------------------------------
 
-API U32 AlphaBlendColors(U32 col_a, U32 col_b) {
+API unsigned int AlphaBlendColors(unsigned int col_a, unsigned int col_b) {
   float t = ((col_b >> COL32_A_SHIFT) & 0xFF) / 255.f;
   int r = Lerp((int)(col_a >> COL32_R_SHIFT) & 0xFF,
                (int)(col_b >> COL32_R_SHIFT) & 0xFF, t);
@@ -1791,19 +1794,19 @@ API U32 AlphaBlendColors(U32 col_a, U32 col_b) {
   return COL32(r, g, b, 0xFF);
 }
 
-Vec4 Gui::ColorConvertU32ToFloat4(U32 in) {
+Vec4 Gui::ColorConvertU32ToFloat4(unsigned int in) {
   float s = 1.0f / 255.0f;
   return Vec4(
       ((in >> COL32_R_SHIFT) & 0xFF) * s, ((in >> COL32_G_SHIFT) & 0xFF) * s,
       ((in >> COL32_B_SHIFT) & 0xFF) * s, ((in >> COL32_A_SHIFT) & 0xFF) * s);
 }
 
-U32 Gui::ColorConvertFloat4ToU32(const Vec4 &in) {
-  U32 out;
-  out = ((U32)F32_TO_INT8_SAT(in.x)) << COL32_R_SHIFT;
-  out |= ((U32)F32_TO_INT8_SAT(in.y)) << COL32_G_SHIFT;
-  out |= ((U32)F32_TO_INT8_SAT(in.z)) << COL32_B_SHIFT;
-  out |= ((U32)F32_TO_INT8_SAT(in.w)) << COL32_A_SHIFT;
+unsigned int Gui::ColorConvertFloat4ToU32(const Vec4 &in) {
+  unsigned int out;
+  out = ((unsigned int)F32_TO_INT8_SAT(in.x)) << COL32_R_SHIFT;
+  out |= ((unsigned int)F32_TO_INT8_SAT(in.y)) << COL32_G_SHIFT;
+  out |= ((unsigned int)F32_TO_INT8_SAT(in.z)) << COL32_B_SHIFT;
+  out |= ((unsigned int)F32_TO_INT8_SAT(in.w)) << COL32_A_SHIFT;
   return out;
 }
 
@@ -1887,7 +1890,7 @@ void Gui::ColorConvertHSVtoRGB(float h, float s, float v, float &out_r,
 
 // std::lower_bound but without the bullshit
 static Storage::StoragePair *LowerBound(Vector<Storage::StoragePair> &data,
-                                        ID key) {
+                                        int key) {
   Storage::StoragePair *first = data.Data;
   Storage::StoragePair *last = data.Data + data.Size;
   size_t count = (size_t)(last - first);
@@ -1910,7 +1913,7 @@ void Storage::BuildSortByKey() {
   struct StaticFunc {
     static int CDECL PairComparerByID(const void *lhs, const void *rhs) {
       // We can't just do a subtraction because qsort uses signed integers and
-      // subtracting our ID doesn't play well with that.
+      // subtracting our int doesn't play well with that.
       if (((const StoragePair *)lhs)->key > ((const StoragePair *)rhs)->key)
         return +1;
       if (((const StoragePair *)lhs)->key < ((const StoragePair *)rhs)->key)
@@ -1922,25 +1925,25 @@ void Storage::BuildSortByKey() {
         StaticFunc::PairComparerByID);
 }
 
-int Storage::GetInt(ID key, int default_val) const {
+int Storage::GetInt(int key, int default_val) const {
   StoragePair *it = LowerBound(const_cast<Vector<StoragePair> &>(Data), key);
   if (it == Data.end() || it->key != key)
     return default_val;
   return it->val_i;
 }
 
-bool Storage::GetBool(ID key, bool default_val) const {
+bool Storage::GetBool(int key, bool default_val) const {
   return GetInt(key, default_val ? 1 : 0) != 0;
 }
 
-float Storage::GetFloat(ID key, float default_val) const {
+float Storage::GetFloat(int key, float default_val) const {
   StoragePair *it = LowerBound(const_cast<Vector<StoragePair> &>(Data), key);
   if (it == Data.end() || it->key != key)
     return default_val;
   return it->val_f;
 }
 
-void *Storage::GetVoidPtr(ID key) const {
+void *Storage::GetVoidPtr(int key) const {
   StoragePair *it = LowerBound(const_cast<Vector<StoragePair> &>(Data), key);
   if (it == Data.end() || it->key != key)
     return NULL;
@@ -1949,25 +1952,25 @@ void *Storage::GetVoidPtr(ID key) const {
 
 // References are only valid until a new value is added to the storage. Calling
 // a Set***() function or a Get***Ref() function invalidates the pointer.
-int *Storage::GetIntRef(ID key, int default_val) {
+int *Storage::GetIntRef(int key, int default_val) {
   StoragePair *it = LowerBound(Data, key);
   if (it == Data.end() || it->key != key)
     it = Data.insert(it, StoragePair(key, default_val));
   return &it->val_i;
 }
 
-bool *Storage::GetBoolRef(ID key, bool default_val) {
+bool *Storage::GetBoolRef(int key, bool default_val) {
   return (bool *)GetIntRef(key, default_val ? 1 : 0);
 }
 
-float *Storage::GetFloatRef(ID key, float default_val) {
+float *Storage::GetFloatRef(int key, float default_val) {
   StoragePair *it = LowerBound(Data, key);
   if (it == Data.end() || it->key != key)
     it = Data.insert(it, StoragePair(key, default_val));
   return &it->val_f;
 }
 
-void **Storage::GetVoidPtrRef(ID key, void *default_val) {
+void **Storage::GetVoidPtrRef(int key, void *default_val) {
   StoragePair *it = LowerBound(Data, key);
   if (it == Data.end() || it->key != key)
     it = Data.insert(it, StoragePair(key, default_val));
@@ -1977,7 +1980,7 @@ void **Storage::GetVoidPtrRef(ID key, void *default_val) {
 // FIXME-OPT: Need a way to reuse the result of lower_bound when doing
 // GetInt()/SetInt() - not too bad because it only happens on explicit
 // interaction (maximum one a frame)
-void Storage::SetInt(ID key, int val) {
+void Storage::SetInt(int key, int val) {
   StoragePair *it = LowerBound(Data, key);
   if (it == Data.end() || it->key != key)
     Data.insert(it, StoragePair(key, val));
@@ -1985,9 +1988,9 @@ void Storage::SetInt(ID key, int val) {
     it->val_i = val;
 }
 
-void Storage::SetBool(ID key, bool val) { SetInt(key, val ? 1 : 0); }
+void Storage::SetBool(int key, bool val) { SetInt(key, val ? 1 : 0); }
 
-void Storage::SetFloat(ID key, float val) {
+void Storage::SetFloat(int key, float val) {
   StoragePair *it = LowerBound(Data, key);
   if (it == Data.end() || it->key != key)
     Data.insert(it, StoragePair(key, val));
@@ -1995,7 +1998,7 @@ void Storage::SetFloat(ID key, float val) {
     it->val_f = val;
 }
 
-void Storage::SetVoidPtr(ID key, void *val) {
+void Storage::SetVoidPtr(int key, void *val) {
   StoragePair *it = LowerBound(Data, key);
   if (it == Data.end() || it->key != key)
     Data.insert(it, StoragePair(key, val));
@@ -2515,38 +2518,38 @@ Style &Gui::GetStyle() {
   return GGui->Style;
 }
 
-U32 Gui::GetColorU32(Col idx, float alpha_mul) {
+unsigned int Gui::GetColorU32(int idx, float alpha_mul) {
   Style &style = GGui->Style;
   Vec4 c = style.Colors[idx];
   c.w *= style.Alpha * alpha_mul;
   return ColorConvertFloat4ToU32(c);
 }
 
-U32 Gui::GetColorU32(const Vec4 &col) {
+unsigned int Gui::GetColorU32(const Vec4 &col) {
   Style &style = GGui->Style;
   Vec4 c = col;
   c.w *= style.Alpha;
   return ColorConvertFloat4ToU32(c);
 }
 
-const Vec4 &Gui::GetStyleColorVec4(Col idx) {
+const Vec4 &Gui::GetStyleColorVec4(int idx) {
   Style &style = GGui->Style;
   return style.Colors[idx];
 }
 
-U32 Gui::GetColorU32(U32 col) {
+unsigned int Gui::GetColorU32(unsigned int col) {
   Style &style = GGui->Style;
   if (style.Alpha >= 1.0f)
     return col;
-  U32 a = (col & COL32_A_MASK) >> COL32_A_SHIFT;
-  a = (U32)(a * style.Alpha); // We don't need to clamp 0..255 because
-                              // Style.Alpha is in 0..1 range.
+  unsigned int a = (col & COL32_A_MASK) >> COL32_A_SHIFT;
+  a = (unsigned int)(a * style.Alpha); // We don't need to clamp 0..255 because
+                                       // Style.Alpha is in 0..1 range.
   return (col & ~COL32_A_MASK) | (a << COL32_A_SHIFT);
 }
 
 // FIXME: This may incur a round-trip (if the end user got their data from a
-// float4) but eventually we aim to store the in-flight colors as U32
-void Gui::PushStyleColor(Col idx, U32 col) {
+// float4) but eventually we aim to store the in-flight colors as unsigned int
+void Gui::PushStyleColor(int idx, unsigned int col) {
   Context &g = *GGui;
   ColorMod backup;
   backup.Col = idx;
@@ -2556,7 +2559,7 @@ void Gui::PushStyleColor(Col idx, U32 col) {
     g.Style.Colors[idx] = ColorConvertU32ToFloat4(col);
 }
 
-void Gui::PushStyleColor(Col idx, const Vec4 &col) {
+void Gui::PushStyleColor(int idx, const Vec4 &col) {
   Context &g = *GGui;
   ColorMod backup;
   backup.Col = idx;
@@ -2582,82 +2585,93 @@ void Gui::PopStyleColor(int count) {
   }
 }
 
-static const Col GWindowDockStyleColors[WindowDockStyleCol_COUNT] = {
+static const int GWindowDockStyleColors[WindowDockStyleCol_COUNT] = {
     Col_Text,      Col_Tab,          Col_TabHovered,
     Col_TabActive, Col_TabUnfocused, Col_TabUnfocusedActive};
 
 static const DataVarInfo GStyleVarInfo[] = {
-    {DataType_Float, 1, (U32)offsetof(Style, Alpha)}, // StyleVar_Alpha
+    {DataType_Float, 1, (unsigned int)offsetof(Style, Alpha)}, // StyleVar_Alpha
     {DataType_Float, 1,
-     (U32)offsetof(Style, DisabledAlpha)}, // StyleVar_DisabledAlpha
+     (unsigned int)offsetof(Style, DisabledAlpha)}, // StyleVar_DisabledAlpha
     {DataType_Float, 2,
-     (U32)offsetof(Style, WindowPadding)}, // StyleVar_WindowPadding
+     (unsigned int)offsetof(Style, WindowPadding)}, // StyleVar_WindowPadding
     {DataType_Float, 1,
-     (U32)offsetof(Style, WindowRounding)}, // StyleVar_WindowRounding
+     (unsigned int)offsetof(Style, WindowRounding)}, // StyleVar_WindowRounding
     {DataType_Float, 1,
-     (U32)offsetof(Style, WindowBorderSize)}, // StyleVar_WindowBorderSize
+     (unsigned int)offsetof(Style,
+                            WindowBorderSize)}, // StyleVar_WindowBorderSize
     {DataType_Float, 2,
-     (U32)offsetof(Style, WindowMinSize)}, // StyleVar_WindowMinSize
+     (unsigned int)offsetof(Style, WindowMinSize)}, // StyleVar_WindowMinSize
     {DataType_Float, 2,
-     (U32)offsetof(Style, WindowTitleAlign)}, // StyleVar_WindowTitleAlign
+     (unsigned int)offsetof(Style,
+                            WindowTitleAlign)}, // StyleVar_WindowTitleAlign
     {DataType_Float, 1,
-     (U32)offsetof(Style, ChildRounding)}, // StyleVar_ChildRounding
+     (unsigned int)offsetof(Style, ChildRounding)}, // StyleVar_ChildRounding
     {DataType_Float, 1,
-     (U32)offsetof(Style, ChildBorderSize)}, // StyleVar_ChildBorderSize
+     (unsigned int)offsetof(Style,
+                            ChildBorderSize)}, // StyleVar_ChildBorderSize
     {DataType_Float, 1,
-     (U32)offsetof(Style, PopupRounding)}, // StyleVar_PopupRounding
+     (unsigned int)offsetof(Style, PopupRounding)}, // StyleVar_PopupRounding
     {DataType_Float, 1,
-     (U32)offsetof(Style, PopupBorderSize)}, // StyleVar_PopupBorderSize
+     (unsigned int)offsetof(Style,
+                            PopupBorderSize)}, // StyleVar_PopupBorderSize
     {DataType_Float, 2,
-     (U32)offsetof(Style, FramePadding)}, // StyleVar_FramePadding
+     (unsigned int)offsetof(Style, FramePadding)}, // StyleVar_FramePadding
     {DataType_Float, 1,
-     (U32)offsetof(Style, FrameRounding)}, // StyleVar_FrameRounding
+     (unsigned int)offsetof(Style, FrameRounding)}, // StyleVar_FrameRounding
     {DataType_Float, 1,
-     (U32)offsetof(Style, FrameBorderSize)}, // StyleVar_FrameBorderSize
+     (unsigned int)offsetof(Style,
+                            FrameBorderSize)}, // StyleVar_FrameBorderSize
     {DataType_Float, 2,
-     (U32)offsetof(Style, ItemSpacing)}, // StyleVar_ItemSpacing
+     (unsigned int)offsetof(Style, ItemSpacing)}, // StyleVar_ItemSpacing
     {DataType_Float, 2,
-     (U32)offsetof(Style, ItemInnerSpacing)}, // StyleVar_ItemInnerSpacing
+     (unsigned int)offsetof(Style,
+                            ItemInnerSpacing)}, // StyleVar_ItemInnerSpacing
     {DataType_Float, 1,
-     (U32)offsetof(Style, IndentSpacing)}, // StyleVar_IndentSpacing
+     (unsigned int)offsetof(Style, IndentSpacing)}, // StyleVar_IndentSpacing
     {DataType_Float, 2,
-     (U32)offsetof(Style, CellPadding)}, // StyleVar_CellPadding
+     (unsigned int)offsetof(Style, CellPadding)}, // StyleVar_CellPadding
     {DataType_Float, 1,
-     (U32)offsetof(Style, ScrollbarSize)}, // StyleVar_ScrollbarSize
+     (unsigned int)offsetof(Style, ScrollbarSize)}, // StyleVar_ScrollbarSize
     {DataType_Float, 1,
-     (U32)offsetof(Style, ScrollbarRounding)}, // StyleVar_ScrollbarRounding
+     (unsigned int)offsetof(Style,
+                            ScrollbarRounding)}, // StyleVar_ScrollbarRounding
     {DataType_Float, 1,
-     (U32)offsetof(Style, GrabMinSize)}, // StyleVar_GrabMinSize
+     (unsigned int)offsetof(Style, GrabMinSize)}, // StyleVar_GrabMinSize
     {DataType_Float, 1,
-     (U32)offsetof(Style, GrabRounding)}, // StyleVar_GrabRounding
+     (unsigned int)offsetof(Style, GrabRounding)}, // StyleVar_GrabRounding
     {DataType_Float, 1,
-     (U32)offsetof(Style, TabRounding)}, // StyleVar_TabRounding
+     (unsigned int)offsetof(Style, TabRounding)}, // StyleVar_TabRounding
     {DataType_Float, 1,
-     (U32)offsetof(Style, TabBarBorderSize)}, // StyleVar_TabBarBorderSize
+     (unsigned int)offsetof(Style,
+                            TabBarBorderSize)}, // StyleVar_TabBarBorderSize
     {DataType_Float, 2,
-     (U32)offsetof(Style, ButtonTextAlign)}, // StyleVar_ButtonTextAlign
+     (unsigned int)offsetof(Style,
+                            ButtonTextAlign)}, // StyleVar_ButtonTextAlign
     {DataType_Float, 2,
-     (U32)offsetof(Style, SelectableTextAlign)}, // StyleVar_SelectableTextAlign
+     (unsigned int)offsetof(
+         Style, SelectableTextAlign)}, // StyleVar_SelectableTextAlign
     {DataType_Float, 1,
-     (U32)offsetof(
+     (unsigned int)offsetof(
          Style, SeparatorTextBorderSize)}, // StyleVar_SeparatorTextBorderSize
     {DataType_Float, 2,
-     (U32)offsetof(Style, SeparatorTextAlign)}, // StyleVar_SeparatorTextAlign
+     (unsigned int)offsetof(Style,
+                            SeparatorTextAlign)}, // StyleVar_SeparatorTextAlign
     {DataType_Float, 2,
-     (U32)offsetof(Style,
-                   SeparatorTextPadding)}, // StyleVar_SeparatorTextPadding
+     (unsigned int)offsetof(
+         Style, SeparatorTextPadding)}, // StyleVar_SeparatorTextPadding
     {DataType_Float, 1,
-     (U32)offsetof(Style,
-                   DockingSeparatorSize)}, // StyleVar_DockingSeparatorSize
+     (unsigned int)offsetof(
+         Style, DockingSeparatorSize)}, // StyleVar_DockingSeparatorSize
 };
 
-const DataVarInfo *Gui::GetStyleVarInfo(StyleVar idx) {
+const DataVarInfo *Gui::GetStyleVarInfo(int idx) {
   ASSERT(idx >= 0 && idx < StyleVar_COUNT);
   STATIC_ASSERT(ARRAYSIZE(GStyleVarInfo) == StyleVar_COUNT);
   return &GStyleVarInfo[idx];
 }
 
-void Gui::PushStyleVar(StyleVar idx, float val) {
+void Gui::PushStyleVar(int idx, float val) {
   Context &g = *GGui;
   const DataVarInfo *var_info = GetStyleVarInfo(idx);
   if (var_info->Type == DataType_Float && var_info->Count == 1) {
@@ -2669,7 +2683,7 @@ void Gui::PushStyleVar(StyleVar idx, float val) {
   ASSERT_USER_ERROR(0, "Called PushStyleVar() variant with wrong type!");
 }
 
-void Gui::PushStyleVar(StyleVar idx, const Vec2 &val) {
+void Gui::PushStyleVar(int idx, const Vec2 &val) {
   Context &g = *GGui;
   const DataVarInfo *var_info = GetStyleVarInfo(idx);
   if (var_info->Type == DataType_Float && var_info->Count == 2) {
@@ -2706,7 +2720,7 @@ void Gui::PopStyleVar(int count) {
   }
 }
 
-const char *Gui::GetStyleColorName(Col idx) {
+const char *Gui::GetStyleColorName(int idx) {
   // Create switch-case from enum with regexp: Col_{.*}, --> case
   // Col_\1: return "\1";
   switch (idx) {
@@ -3033,8 +3047,8 @@ void Gui::RenderTextEllipsis(DrawList *draw_list, const Vec2 &pos_min,
 }
 
 // Render a rectangle shaped with optional rounding and borders
-void Gui::RenderFrame(Vec2 p_min, Vec2 p_max, U32 fill_col, bool border,
-                      float rounding) {
+void Gui::RenderFrame(Vec2 p_min, Vec2 p_max, unsigned int fill_col,
+                      bool border, float rounding) {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
   window->DrawList->AddRectFilled(p_min, p_max, fill_col, rounding);
@@ -3061,7 +3075,7 @@ void Gui::RenderFrameBorder(Vec2 p_min, Vec2 p_max, float rounding) {
   }
 }
 
-void Gui::RenderNavHighlight(const Rect &bb, ID id, NavHighlightFlags flags) {
+void Gui::RenderNavHighlight(const Rect &bb, int id, int flags) {
   Context &g = *GGui;
   if (id != g.NavId)
     return;
@@ -3095,9 +3109,9 @@ void Gui::RenderNavHighlight(const Rect &bb, ID id, NavHighlightFlags flags) {
   }
 }
 
-void Gui::RenderMouseCursor(Vec2 base_pos, float base_scale,
-                            MouseCursor mouse_cursor, U32 col_fill,
-                            U32 col_border, U32 col_shadow) {
+void Gui::RenderMouseCursor(Vec2 base_pos, float base_scale, int mouse_cursor,
+                            unsigned int col_fill, unsigned int col_border,
+                            unsigned int col_shadow) {
   Context &g = *GGui;
   ASSERT(mouse_cursor > MouseCursor_None && mouse_cursor < MouseCursor_COUNT);
   FontAtlas *font_atlas = g.DrawListSharedData.Font->ContainerAtlas;
@@ -3348,7 +3362,7 @@ void Gui::Shutdown() {
 }
 
 // No specific ordering/dependency support, will see as needed
-ID Gui::AddContextHook(Context *ctx, const ContextHook *hook) {
+int Gui::AddContextHook(Context *ctx, const ContextHook *hook) {
   Context &g = *ctx;
   ASSERT(hook->Callback != NULL && hook->HookId == 0 &&
          hook->Type != ContextHookType_PendingRemoval_);
@@ -3358,7 +3372,7 @@ ID Gui::AddContextHook(Context *ctx, const ContextHook *hook) {
 }
 
 // Deferred removal, avoiding issue with changing vector while iterating it
-void Gui::RemoveContextHook(Context *ctx, ID hook_id) {
+void Gui::RemoveContextHook(Context *ctx, int hook_id) {
   Context &g = *ctx;
   ASSERT(hook_id != 0);
   for (ContextHook &hook : g.Hooks)
@@ -3419,39 +3433,39 @@ Window::~Window() {
   ColumnsStorage.clear_destruct();
 }
 
-ID Window::GetID(const char *str, const char *str_end) {
-  ::ID seed = IDStack.back();
-  ::ID id = HashStr(str, str_end ? (str_end - str) : 0, seed);
+int Window::GetID(const char *str, const char *str_end) {
+  int seed = IDStack.back();
+  int id = HashStr(str, str_end ? (str_end - str) : 0, seed);
   Context &g = *Ctx;
   if (g.DebugHookIdInfo == id)
     Gui::DebugHookIdInfo(id, DataType_String, str, str_end);
   return id;
 }
 
-ID Window::GetID(const void *ptr) {
-  ::ID seed = IDStack.back();
-  ::ID id = HashData(&ptr, sizeof(void *), seed);
+int Window::GetID(const void *ptr) {
+  int seed = IDStack.back();
+  int id = HashData(&ptr, sizeof(void *), seed);
   Context &g = *Ctx;
   if (g.DebugHookIdInfo == id)
     Gui::DebugHookIdInfo(id, DataType_Pointer, ptr, NULL);
   return id;
 }
 
-ID Window::GetID(int n) {
-  ::ID seed = IDStack.back();
-  ::ID id = HashData(&n, sizeof(n), seed);
+int Window::GetID(int n) {
+  int seed = IDStack.back();
+  int id = HashData(&n, sizeof(n), seed);
   Context &g = *Ctx;
   if (g.DebugHookIdInfo == id)
     Gui::DebugHookIdInfo(id, DataType_S32, (void *)(intptr_t)n, NULL);
   return id;
 }
 
-// This is only used in rare/specific situations to manufacture an ID out of
+// This is only used in rare/specific situations to manufacture an int out of
 // nowhere.
-ID Window::GetIDFromRectangle(const ::Rect &r_abs) {
-  ::ID seed = IDStack.back();
-  ::Rect r_rel = Gui::WindowRectAbsToRel(this, r_abs);
-  ::ID id = HashData(&r_rel, sizeof(r_rel), seed);
+int Window::GetIDFromRectangle(const struct Rect &r_abs) {
+  int seed = IDStack.back();
+  struct Rect r_rel = Gui::WindowRectAbsToRel(this, r_abs);
+  int id = HashData(&r_rel, sizeof(r_rel), seed);
   return id;
 }
 
@@ -3500,7 +3514,7 @@ void Gui::GcAwakeTransientWindowBuffers(Window *window) {
   window->MemoryDrawListIdxCapacity = window->MemoryDrawListVtxCapacity = 0;
 }
 
-void Gui::SetActiveID(ID id, Window *window) {
+void Gui::SetActiveID(int id, Window *window) {
   Context &g = *GGui;
 
   // Clear previous active id
@@ -3567,7 +3581,7 @@ void Gui::ClearActiveID() {
   SetActiveID(0, NULL); // g.ActiveId = 0;
 }
 
-void Gui::SetHoveredID(ID id) {
+void Gui::SetHoveredID(int id) {
   Context &g = *GGui;
   g.HoveredId = id;
   g.HoveredIdAllowOverlap = false;
@@ -3575,7 +3589,7 @@ void Gui::SetHoveredID(ID id) {
     g.HoveredIdTimer = g.HoveredIdNotActiveTimer = 0.0f;
 }
 
-ID Gui::GetHoveredID() {
+int Gui::GetHoveredID() {
   Context &g = *GGui;
   return g.HoveredId ? g.HoveredId : g.HoveredIdPreviousFrame;
 }
@@ -3583,7 +3597,7 @@ ID Gui::GetHoveredID() {
 // This is called by ItemAdd().
 // Code not using ItemAdd() may need to call this manually otherwise ActiveId
 // will be cleared. In VERSION_NUM < 18717 this was called by GetID().
-void Gui::KeepAliveID(ID id) {
+void Gui::KeepAliveID(int id) {
   Context &g = *GGui;
   if (g.ActiveId == id)
     g.ActiveIdIsAlive = id;
@@ -3591,7 +3605,7 @@ void Gui::KeepAliveID(ID id) {
     g.ActiveIdPreviousFrameIsAlive = true;
 }
 
-void Gui::MarkItemEdited(ID id) {
+void Gui::MarkItemEdited(int id) {
   // This marking is solely to be able to provide info for
   // IsItemDeactivatedAfterEdit(). ActiveId might have been released by the time
   // we call this (as in the typical press/release button behavior) but still
@@ -3614,7 +3628,7 @@ void Gui::MarkItemEdited(ID id) {
   g.LastItemData.StatusFlags |= ItemStatusFlags_Edited;
 }
 
-bool Gui::IsWindowContentHoverable(Window *window, HoveredFlags flags) {
+bool Gui::IsWindowContentHoverable(Window *window, int flags) {
   // An active popup disable hovering on other windows (apart from its own
   // children)
   // FIXME-OPT: This could be cached/stored within the window.
@@ -3650,7 +3664,7 @@ bool Gui::IsWindowContentHoverable(Window *window, HoveredFlags flags) {
   return true;
 }
 
-static inline float CalcDelayFromHoveredFlags(HoveredFlags flags) {
+static inline float CalcDelayFromHoveredFlags(int flags) {
   Context &g = *GGui;
   if (flags & HoveredFlags_DelayNormal)
     return g.Style.HoverDelayNormal;
@@ -3659,8 +3673,7 @@ static inline float CalcDelayFromHoveredFlags(HoveredFlags flags) {
   return 0.0f;
 }
 
-static HoveredFlags ApplyHoverFlagsForTooltip(HoveredFlags user_flags,
-                                              HoveredFlags shared_flags) {
+static int ApplyHoverFlagsForTooltip(int user_flags, int shared_flags) {
   // Allow instance flags to override shared flags
   if (user_flags & (HoveredFlags_DelayNone | HoveredFlags_DelayShort |
                     HoveredFlags_DelayNormal))
@@ -3673,9 +3686,9 @@ static HoveredFlags ApplyHoverFlagsForTooltip(HoveredFlags user_flags,
 // - we allow hovering to be true when ActiveId==window->MoveID, so that
 // clicking on non-interactive items such as a Text() item still returns true
 // with IsItemHovered()
-// - this should work even for non-interactive items that have no ID, so we
-// cannot use LastItemId
-bool Gui::IsItemHovered(HoveredFlags flags) {
+// - this should work even for non-interactive items that have no unsigned int,
+// so we cannot use LastItemId
+bool Gui::IsItemHovered(int flags) {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
   ASSERT((flags & ~HoveredFlags_AllowedMaskForIsItemHovered) == 0 &&
@@ -3693,7 +3706,7 @@ bool Gui::IsItemHovered(HoveredFlags flags) {
       flags = ApplyHoverFlagsForTooltip(flags, g.Style.HoverFlagsForTooltipNav);
   } else {
     // Test for bounding box overlap, as updated as ItemAdd()
-    ItemStatusFlags status_flags = g.LastItemData.StatusFlags;
+    int status_flags = g.LastItemData.StatusFlags;
     if (!(status_flags & ItemStatusFlags_HoveredRect))
       return false;
 
@@ -3721,7 +3734,7 @@ bool Gui::IsItemHovered(HoveredFlags flags) {
         return false;
 
     // Test if another item is active (e.g. being dragged)
-    const ID id = g.LastItemData.ID;
+    const int id = g.LastItemData.ID;
     if ((flags & HoveredFlags_AllowWhenBlockedByActiveItem) == 0)
       if (g.ActiveId != 0 && g.ActiveId != id && !g.ActiveIdAllowOverlap)
         if (g.ActiveId != window->MoveId && g.ActiveId != window->TabId)
@@ -3757,9 +3770,9 @@ bool Gui::IsItemHovered(HoveredFlags flags) {
   // (some ideas: https://www.nngroup.com/articles/timing-exposing-content)
   const float delay = CalcDelayFromHoveredFlags(flags);
   if (delay > 0.0f || (flags & HoveredFlags_Stationary)) {
-    ID hover_delay_id = (g.LastItemData.ID != 0)
-                            ? g.LastItemData.ID
-                            : window->GetIDFromRectangle(g.LastItemData.Rect);
+    int hover_delay_id = (g.LastItemData.ID != 0)
+                             ? g.LastItemData.ID
+                             : window->GetIDFromRectangle(g.LastItemData.Rect);
     if ((flags & HoveredFlags_NoSharedDelay) &&
         (g.HoverItemDelayIdPreviousFrame != hover_delay_id))
       g.HoverItemDelayTimer = 0.0f;
@@ -3792,7 +3805,7 @@ bool Gui::IsItemHovered(HoveredFlags flags) {
 // 'item_flags = g.LastItemData.InFlags'.
 // - Rare: otherwise you may pass 'item_flags = 0' (ItemFlags_None) unless
 // you want to benefit from special behavior handled by ItemHoverable.
-bool Gui::ItemHoverable(const Rect &bb, ID id, ItemFlags item_flags) {
+bool Gui::ItemHoverable(const Rect &bb, int id, int item_flags) {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
   if (g.HoveredWindow != window)
@@ -3863,7 +3876,7 @@ bool Gui::ItemHoverable(const Rect &bb, ID id, ItemFlags item_flags) {
 }
 
 // FIXME: This is inlined/duplicated in ItemAdd()
-bool Gui::IsClippedEx(const Rect &bb, ID id) {
+bool Gui::IsClippedEx(const Rect &bb, int id) {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
   if (!bb.Overlaps(window->ClipRect))
@@ -3876,8 +3889,8 @@ bool Gui::IsClippedEx(const Rect &bb, ID id) {
 // This is also inlined in ItemAdd()
 // Note: if ItemStatusFlags_HasDisplayRect is set, user needs to set
 // g.LastItemData.DisplayRect.
-void Gui::SetLastItemData(ID item_id, ItemFlags in_flags,
-                          ItemStatusFlags item_flags, const Rect &item_rect) {
+void Gui::SetLastItemData(int item_id, int in_flags, int item_flags,
+                          const Rect &item_rect) {
   Context &g = *GGui;
   g.LastItemData.ID = item_id;
   g.LastItemData.InFlags = in_flags;
@@ -4452,7 +4465,7 @@ void Gui::NewFrame() {
     viewport->DrawDataP.Valid = false;
   }
 
-  // Drag and drop keep the source ID alive so even if the source disappear our
+  // Drag and drop keep the source int alive so even if the source disappear our
   // state is consistent
   if (g.DragDropActive && g.DragDropPayload.SourceId == g.ActiveId)
     KeepAliveID(g.DragDropPayload.SourceId);
@@ -4523,8 +4536,8 @@ void Gui::NewFrame() {
   // same item.
   // FIXME: The way this is expressed means user cannot alter
   // HoverStationaryDelay during the frame to use varying values. To allow this
-  // we should store HoverItemMaxStationaryTime+ID and perform the >= check in
-  // IsItemHovered() function.
+  // we should store HoverItemMaxStationaryTime+unsigned int and perform the >=
+  // check in IsItemHovered() function.
   if (g.HoverItemDelayId != 0 &&
       g.MouseStationaryTimer >= g.Style.HoverStationaryDelay)
     g.HoverItemUnlockedStationaryId = g.HoverItemDelayId;
@@ -4839,7 +4852,8 @@ static Window *FindFrontMostVisibleChildWindow(Window *window) {
   return window;
 }
 
-static void Gui::RenderDimmedBackgroundBehindWindow(Window *window, U32 col) {
+static void Gui::RenderDimmedBackgroundBehindWindow(Window *window,
+                                                    unsigned int col) {
   if ((col & COL32_A_MASK) == 0)
     return;
 
@@ -4976,9 +4990,9 @@ static void Gui::RenderDimmedBackgrounds() {
         IsWindowAbove(viewport->Window, modal_window))
       continue;
     DrawList *draw_list = GetForegroundDrawList(viewport);
-    const U32 dim_bg_col = GetColorU32(dim_bg_for_modal ? Col_ModalWindowDimBg
-                                                        : Col_NavWindowingDimBg,
-                                       g.DimBgRatio);
+    const unsigned int dim_bg_col = GetColorU32(
+        dim_bg_for_modal ? Col_ModalWindowDimBg : Col_NavWindowingDimBg,
+        g.DimBgRatio);
     draw_list->AddRectFilled(viewport->Pos, viewport->Pos + viewport->Size,
                              dim_bg_col);
   }
@@ -5343,7 +5357,7 @@ bool Gui::IsItemFocused() {
 // Important: this can be useful but it is NOT equivalent to the behavior of
 // e.g.Button()! Most widgets have specific reactions based on mouse-up/down
 // state, mouse position etc.
-bool Gui::IsItemClicked(MouseButton mouse_button) {
+bool Gui::IsItemClicked(int mouse_button) {
   return IsMouseClicked(mouse_button) && IsItemHovered(HoveredFlags_None);
 }
 
@@ -5405,7 +5419,7 @@ void Gui::SetNextItemAllowOverlap() {
 // FIXME-LEGACY: Use SetNextItemAllowOverlap() *before* your item instead.
 void Gui::SetItemAllowOverlap() {
   Context &g = *GGui;
-  ID id = g.LastItemData.ID;
+  int id = g.LastItemData.ID;
   if (g.HoveredId == id)
     g.HoveredIdAllowOverlap = true;
   if (g.ActiveId ==
@@ -5426,7 +5440,7 @@ void Gui::SetActiveIdUsingAllKeyboardKeys() {
   NavMoveRequestCancel();
 }
 
-ID Gui::GetItemID() {
+int Gui::GetItemID() {
   Context &g = *GGui;
   return g.LastItemData.ID;
 }
@@ -5450,33 +5464,33 @@ Vec2 Gui::GetItemRectSize() {
 // false' parameter instead of 'ChildFlags child_flags = 0'.
 // ChildFlags_Border is defined as always == 1 in order to allow old code
 // passing 'true'.
-bool Gui::BeginChild(const char *str_id, const Vec2 &size_arg,
-                     ChildFlags child_flags, WindowFlags window_flags) {
-  ID id = GetCurrentWindow()->GetID(str_id);
+bool Gui::BeginChild(const char *str_id, const Vec2 &size_arg, int child_flags,
+                     int window_flags) {
+  int id = GetCurrentWindow()->GetID(str_id);
   return BeginChildEx(str_id, id, size_arg, child_flags, window_flags);
 }
 
-bool Gui::BeginChild(ID id, const Vec2 &size_arg, ChildFlags child_flags,
-                     WindowFlags window_flags) {
+bool Gui::BeginChild(int id, const Vec2 &size_arg, int child_flags,
+                     int window_flags) {
   return BeginChildEx(NULL, id, size_arg, child_flags, window_flags);
 }
 
-bool Gui::BeginChildEx(const char *name, ID id, const Vec2 &size_arg,
-                       ChildFlags child_flags, WindowFlags window_flags) {
+bool Gui::BeginChildEx(const char *name, int id, const Vec2 &size_arg,
+                       int child_flags, int window_flags) {
   Context &g = *GGui;
   Window *parent_window = g.CurrentWindow;
   ASSERT(id != 0);
 
   // Sanity check as it is likely that some user will accidentally pass
-  // WindowFlags into the ChildFlags argument.
-  const ChildFlags ChildFlags_SupportedMask_ =
+  // int into the int argument.
+  const int ChildFlags_SupportedMask_ =
       ChildFlags_Border | ChildFlags_AlwaysUseWindowPadding |
       ChildFlags_ResizeX | ChildFlags_ResizeY | ChildFlags_AutoResizeX |
       ChildFlags_AutoResizeY | ChildFlags_AlwaysAutoResize |
       ChildFlags_FrameStyle;
   UNUSED(ChildFlags_SupportedMask_);
   ASSERT((child_flags & ~ChildFlags_SupportedMask_) == 0 &&
-         "Illegal ChildFlags value. Did you pass WindowFlags "
+         "Illegal int value. Did you pass int "
          "values instead of ChildFlags?");
   ASSERT((window_flags & WindowFlags_AlwaysAutoResize) == 0 &&
          "Cannot specify WindowFlags_AlwaysAutoResize for "
@@ -5537,7 +5551,7 @@ bool Gui::BeginChildEx(const char *name, ID id, const Vec2 &size_arg,
   SetNextWindowSize(size);
 
   // Build up name. If you need to append to a same child from multiple location
-  // in the ID stack, use BeginChild(ID id) with a stable value.
+  // in the int stack, use BeginChild(int id) with a stable value.
   // FIXME: 2023/11/14: commented out shorted version. We had an issue with
   // multiple ### in child window path names, which the trailing hash helped
   // workaround. e.g.
@@ -5546,7 +5560,7 @@ bool Gui::BeginChildEx(const char *name, ID id, const Vec2 &size_arg,
   const char *temp_window_name;
   /*if (name && parent_window->IDStack.back() == parent_window->ID)
       FormatStringToTempBuffer(&temp_window_name, NULL, "%s/%s",
-  parent_window->Name, name); // May omit ID if in root of ID stack else*/
+  parent_window->Name, name); // May omit int if in root of int stack else*/
   if (name)
     FormatStringToTempBuffer(&temp_window_name, NULL, "%s/%s_%08X",
                              parent_window->Name, name, id);
@@ -5580,7 +5594,7 @@ bool Gui::BeginChildEx(const char *name, ID id, const Vec2 &size_arg,
 
   // Process navigation-in immediately so NavInit can run on first frame
   // Can enter a child if (A) it has navigable items or (B) it can be scrolled.
-  const ID temp_id_for_activation = HashStr("##Child", 0, id);
+  const int temp_id_for_activation = HashStr("##Child", 0, id);
   if (g.ActiveId == temp_id_for_activation)
     ClearActiveID();
   if (g.NavActivateId == id && !(window_flags & WindowFlags_NavFlattened) &&
@@ -5642,7 +5656,7 @@ void Gui::EndChild() {
   g.LogLinePosY = -FLT_MAX; // To enforce a carriage return
 }
 
-static void SetWindowConditionAllowFlags(Window *window, Cond flags,
+static void SetWindowConditionAllowFlags(Window *window, int flags,
                                          bool enabled) {
   window->SetWindowPosAllowFlags =
       enabled ? (window->SetWindowPosAllowFlags | flags)
@@ -5658,13 +5672,13 @@ static void SetWindowConditionAllowFlags(Window *window, Cond flags,
               : (window->SetWindowDockAllowFlags & ~flags);
 }
 
-Window *Gui::FindWindowByID(ID id) {
+Window *Gui::FindWindowByID(int id) {
   Context &g = *GGui;
   return (Window *)g.WindowsById.GetVoidPtr(id);
 }
 
 Window *Gui::FindWindowByName(const char *name) {
-  ID id = HashStr(name);
+  int id = HashStr(name);
   return FindWindowByID(id);
 }
 
@@ -5687,7 +5701,7 @@ static void ApplyWindowSettings(Window *window, WindowSettings *settings) {
 }
 
 static void UpdateWindowInFocusOrderList(Window *window, bool just_created,
-                                         WindowFlags new_flags) {
+                                         int new_flags) {
   Context &g = *GGui;
 
   const bool new_is_explicit_child =
@@ -5743,7 +5757,7 @@ static void InitOrLoadWindowSettings(Window *window, WindowSettings *settings) {
   }
 }
 
-static Window *CreateNewWindow(const char *name, WindowFlags flags) {
+static Window *CreateNewWindow(const char *name, int flags) {
   // Create window the first time
   // DEBUG_LOG("CreateNewWindow '%s', flags = 0x%08X\n", name, flags);
   Context &g = *GGui;
@@ -5944,7 +5958,7 @@ Vec2 Gui::CalcWindowNextAutoFitSize(Window *window) {
   return size_final;
 }
 
-static Col GetWindowBgColorIdx(Window *window) {
+static int GetWindowBgColorIdx(Window *window) {
   if (window->Flags & (WindowFlags_Tooltip | WindowFlags_Popup))
     return Col_PopupBg;
   if ((window->Flags & WindowFlags_ChildWindow) && !window->DockIsActive)
@@ -6022,19 +6036,19 @@ static Rect GetResizeBorderRect(Window *window, int border_n,
 }
 
 // 0..3: corners (Lower-right, Lower-left, Unused, Unused)
-ID Gui::GetWindowResizeCornerID(Window *window, int n) {
+int Gui::GetWindowResizeCornerID(Window *window, int n) {
   ASSERT(n >= 0 && n < 4);
-  ID id = window->DockIsActive ? window->DockNode->HostWindow->ID : window->ID;
+  int id = window->DockIsActive ? window->DockNode->HostWindow->ID : window->ID;
   id = HashStr("#RESIZE", 0, id);
   id = HashData(&n, sizeof(int), id);
   return id;
 }
 
 // Borders (Left, Right, Up, Down)
-ID Gui::GetWindowResizeBorderID(Window *window, Dir dir) {
+int Gui::GetWindowResizeBorderID(Window *window, int dir) {
   ASSERT(dir >= 0 && dir < 4);
   int n = (int)dir + 4;
-  ID id = window->DockIsActive ? window->DockNode->HostWindow->ID : window->ID;
+  int id = window->DockIsActive ? window->DockNode->HostWindow->ID : window->ID;
   id = HashStr("#RESIZE", 0, id);
   id = HashData(&n, sizeof(int), id);
   return id;
@@ -6046,10 +6060,10 @@ static int Gui::UpdateWindowManualResize(Window *window,
                                          const Vec2 &size_auto_fit,
                                          int *border_hovered, int *border_held,
                                          int resize_grip_count,
-                                         U32 resize_grip_col[4],
+                                         unsigned int resize_grip_col[4],
                                          const Rect &visibility_rect) {
   Context &g = *GGui;
-  WindowFlags flags = window->Flags;
+  int flags = window->Flags;
 
   if ((flags & WindowFlags_NoResize) ||
       (flags & WindowFlags_AlwaysAutoResize) || window->AutoFitFramesX > 0 ||
@@ -6118,7 +6132,7 @@ static int Gui::UpdateWindowManualResize(Window *window,
       Swap(resize_rect.Min.x, resize_rect.Max.x);
     if (resize_rect.Min.y > resize_rect.Max.y)
       Swap(resize_rect.Min.y, resize_rect.Max.y);
-    ID resize_grip_id =
+    int resize_grip_id =
         window->GetID(resize_grip_n); // == GetWindowResizeCornerID()
     ItemAdd(resize_rect, resize_grip_id, NULL, ItemFlags_NoNav);
     ButtonBehavior(resize_rect, resize_grip_id, &hovered, &held,
@@ -6183,7 +6197,7 @@ static int Gui::UpdateWindowManualResize(Window *window,
     bool hovered, held;
     Rect border_rect = GetResizeBorderRect(
         window, border_n, grip_hover_inner_size, WINDOWS_HOVER_PADDING);
-    ID border_id = window->GetID(border_n + 4); // == GetWindowResizeBorderID()
+    int border_id = window->GetID(border_n + 4); // == GetWindowResizeBorderID()
     ItemAdd(border_rect, border_id, NULL, ItemFlags_NoNav);
     ButtonBehavior(border_rect, border_id, &hovered, &held,
                    ButtonFlags_FlattenChildren | ButtonFlags_NoNavFocus);
@@ -6384,7 +6398,7 @@ static void Gui::RenderWindowOuterBorders(Window *window) {
                              : window->ResizeBorderHovered;
     const ResizeBorderDef &def = resize_border_def[border_n];
     const Rect border_r = GetResizeBorderRect(window, border_n, rounding, 0.0f);
-    const U32 border_col =
+    const unsigned int border_col =
         GetColorU32((window->ResizeBorderHeld != -1) ? Col_SeparatorActive
                                                      : Col_SeparatorHovered);
     window->DrawList->PathArcTo(
@@ -6414,11 +6428,11 @@ void Gui::RenderWindowDecorations(Window *window, const Rect &title_bar_rect,
                                   bool title_bar_is_highlight,
                                   bool handle_borders_and_resize_grips,
                                   int resize_grip_count,
-                                  const U32 resize_grip_col[4],
+                                  const unsigned int resize_grip_col[4],
                                   float resize_grip_draw_size) {
   Context &g = *GGui;
   Style &style = g.Style;
-  WindowFlags flags = window->Flags;
+  int flags = window->Flags;
 
   // Ensure that ScrollBar doesn't read last frame's SkipItems
   ASSERT(window->BeginCount == 0);
@@ -6433,7 +6447,7 @@ void Gui::RenderWindowDecorations(Window *window, const Rect &title_bar_rect,
     // Title bar only
     const float backup_border_size = style.FrameBorderSize;
     g.Style.FrameBorderSize = window->WindowBorderSize;
-    U32 title_bar_col =
+    unsigned int title_bar_col =
         GetColorU32((title_bar_is_highlight && !g.NavDisableHighlight)
                         ? Col_TitleBgActive
                         : Col_TitleBgCollapsed);
@@ -6456,7 +6470,7 @@ void Gui::RenderWindowDecorations(Window *window, const Rect &title_bar_rect,
             *(Window **)g.DragDropPayload.Data == window)
           is_docking_transparent_payload = true;
 
-      U32 bg_col = GetColorU32(GetWindowBgColorIdx(window));
+      unsigned int bg_col = GetColorU32(GetWindowBgColorIdx(window));
       if (window->ViewportOwned) {
         bg_col |= COL32_A_MASK; // No alpha
         if (is_docking_transparent_payload)
@@ -6503,7 +6517,7 @@ void Gui::RenderWindowDecorations(Window *window, const Rect &title_bar_rect,
     // windows however do NOT set the _NoTitleBar flag, in order for their
     // pos/size to be matching their undocking state.)
     if (!(flags & WindowFlags_NoTitleBar) && !window->DockIsActive) {
-      U32 title_bar_col =
+      unsigned int title_bar_col =
           GetColorU32(title_bar_is_highlight ? Col_TitleBgActive : Col_TitleBg);
       if (window->ViewportOwned)
         title_bar_col |= COL32_A_MASK; // No alpha
@@ -6540,7 +6554,7 @@ void Gui::RenderWindowDecorations(Window *window, const Rect &title_bar_rect,
       float unhide_sz_hit = Trunc(g.FontSize * 0.55f);
       Vec2 p = node->Pos;
       Rect r(p, p + Vec2(unhide_sz_hit, unhide_sz_hit));
-      ID unhide_id = window->GetID("#UNHIDE");
+      int unhide_id = window->GetID("#UNHIDE");
       KeepAliveID(unhide_id);
       bool hovered, held;
       if (ButtonBehavior(r, unhide_id, &hovered, &held,
@@ -6554,10 +6568,11 @@ void Gui::RenderWindowDecorations(Window *window, const Rect &title_bar_rect,
       // FIXME-DOCK: Ideally we'd use Col_TitleBgActive/Col_TitleBg
       // here, but neither is guaranteed to be visible enough at this sort of
       // size..
-      U32 col = GetColorU32(((held && hovered) || (node->IsFocused && !hovered))
-                                ? Col_ButtonActive
-                            : hovered ? Col_ButtonHovered
-                                      : Col_Button);
+      unsigned int col =
+          GetColorU32(((held && hovered) || (node->IsFocused && !hovered))
+                          ? Col_ButtonActive
+                      : hovered ? Col_ButtonHovered
+                                : Col_Button);
       window->DrawList->AddTriangleFilled(p, p + Vec2(unhide_sz_draw, 0.0f),
                                           p + Vec2(0.0f, unhide_sz_draw), col);
     }
@@ -6573,7 +6588,7 @@ void Gui::RenderWindowDecorations(Window *window, const Rect &title_bar_rect,
     if (handle_borders_and_resize_grips && !(flags & WindowFlags_NoResize)) {
       for (int resize_grip_n = 0; resize_grip_n < resize_grip_count;
            resize_grip_n++) {
-        const U32 col = resize_grip_col[resize_grip_n];
+        const unsigned int col = resize_grip_col[resize_grip_n];
         if ((col & COL32_A_MASK) == 0)
           continue;
         const ResizeGripDef &grip = resize_grip_def[resize_grip_n];
@@ -6614,7 +6629,7 @@ void Gui::RenderWindowTitleBarContents(Window *window,
                                        const char *name, bool *p_open) {
   Context &g = *GGui;
   Style &style = g.Style;
-  WindowFlags flags = window->Flags;
+  int flags = window->Flags;
 
   const bool has_close_button = (p_open != NULL);
   const bool has_collapse_button = !(flags & WindowFlags_NoCollapse) &&
@@ -6625,7 +6640,7 @@ void Gui::RenderWindowTitleBarContents(Window *window,
   // FIXME-NAV: Might want (or not?) to set the equivalent of
   // ButtonFlags_NoNavFocus so that mouse clicks on standard title bar
   // items don't necessarily set nav/keyboard ref?
-  const ItemFlags item_flags_backup = g.CurrentItemFlags;
+  const int item_flags_backup = g.CurrentItemFlags;
   g.CurrentItemFlags |= ItemFlags_NoNavDefaultFocus;
   window->DC.NavLayerCurrent = NavLayer_Menu;
 
@@ -6723,7 +6738,7 @@ void Gui::RenderWindowTitleBarContents(Window *window,
                     style.WindowTitleAlign, &clip_r);
 }
 
-void Gui::UpdateWindowParentAndRootLinks(Window *window, WindowFlags flags,
+void Gui::UpdateWindowParentAndRootLinks(Window *window, int flags,
                                          Window *parent_window) {
   window->ParentWindow = parent_window;
   window->RootWindow = window->RootWindowPopupTree =
@@ -6811,7 +6826,7 @@ Window *Gui::FindBlockingModal(Window *window) {
 // - Passing 'bool* p_open' displays a Close button on the upper-right corner of
 // the window, the pointed value will be set to false when the button is
 // pressed.
-bool Gui::Begin(const char *name, bool *p_open, WindowFlags flags) {
+bool Gui::Begin(const char *name, bool *p_open, int flags) {
   Context &g = *GGui;
   const Style &style = g.Style;
   ASSERT(name != NULL && name[0] != '\0'); // Window name required
@@ -6862,7 +6877,7 @@ bool Gui::Begin(const char *name, bool *p_open, WindowFlags flags) {
     if (window->Appearing)
       SetWindowConditionAllowFlags(window, Cond_Appearing, true);
     window->FlagsPreviousFrame = window->Flags;
-    window->Flags = (WindowFlags)flags;
+    window->Flags = (int)flags;
     window->ChildFlags =
         (g.NextWindowData.Flags & NextWindowDataFlags_HasChildFlags)
             ? g.NextWindowData.ChildFlags
@@ -7057,9 +7072,9 @@ bool Gui::Begin(const char *name, bool *p_open, WindowFlags flags) {
       GcAwakeTransientWindowBuffers(window);
 
     // Update stored window name when it changes (which can _only_ happen with
-    // the "###" operator, so the ID would stay unchanged). The title bar always
-    // display the 'name' parameter, so we only update the string storage if it
-    // needs to be visible to the end-user elsewhere.
+    // the "###" operator, so the int would stay unchanged). The title bar
+    // always display the 'name' parameter, so we only update the string storage
+    // if it needs to be visible to the end-user elsewhere.
     bool window_title_visible_elsewhere = false;
     if ((window->Viewport && window->Viewport->Window == window) ||
         (window->DockIsActive))
@@ -7372,8 +7387,8 @@ bool Gui::Begin(const char *name, bool *p_open, WindowFlags flags) {
     if (g.TestEngineHookItems) {
       ASSERT(window->IDStack.Size == 1);
       window->IDStack.Size =
-          0; // As window->IDStack[0] == window->ID here, make sure TestEngine
-             // doesn't erroneously see window as parent of itself.
+          0; // As window->IDStack[0] == window->ID here, make sure
+             // TestEngine doesn't erroneously see window as parent of itself.
       TEST_ENGINE_ITEM_ADD(window->ID, window->Rect(), NULL);
       TEST_ENGINE_ITEM_INFO(
           window->ID, window->Name,
@@ -7388,7 +7403,7 @@ bool Gui::Begin(const char *name, bool *p_open, WindowFlags flags) {
 
     // Handle manual resize: Resize Grips, Borders, Gamepad
     int border_hovered = -1, border_held = -1;
-    U32 resize_grip_col[4] = {};
+    unsigned int resize_grip_col[4] = {};
     const int resize_grip_count =
         (window->Flags & WindowFlags_ChildWindow) ? 0
         : g.IO.ConfigWindowsResizeFromEdges
@@ -7691,7 +7706,8 @@ bool Gui::Begin(const char *name, bool *p_open, WindowFlags flags) {
     // Record the loss of precision of CursorStartPos which can happen due to
     // really large scrolling amount. This is used by clipper to compensate and
     // fix the most common use case of large scroll area. Easy and cheap, next
-    // best thing compared to switching everything to double or U64.
+    // best thing compared to switching everything to double or unsigned long
+    // long.
     double start_pos_highp_x = (double)window->Pos.x + window->WindowPadding.x -
                                (double)window->Scroll.x +
                                window->DecoOuterSizeX1 +
@@ -8091,7 +8107,7 @@ int Gui::FindWindowDisplayIndex(Window *window) {
 
 // Moving window to front of display and set focus (which happens to be back of
 // our sorted list)
-void Gui::FocusWindow(Window *window, FocusRequestFlags flags) {
+void Gui::FocusWindow(Window *window, int flags) {
   Context &g = *GGui;
 
   // Modal check?
@@ -8169,8 +8185,7 @@ void Gui::FocusWindow(Window *window, FocusRequestFlags flags) {
 
 void Gui::FocusTopMostWindowUnderOne(Window *under_this_window,
                                      Window *ignore_window,
-                                     Viewport *filter_viewport,
-                                     FocusRequestFlags flags) {
+                                     Viewport *filter_viewport, int flags) {
   Context &g = *GGui;
   int start_idx = g.WindowsFocusOrder.Size - 1;
   if (under_this_window != NULL) {
@@ -8249,9 +8264,9 @@ void Gui::PopFont() {
   SetCurrentFont(g.FontStack.empty() ? GetDefaultFont() : g.FontStack.back());
 }
 
-void Gui::PushItemFlag(ItemFlags option, bool enabled) {
+void Gui::PushItemFlag(int option, bool enabled) {
   Context &g = *GGui;
-  ItemFlags item_flags = g.CurrentItemFlags;
+  int item_flags = g.CurrentItemFlags;
   ASSERT(item_flags == g.ItemFlagsStack.back());
   if (enabled)
     item_flags |= option;
@@ -8399,7 +8414,7 @@ bool Gui::IsWindowAbove(Window *potential_above, Window *potential_below) {
 // app, you should not use this function! Use the 'io.WantCaptureMouse' boolean
 // for that! Refer to FAQ entry "How can I tell whether to dispatch
 // mouse/keyboard to Gui or my application?" for details.
-bool Gui::IsWindowHovered(HoveredFlags flags) {
+bool Gui::IsWindowHovered(int flags) {
   ASSERT((flags & ~HoveredFlags_AllowedMaskForIsWindowHovered) == 0 &&
          "Invalid flags for IsWindowHovered()!");
 
@@ -8451,7 +8466,7 @@ bool Gui::IsWindowHovered(HoveredFlags flags) {
   return true;
 }
 
-bool Gui::IsWindowFocused(FocusedFlags flags) {
+bool Gui::IsWindowFocused(int flags) {
   Context &g = *GGui;
   Window *ref_window = g.NavWindow;
   Window *cur_window = g.CurrentWindow;
@@ -8475,7 +8490,7 @@ bool Gui::IsWindowFocused(FocusedFlags flags) {
     return (ref_window == cur_window);
 }
 
-ID Gui::GetWindowDockID() {
+int Gui::GetWindowDockID() {
   Context &g = *GGui;
   return g.CurrentWindow->DockId;
 }
@@ -8511,7 +8526,7 @@ Vec2 Gui::GetWindowPos() {
   return window->Pos;
 }
 
-void Gui::SetWindowPos(Window *window, const Vec2 &pos, Cond cond) {
+void Gui::SetWindowPos(Window *window, const Vec2 &pos, int cond) {
   // Test condition (NB: bit 0 is always true) and clear flags for next time
   if (cond && (window->SetWindowPosAllowFlags & cond) == 0)
     return;
@@ -8544,12 +8559,12 @@ void Gui::SetWindowPos(Window *window, const Vec2 &pos, Cond cond) {
   window->DC.CursorStartPos += offset;
 }
 
-void Gui::SetWindowPos(const Vec2 &pos, Cond cond) {
+void Gui::SetWindowPos(const Vec2 &pos, int cond) {
   Window *window = GetCurrentWindowRead();
   SetWindowPos(window, pos, cond);
 }
 
-void Gui::SetWindowPos(const char *name, const Vec2 &pos, Cond cond) {
+void Gui::SetWindowPos(const char *name, const Vec2 &pos, int cond) {
   if (Window *window = FindWindowByName(name))
     SetWindowPos(window, pos, cond);
 }
@@ -8559,7 +8574,7 @@ Vec2 Gui::GetWindowSize() {
   return window->Size;
 }
 
-void Gui::SetWindowSize(Window *window, const Vec2 &size, Cond cond) {
+void Gui::SetWindowSize(Window *window, const Vec2 &size, int cond) {
   // Test condition (NB: bit 0 is always true) and clear flags for next time
   if (cond && (window->SetWindowSizeAllowFlags & cond) == 0)
     return;
@@ -8593,16 +8608,16 @@ void Gui::SetWindowSize(Window *window, const Vec2 &size, Cond cond) {
     MarkIniSettingsDirty(window);
 }
 
-void Gui::SetWindowSize(const Vec2 &size, Cond cond) {
+void Gui::SetWindowSize(const Vec2 &size, int cond) {
   SetWindowSize(GGui->CurrentWindow, size, cond);
 }
 
-void Gui::SetWindowSize(const char *name, const Vec2 &size, Cond cond) {
+void Gui::SetWindowSize(const char *name, const Vec2 &size, int cond) {
   if (Window *window = FindWindowByName(name))
     SetWindowSize(window, size, cond);
 }
 
-void Gui::SetWindowCollapsed(Window *window, bool collapsed, Cond cond) {
+void Gui::SetWindowCollapsed(Window *window, bool collapsed, int cond) {
   // Test condition (NB: bit 0 is always true) and clear flags for next time
   if (cond && (window->SetWindowCollapsedAllowFlags & cond) == 0)
     return;
@@ -8626,7 +8641,7 @@ void Gui::SetWindowHiddenAndSkipItemsForCurrentFrame(Window *window) {
   window->HiddenFramesCanSkipItems = 1;
 }
 
-void Gui::SetWindowCollapsed(bool collapsed, Cond cond) {
+void Gui::SetWindowCollapsed(bool collapsed, int cond) {
   SetWindowCollapsed(GGui->CurrentWindow, collapsed, cond);
 }
 
@@ -8640,7 +8655,7 @@ bool Gui::IsWindowAppearing() {
   return window->Appearing;
 }
 
-void Gui::SetWindowCollapsed(const char *name, bool collapsed, Cond cond) {
+void Gui::SetWindowCollapsed(const char *name, bool collapsed, int cond) {
   if (Window *window = FindWindowByName(name))
     SetWindowCollapsed(window, collapsed, cond);
 }
@@ -8656,7 +8671,7 @@ void Gui::SetWindowFocus(const char *name) {
   }
 }
 
-void Gui::SetNextWindowPos(const Vec2 &pos, Cond cond, const Vec2 &pivot) {
+void Gui::SetNextWindowPos(const Vec2 &pos, int cond, const Vec2 &pivot) {
   Context &g = *GGui;
   ASSERT(cond == 0 ||
          IsPowerOfTwo(cond)); // Make sure the user doesn't attempt to
@@ -8668,7 +8683,7 @@ void Gui::SetNextWindowPos(const Vec2 &pos, Cond cond, const Vec2 &pivot) {
   g.NextWindowData.PosUndock = true;
 }
 
-void Gui::SetNextWindowSize(const Vec2 &size, Cond cond) {
+void Gui::SetNextWindowSize(const Vec2 &size, int cond) {
   Context &g = *GGui;
   ASSERT(cond == 0 ||
          IsPowerOfTwo(cond)); // Make sure the user doesn't attempt to
@@ -8710,7 +8725,7 @@ void Gui::SetNextWindowScroll(const Vec2 &scroll) {
   g.NextWindowData.ScrollVal = scroll;
 }
 
-void Gui::SetNextWindowCollapsed(bool collapsed, Cond cond) {
+void Gui::SetNextWindowCollapsed(bool collapsed, int cond) {
   Context &g = *GGui;
   ASSERT(cond == 0 ||
          IsPowerOfTwo(cond)); // Make sure the user doesn't attempt to
@@ -8731,13 +8746,13 @@ void Gui::SetNextWindowBgAlpha(float alpha) {
   g.NextWindowData.BgAlphaVal = alpha;
 }
 
-void Gui::SetNextWindowViewport(ID id) {
+void Gui::SetNextWindowViewport(int id) {
   Context &g = *GGui;
   g.NextWindowData.Flags |= NextWindowDataFlags_HasViewport;
   g.NextWindowData.ViewportId = id;
 }
 
-void Gui::SetNextWindowDockID(ID id, Cond cond) {
+void Gui::SetNextWindowDockID(int id, int cond) {
   Context &g = *GGui;
   g.NextWindowData.Flags |= NextWindowDataFlags_HasDock;
   g.NextWindowData.DockCond = cond ? cond : Cond_Always;
@@ -8786,7 +8801,7 @@ void Gui::SetWindowFontScale(float scale) {
   g.FontSize = g.DrawListSharedData.FontSize = window->CalcFontSize();
 }
 
-void Gui::PushFocusScope(ID id) {
+void Gui::PushFocusScope(int id) {
   Context &g = *GGui;
   g.FocusScopeStack.push_back(id);
   g.CurrentFocusScopeId = id;
@@ -8812,10 +8827,9 @@ void Gui::FocusItem() {
     return;
   }
 
-  NavMoveFlags move_flags = NavMoveFlags_IsTabbing | NavMoveFlags_FocusApi |
-                            NavMoveFlags_NoSetNavHighlight |
-                            NavMoveFlags_NoSelect;
-  ScrollFlags scroll_flags =
+  int move_flags = NavMoveFlags_IsTabbing | NavMoveFlags_FocusApi |
+                   NavMoveFlags_NoSetNavHighlight | NavMoveFlags_NoSelect;
+  int scroll_flags =
       window->Appearing
           ? ScrollFlags_KeepVisibleEdgeX | ScrollFlags_AlwaysCenterY
           : ScrollFlags_KeepVisibleEdgeX | ScrollFlags_KeepVisibleEdgeY;
@@ -8824,7 +8838,7 @@ void Gui::FocusItem() {
   NavMoveRequestResolveWithLastItem(&g.NavMoveResultLocal);
 }
 
-void Gui::ActivateItemByID(ID id) {
+void Gui::ActivateItemByID(int id) {
   Context &g = *GGui;
   g.NavNextActivateId = id;
   g.NavNextActivateFlags = ActivateFlags_None;
@@ -8852,10 +8866,9 @@ void Gui::SetKeyboardFocusHere(int offset) {
 
   SetNavWindow(window);
 
-  NavMoveFlags move_flags = NavMoveFlags_IsTabbing | NavMoveFlags_Activate |
-                            NavMoveFlags_FocusApi |
-                            NavMoveFlags_NoSetNavHighlight;
-  ScrollFlags scroll_flags =
+  int move_flags = NavMoveFlags_IsTabbing | NavMoveFlags_Activate |
+                   NavMoveFlags_FocusApi | NavMoveFlags_NoSetNavHighlight;
+  int scroll_flags =
       window->Appearing
           ? ScrollFlags_KeepVisibleEdgeX | ScrollFlags_AlwaysCenterY
           : ScrollFlags_KeepVisibleEdgeX | ScrollFlags_KeepVisibleEdgeY;
@@ -8904,33 +8917,33 @@ Storage *Gui::GetStateStorage() {
 void Gui::PushID(const char *str_id) {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
-  ID id = window->GetID(str_id);
+  int id = window->GetID(str_id);
   window->IDStack.push_back(id);
 }
 
 void Gui::PushID(const char *str_id_begin, const char *str_id_end) {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
-  ID id = window->GetID(str_id_begin, str_id_end);
+  int id = window->GetID(str_id_begin, str_id_end);
   window->IDStack.push_back(id);
 }
 
 void Gui::PushID(const void *ptr_id) {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
-  ID id = window->GetID(ptr_id);
+  int id = window->GetID(ptr_id);
   window->IDStack.push_back(id);
 }
 
 void Gui::PushID(int int_id) {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
-  ID id = window->GetID(int_id);
+  int id = window->GetID(int_id);
   window->IDStack.push_back(id);
 }
 
-// Push a given id value ignoring the ID stack as a seed.
-void Gui::PushOverrideID(ID id) {
+// Push a given id value ignoring the int stack as a seed.
+void Gui::PushOverrideID(int id) {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
   if (g.DebugHookIdInfo == id)
@@ -8939,20 +8952,20 @@ void Gui::PushOverrideID(ID id) {
 }
 
 // Helper to avoid a common series of PushOverrideID -> GetID() -> PopID() call
-// (note that when using this pattern, ID Stack Tool will tend to not display
+// (note that when using this pattern, int Stack Tool will tend to not display
 // the intermediate stack level.
 //  for that to work we would need to do PushOverrideID() -> ItemAdd() ->
 //  PopID() which would alter widget code a little more)
-ID Gui::GetIDWithSeed(const char *str, const char *str_end, ID seed) {
-  ID id = HashStr(str, str_end ? (str_end - str) : 0, seed);
+int Gui::GetIDWithSeed(const char *str, const char *str_end, int seed) {
+  int id = HashStr(str, str_end ? (str_end - str) : 0, seed);
   Context &g = *GGui;
   if (g.DebugHookIdInfo == id)
     DebugHookIdInfo(id, DataType_String, str, str_end);
   return id;
 }
 
-ID Gui::GetIDWithSeed(int n, ID seed) {
-  ID id = HashData(&n, sizeof(n), seed);
+int Gui::GetIDWithSeed(int n, int seed) {
+  int id = HashData(&n, sizeof(n), seed);
   Context &g = *GGui;
   if (g.DebugHookIdInfo == id)
     DebugHookIdInfo(id, DataType_S32, (void *)(intptr_t)n, NULL);
@@ -8967,17 +8980,17 @@ void Gui::PopID() {
   window->IDStack.pop_back();
 }
 
-ID Gui::GetID(const char *str_id) {
+int Gui::GetID(const char *str_id) {
   Window *window = GGui->CurrentWindow;
   return window->GetID(str_id);
 }
 
-ID Gui::GetID(const char *str_id_begin, const char *str_id_end) {
+int Gui::GetID(const char *str_id_begin, const char *str_id_end) {
   Window *window = GGui->CurrentWindow;
   return window->GetID(str_id_begin, str_id_end);
 }
 
-ID Gui::GetID(const void *ptr_id) {
+int Gui::GetID(const void *ptr_id) {
   Window *window = GGui->CurrentWindow;
   return window->GetID(ptr_id);
 }
@@ -9270,7 +9283,7 @@ const char *Gui::GetKeyName(Key key) {
 }
 
 // Mod_Shortcut is translated to either Ctrl or Super.
-void Gui::GetKeyChordName(KeyChord key_chord, char *out_buf, int out_buf_size) {
+void Gui::GetKeyChordName(int key_chord, char *out_buf, int out_buf_size) {
   Context &g = *GGui;
   if (key_chord & Mod_Shortcut)
     key_chord = ConvertShortcutMod(key_chord);
@@ -9304,7 +9317,7 @@ int Gui::CalcTypematicRepeatAmount(float t0, float t1, float repeat_delay,
   return count;
 }
 
-void Gui::GetTypematicRepeatRate(InputFlags flags, float *repeat_delay,
+void Gui::GetTypematicRepeatRate(int flags, float *repeat_delay,
                                  float *repeat_rate) {
   Context &g = *GGui;
   switch (flags & InputFlags_RepeatRateMask_) {
@@ -9398,14 +9411,14 @@ static void Gui::UpdateKeyRoutingTable(KeyRoutingTable *rt) {
 
 // owner_id may be None/Any, but routing_id needs to be always be set, so we
 // default to GetCurrentFocusScope().
-static inline ID GetRoutingIdFromOwnerId(ID owner_id) {
+static inline int GetRoutingIdFromOwnerId(int owner_id) {
   Context &g = *GGui;
   return (owner_id != KeyOwner_None && owner_id != KeyOwner_Any)
              ? owner_id
              : g.CurrentFocusScopeId;
 }
 
-KeyRoutingData *Gui::GetShortcutRoutingData(KeyChord key_chord) {
+KeyRoutingData *Gui::GetShortcutRoutingData(int key_chord) {
   // Majority of shortcuts will be Key + any number of Mods
   // We accept _Single_ mod with Key_None.
   //  - Shortcut(Key_S | Mod_Ctrl);                    // Legal
@@ -9437,7 +9450,7 @@ KeyRoutingData *Gui::GetShortcutRoutingData(KeyChord key_chord) {
   KeyRoutingIndex routing_data_idx = (KeyRoutingIndex)rt->Entries.Size;
   rt->Entries.push_back(KeyRoutingData());
   routing_data = &rt->Entries[routing_data_idx];
-  routing_data->Mods = (U16)mods;
+  routing_data->Mods = (unsigned short)mods;
   routing_data->NextEntryIndex =
       rt->Index[key - Key_NamedKey_BEGIN]; // Setup linked list
   rt->Index[key - Key_NamedKey_BEGIN] = routing_data_idx;
@@ -9452,7 +9465,7 @@ KeyRoutingData *Gui::GetShortcutRoutingData(KeyChord key_chord) {
 //  - 254: InputFlags_RouteGlobalLow
 //  - 255: never route
 // 'flags' should include an explicit routing policy
-static int CalcRoutingScore(Window *location, ID owner_id, InputFlags flags) {
+static int CalcRoutingScore(Window *location, int owner_id, int flags) {
   if (flags & InputFlags_RouteFocused) {
     Context &g = *GGui;
     Window *focused = g.NavWindow;
@@ -9508,8 +9521,7 @@ static int CalcRoutingScore(Window *location, ID owner_id, InputFlags flags) {
 // current focus scope (each window has its focus scope by default)
 // - Using 'owner_id == KeyOwner_None': allows disabling/locking a
 // shortcut.
-bool Gui::SetShortcutRouting(KeyChord key_chord, ID owner_id,
-                             InputFlags flags) {
+bool Gui::SetShortcutRouting(int key_chord, int owner_id, int flags) {
   Context &g = *GGui;
   if ((flags & InputFlags_RouteMask_) == 0)
     flags |= InputFlags_RouteGlobalHigh; // IMPORTANT: This is the default
@@ -9534,12 +9546,12 @@ bool Gui::SetShortcutRouting(KeyChord key_chord, ID owner_id,
   // FIXME: Could expose a way to use a "serve last" policy for same score
   // resolution (using <= instead of <).
   KeyRoutingData *routing_data = GetShortcutRoutingData(key_chord);
-  const ID routing_id = GetRoutingIdFromOwnerId(owner_id);
+  const int routing_id = GetRoutingIdFromOwnerId(owner_id);
   // const bool set_route = (flags & InputFlags_ServeLast) ? (score <=
   // routing_data->RoutingNextScore) : (score < routing_data->RoutingNextScore);
   if (score < routing_data->RoutingNextScore) {
     routing_data->RoutingNext = routing_id;
-    routing_data->RoutingNextScore = (U8)score;
+    routing_data->RoutingNextScore = (unsigned char)score;
   }
 
   // Return routing state for CURRENT frame
@@ -9549,8 +9561,8 @@ bool Gui::SetShortcutRouting(KeyChord key_chord, ID owner_id,
 // Currently unused by core (but used by tests)
 // Note: this cannot be turned into GetShortcutRouting() because we do the
 // owner_id->routing_id translation, name would be more misleading.
-bool Gui::TestShortcutRouting(KeyChord key_chord, ID owner_id) {
-  const ID routing_id = GetRoutingIdFromOwnerId(owner_id);
+bool Gui::TestShortcutRouting(int key_chord, int owner_id) {
+  const int routing_id = GetRoutingIdFromOwnerId(owner_id);
   KeyRoutingData *routing_data =
       GetShortcutRoutingData(key_chord); // FIXME: Could avoid creating entry.
   return routing_data->RoutingCurr == routing_id;
@@ -9561,7 +9573,7 @@ bool Gui::TestShortcutRouting(KeyChord key_chord, ID owner_id) {
 // 'IsKeyDown(MY_ENGINE_KEY_A)' (<1.87) to IsKeyDown(Key_A) (>= 1.87)
 bool Gui::IsKeyDown(Key key) { return IsKeyDown(key, KeyOwner_Any); }
 
-bool Gui::IsKeyDown(Key key, ID owner_id) {
+bool Gui::IsKeyDown(Key key, int owner_id) {
   const KeyData *key_data = GetKeyData(key);
   if (!key_data->Down)
     return false;
@@ -9570,15 +9582,15 @@ bool Gui::IsKeyDown(Key key, ID owner_id) {
   return true;
 }
 
-bool Gui::IsKeyPressed(Key key, bool repeat) {
-  return IsKeyPressed(key, KeyOwner_Any,
-                      repeat ? InputFlags_Repeat : InputFlags_None);
+bool IsKeyPressed(Key key, bool repeat) {
+  return Gui::IsKeyPressed(key, KeyOwner_Any,
+                           repeat ? InputFlags_Repeat : InputFlags_None);
 }
 
 // Important: unless legacy IsKeyPressed(Key, bool repeat=true) which
 // DEFAULT to repeat, this requires EXPLICIT repeat.
-bool Gui::IsKeyPressed(Key key, ID owner_id, InputFlags flags) {
-  const KeyData *key_data = GetKeyData(key);
+bool IsKeyPressed(Key key, int owner_id, int flags) {
+  const KeyData *key_data = Gui::GetKeyData(key);
   if (!key_data
            ->Down) // In theory this should already be encoded as (DownDuration
                    // < 0.0f), but testing this facilitates eating mechanism
@@ -9593,20 +9605,20 @@ bool Gui::IsKeyPressed(Key key, ID owner_id, InputFlags flags) {
   bool pressed = (t == 0.0f);
   if (!pressed && ((flags & InputFlags_Repeat) != 0)) {
     float repeat_delay, repeat_rate;
-    GetTypematicRepeatRate(flags, &repeat_delay, &repeat_rate);
+    Gui::GetTypematicRepeatRate(flags, &repeat_delay, &repeat_rate);
     pressed = (t > repeat_delay) &&
-              GetKeyPressedAmount(key, repeat_delay, repeat_rate) > 0;
+              Gui::GetKeyPressedAmount(key, repeat_delay, repeat_rate) > 0;
   }
   if (!pressed)
     return false;
-  if (!TestKeyOwner(key, owner_id))
+  if (!Gui::TestKeyOwner(key, owner_id))
     return false;
   return true;
 }
 
 bool Gui::IsKeyReleased(Key key) { return IsKeyReleased(key, KeyOwner_Any); }
 
-bool Gui::IsKeyReleased(Key key, ID owner_id) {
+bool Gui::IsKeyReleased(Key key, int owner_id) {
   const KeyData *key_data = GetKeyData(key);
   if (key_data->DownDurationPrev < 0.0f || key_data->Down)
     return false;
@@ -9615,7 +9627,7 @@ bool Gui::IsKeyReleased(Key key, ID owner_id) {
   return true;
 }
 
-bool Gui::IsMouseDown(MouseButton button) {
+bool Gui::IsMouseDown(int button) {
   Context &g = *GGui;
   ASSERT(button >= 0 && button < ARRAYSIZE(g.IO.MouseDown));
   return g.IO.MouseDown[button] &&
@@ -9626,7 +9638,7 @@ bool Gui::IsMouseDown(MouseButton button) {
                                      // code hijacking the io.Mousedown[] array.
 }
 
-bool Gui::IsMouseDown(MouseButton button, ID owner_id) {
+bool Gui::IsMouseDown(int button, int owner_id) {
   Context &g = *GGui;
   ASSERT(button >= 0 && button < ARRAYSIZE(g.IO.MouseDown));
   return g.IO.MouseDown[button] &&
@@ -9637,12 +9649,12 @@ bool Gui::IsMouseDown(MouseButton button, ID owner_id) {
                         // io.Mousedown[] array.
 }
 
-bool Gui::IsMouseClicked(MouseButton button, bool repeat) {
+bool Gui::IsMouseClicked(int button, bool repeat) {
   return IsMouseClicked(button, KeyOwner_Any,
                         repeat ? InputFlags_Repeat : InputFlags_None);
 }
 
-bool Gui::IsMouseClicked(MouseButton button, ID owner_id, InputFlags flags) {
+bool Gui::IsMouseClicked(int button, int owner_id, int flags) {
   Context &g = *GGui;
   ASSERT(button >= 0 && button < ARRAYSIZE(g.IO.MouseDown));
   if (!g.IO.MouseDown[button]) // In theory this should already be encoded as
@@ -9671,7 +9683,7 @@ bool Gui::IsMouseClicked(MouseButton button, ID owner_id, InputFlags flags) {
   return true;
 }
 
-bool Gui::IsMouseReleased(MouseButton button) {
+bool Gui::IsMouseReleased(int button) {
   Context &g = *GGui;
   ASSERT(button >= 0 && button < ARRAYSIZE(g.IO.MouseDown));
   return g.IO.MouseReleased[button] &&
@@ -9681,7 +9693,7 @@ bool Gui::IsMouseReleased(MouseButton button) {
                                      // KeyOwner_Any)
 }
 
-bool Gui::IsMouseReleased(MouseButton button, ID owner_id) {
+bool Gui::IsMouseReleased(int button, int owner_id) {
   Context &g = *GGui;
   ASSERT(button >= 0 && button < ARRAYSIZE(g.IO.MouseDown));
   return g.IO.MouseReleased[button] &&
@@ -9691,21 +9703,21 @@ bool Gui::IsMouseReleased(MouseButton button, ID owner_id) {
                         // IsKeyReleased(MouseButtonToKey(button), owner_id)
 }
 
-bool Gui::IsMouseDoubleClicked(MouseButton button) {
+bool Gui::IsMouseDoubleClicked(int button) {
   Context &g = *GGui;
   ASSERT(button >= 0 && button < ARRAYSIZE(g.IO.MouseDown));
   return g.IO.MouseClickedCount[button] == 2 &&
          TestKeyOwner(MouseButtonToKey(button), KeyOwner_Any);
 }
 
-bool Gui::IsMouseDoubleClicked(MouseButton button, ID owner_id) {
+bool Gui::IsMouseDoubleClicked(int button, int owner_id) {
   Context &g = *GGui;
   ASSERT(button >= 0 && button < ARRAYSIZE(g.IO.MouseDown));
   return g.IO.MouseClickedCount[button] == 2 &&
          TestKeyOwner(MouseButtonToKey(button), owner_id);
 }
 
-int Gui::GetMouseClickedCount(MouseButton button) {
+int Gui::GetMouseClickedCount(int button) {
   Context &g = *GGui;
   ASSERT(button >= 0 && button < ARRAYSIZE(g.IO.MouseDown));
   return g.IO.MouseClickedCount[button];
@@ -9734,7 +9746,7 @@ bool Gui::IsMouseHoveringRect(const Vec2 &r_min, const Vec2 &r_max, bool clip) {
 // Return if a mouse click/drag went past the given threshold. Valid to call
 // during the MouseReleased frame. [Internal] This doesn't test if the button is
 // pressed
-bool Gui::IsMouseDragPastThreshold(MouseButton button, float lock_threshold) {
+bool Gui::IsMouseDragPastThreshold(int button, float lock_threshold) {
   Context &g = *GGui;
   ASSERT(button >= 0 && button < ARRAYSIZE(g.IO.MouseDown));
   if (lock_threshold < 0.0f)
@@ -9743,7 +9755,7 @@ bool Gui::IsMouseDragPastThreshold(MouseButton button, float lock_threshold) {
          lock_threshold * lock_threshold;
 }
 
-bool Gui::IsMouseDragging(MouseButton button, float lock_threshold) {
+bool Gui::IsMouseDragging(int button, float lock_threshold) {
   Context &g = *GGui;
   ASSERT(button >= 0 && button < ARRAYSIZE(g.IO.MouseDown));
   if (!g.IO.MouseDown[button])
@@ -9806,7 +9818,7 @@ bool Gui::IsAnyMouseDown() {
 // moves past a distance threshold at least once. NB: This is only valid if
 // IsMousePosValid(). backends in theory should always keep mouse position valid
 // when dragging even outside the client window.
-Vec2 Gui::GetMouseDragDelta(MouseButton button, float lock_threshold) {
+Vec2 Gui::GetMouseDragDelta(int button, float lock_threshold) {
   Context &g = *GGui;
   ASSERT(button >= 0 && button < ARRAYSIZE(g.IO.MouseDown));
   if (lock_threshold < 0.0f)
@@ -9819,7 +9831,7 @@ Vec2 Gui::GetMouseDragDelta(MouseButton button, float lock_threshold) {
   return Vec2(0.0f, 0.0f);
 }
 
-void Gui::ResetMouseDragDelta(MouseButton button) {
+void Gui::ResetMouseDragDelta(int button) {
   Context &g = *GGui;
   ASSERT(button >= 0 && button < ARRAYSIZE(g.IO.MouseDown));
   // NB: We don't need to reset g.IO.MouseDragMaxDistanceSqr
@@ -9831,12 +9843,12 @@ void Gui::ResetMouseDragDelta(MouseButton button) {
 // Gui::NewFrame(), updated during the frame, and locked in
 // EndFrame()/Render(). If you use software rendering by setting
 // io.MouseDrawCursor then Gui will render those for you
-MouseCursor Gui::GetMouseCursor() {
+int Gui::GetMouseCursor() {
   Context &g = *GGui;
   return g.MouseCursor;
 }
 
-void Gui::SetMouseCursor(MouseCursor cursor_type) {
+void Gui::SetMouseCursor(int cursor_type) {
   Context &g = *GGui;
   g.MouseCursor = cursor_type;
 }
@@ -9849,8 +9861,8 @@ static void UpdateAliasKey(Key key, bool v, float analog_value) {
 }
 
 // [Internal] Do not use directly
-static KeyChord GetMergedModsFromKeys() {
-  KeyChord mods = 0;
+static int GetMergedModsFromKeys() {
+  int mods = 0;
   if (Gui::IsKeyDown(Mod_Ctrl)) {
     mods |= Mod_Ctrl;
   }
@@ -10315,8 +10327,8 @@ static void DebugPrintInputEvent(const char *prefix, const InputEvent *e) {
     return;
   }
   if (e->Type == InputEventType_MouseButton) {
-    DEBUG_LOG_IO("[io] %s: MouseButton %d %s (%s)\n", prefix,
-                 e->MouseButton.Button, e->MouseButton.Down ? "Down" : "Up",
+    DEBUG_LOG_IO("[io] %s: int %d %s (%s)\n", prefix, e->MouseButton.Button,
+                 e->MouseButton.Down ? "Down" : "Up",
                  GetMouseSourceName(e->MouseButton.MouseSource));
     return;
   }
@@ -10390,7 +10402,7 @@ void Gui::UpdateInputEvents(bool trickle_fast_inputs) {
     } else if (e->Type == InputEventType_MouseButton) {
       // Trickling Rule: Stop processing queued events if we got multiple action
       // on the same button
-      const MouseButton button = e->MouseButton.Button;
+      const int button = e->MouseButton.Button;
       ASSERT(button >= 0 && button < MouseButton_COUNT);
       if (trickle_fast_inputs &&
           ((mouse_button_changed & (1 << button)) || mouse_wheeled))
@@ -10491,13 +10503,13 @@ void Gui::UpdateInputEvents(bool trickle_fast_inputs) {
     g.IO.ClearInputKeys();
 }
 
-ID Gui::GetKeyOwner(Key key) {
+int Gui::GetKeyOwner(Key key) {
   if (!IsNamedKeyOrModKey(key))
     return KeyOwner_None;
 
   Context &g = *GGui;
   KeyOwnerData *owner_data = GetKeyOwnerData(&g, key);
-  ID owner_id = owner_data->OwnerCurr;
+  int owner_id = owner_data->OwnerCurr;
 
   if (g.ActiveIdUsingAllKeyboardKeys && owner_id != g.ActiveId &&
       owner_id != KeyOwner_Any)
@@ -10507,12 +10519,12 @@ ID Gui::GetKeyOwner(Key key) {
   return owner_id;
 }
 
-// TestKeyOwner(..., ID)   : (owner == None || owner == ID)
+// TestKeyOwner(..., unsigned int)   : (owner == None || owner == unsigned int)
 // TestKeyOwner(..., None) : (owner == None)
 // TestKeyOwner(..., Any)  : no owner test
 // All paths are also testing for key not being locked, for the rare cases that
 // key have been locked with using InputFlags_LockXXX flags.
-bool Gui::TestKeyOwner(Key key, ID owner_id) {
+bool Gui::TestKeyOwner(Key key, int owner_id) {
   if (!IsNamedKeyOrModKey(key))
     return true;
 
@@ -10548,14 +10560,14 @@ bool Gui::TestKeyOwner(Key key, ID owner_id) {
 // - SetKeyOwner(..., None)              : clears owner
 // - SetKeyOwner(..., Any, !Lock)        : illegal (assert)
 // - SetKeyOwner(..., Any or None, Lock) : set lock
-void Gui::SetKeyOwner(Key key, ID owner_id, InputFlags flags) {
+void Gui::SetKeyOwner(Key key, int owner_id, int flags) {
   ASSERT(IsNamedKeyOrModKey(key) &&
          (owner_id != KeyOwner_Any ||
           (flags & (InputFlags_LockThisFrame |
                     InputFlags_LockUntilRelease)))); // Can only use _Any with
                                                      // _LockXXX flags (to eat
                                                      // a key away without an
-                                                     // ID to retrieve it)
+                                                     // int to retrieve it)
   ASSERT((flags & ~InputFlags_SupportedBySetKeyOwner) ==
          0); // Passing flags not supported by this function!
 
@@ -10572,8 +10584,7 @@ void Gui::SetKeyOwner(Key key, ID owner_id, InputFlags flags) {
 }
 
 // Rarely used helper
-void Gui::SetKeyOwnersForKeyChord(KeyChord key_chord, ID owner_id,
-                                  InputFlags flags) {
+void Gui::SetKeyOwnersForKeyChord(int key_chord, int owner_id, int flags) {
   if (key_chord & Mod_Ctrl) {
     SetKeyOwner(Mod_Ctrl, owner_id, flags);
   }
@@ -10603,9 +10614,9 @@ void Gui::SetKeyOwnersForKeyChord(KeyChord key_chord, ID owner_id,
 // on different condition. Worth noting is that only one item can be hovered and
 // only one item can be active, therefore this usage pattern doesn't need to
 // bother with routing and priority.
-void Gui::SetItemKeyOwner(Key key, InputFlags flags) {
+void Gui::SetItemKeyOwner(Key key, int flags) {
   Context &g = *GGui;
-  ID id = g.LastItemData.ID;
+  int id = g.LastItemData.ID;
   if (id == 0 || (g.HoveredId != id && g.ActiveId != id))
     return;
   if ((flags & InputFlags_CondMask_) == 0)
@@ -10620,12 +10631,12 @@ void Gui::SetItemKeyOwner(Key key, InputFlags flags) {
 
 // This is the only public API until we expose owner_id versions of the API as
 // replacements.
-bool Gui::IsKeyChordPressed(KeyChord key_chord) {
+bool Gui::IsKeyChordPressed(int key_chord) {
   return IsKeyChordPressed(key_chord, 0, InputFlags_None);
 }
 
 // This is equivalent to comparing KeyMods + doing a IsKeyPressed()
-bool Gui::IsKeyChordPressed(KeyChord key_chord, ID owner_id, InputFlags flags) {
+bool Gui::IsKeyChordPressed(int key_chord, int owner_id, int flags) {
   Context &g = *GGui;
   if (key_chord & Mod_Shortcut)
     key_chord = ConvertShortcutMod(key_chord);
@@ -10637,14 +10648,14 @@ bool Gui::IsKeyChordPressed(KeyChord key_chord, ID owner_id, InputFlags flags) {
   Key key = (Key)(key_chord & ~Mod_Mask_);
   if (key == Key_None)
     key = ConvertSingleModFlagToKey(&g, mods);
-  if (!IsKeyPressed(key, owner_id,
-                    (flags & (InputFlags_Repeat |
-                              (InputFlags)InputFlags_RepeatRateMask_))))
+  if (!Gui::IsKeyPressed(
+          key, owner_id,
+          (flags & (InputFlags_Repeat | (int)InputFlags_RepeatRateMask_))))
     return false;
   return true;
 }
 
-bool Gui::Shortcut(KeyChord key_chord, ID owner_id, InputFlags flags) {
+bool Gui::Shortcut(int key_chord, int owner_id, int flags) {
   // When using (owner_id == 0/Any): SetShortcutRouting() will use
   // CurrentFocusScopeId and filter with this, so IsKeyPressed() is fine with he
   // 0/Any.
@@ -10901,7 +10912,7 @@ static void Gui::ErrorCheckEndFrameSanityChecks() {
   // lead to sheared inputs. We silently accommodate for this case by ignoring
   // the case where all io.KeyXXX modifiers were released (aka key_mod_flags ==
   // 0), while still correctly asserting on mid-frame key press events.
-  const KeyChord key_mods = GetMergedModsFromKeys();
+  const int key_mods = GetMergedModsFromKeys();
   ASSERT(
       (key_mods == 0 || g.IO.KeyMods == key_mods) &&
       "Mismatching io.KeyCtrl/io.KeyShift/io.KeyAlt/io.KeySuper vs io.KeyMods");
@@ -11197,8 +11208,8 @@ void Gui::ItemSize(const Vec2 &size, float text_baseline_y) {
 // size requirement to ItemSize() and provide a larger region to ItemAdd() which
 // is used drawing/interaction. THIS IS IN THE PERFORMANCE CRITICAL PATH (UNTIL
 // THE CLIPPING TEST AND EARLY-RETURN)
-bool Gui::ItemAdd(const Rect &bb, ID id, const Rect *nav_bb_arg,
-                  ItemFlags extra_flags) {
+bool Gui::ItemAdd(const Rect &bb, int id, const Rect *nav_bb_arg,
+                  int extra_flags) {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
 
@@ -11276,10 +11287,10 @@ bool Gui::ItemAdd(const Rect &bb, ID id, const Rect *nav_bb_arg,
     // in the root of a window instead of "##something". Empty identifier are
     // valid and useful in a small amount of cases, but 99.9% of the time you
     // want to use "##something".
-    ASSERT(
-        id != window->ID &&
-        "Cannot have an empty ID at the root of a window. If you need an empty "
-        "label, use ## and read the FAQ about how the ID Stack works!");
+    ASSERT(id != window->ID &&
+           "Cannot have an empty int at the root of a window. If you need an "
+           "empty "
+           "label, use ## and read the FAQ about how the int Stack works!");
   }
   // if (g.IO.KeyAlt) window->DrawList->AddRect(bb.Min, bb.Max,
   // COL32(255,255,0,120)); // [DEBUG] if ((g.LastItemData.InFlags &
@@ -11634,7 +11645,7 @@ void Gui::EndGroup() {
   // window.DC.LastItemId by e.g. 'bool LastItemIsActive', but would put a
   // little more burden on individual widgets. Also if you grep for LastItemId
   // you'll notice it is only used in that context. (The two tests not the same
-  // because ActiveIdIsAlive is an ID itself, in order to be able to handle
+  // because ActiveIdIsAlive is an int itself, in order to be able to handle
   // ActiveId being overwritten during the frame.)
   const bool group_contains_curr_active_id =
       (group_data.BackupActiveIdIsAlive != g.ActiveId) &&
@@ -11716,20 +11727,18 @@ static Vec2 CalcNextScrollFromScrollTargetAndClamp(Window *window) {
   return scroll;
 }
 
-void Gui::ScrollToItem(ScrollFlags flags) {
+void Gui::ScrollToItem(int flags) {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
   ScrollToRectEx(window, g.LastItemData.NavRect, flags);
 }
 
-void Gui::ScrollToRect(Window *window, const Rect &item_rect,
-                       ScrollFlags flags) {
+void Gui::ScrollToRect(Window *window, const Rect &item_rect, int flags) {
   ScrollToRectEx(window, item_rect, flags);
 }
 
 // Scroll to keep newly navigated item fully into view
-Vec2 Gui::ScrollToRectEx(Window *window, const Rect &item_rect,
-                         ScrollFlags flags) {
+Vec2 Gui::ScrollToRectEx(Window *window, const Rect &item_rect, int flags) {
   Context &g = *GGui;
   Rect scroll_rect(window->InnerRect.Min - Vec2(1, 1),
                    window->InnerRect.Max + Vec2(1, 1));
@@ -11749,7 +11758,7 @@ Vec2 Gui::ScrollToRectEx(Window *window, const Rect &item_rect,
          IsPowerOfTwo(flags & ScrollFlags_MaskY_));
 
   // Defaults
-  ScrollFlags in_flags = flags;
+  int in_flags = flags;
   if ((flags & ScrollFlags_MaskX_) == 0 && window->ScrollbarX)
     flags |= ScrollFlags_KeepVisibleEdgeX;
   if ((flags & ScrollFlags_MaskY_) == 0)
@@ -11972,8 +11981,7 @@ bool Gui::BeginItemTooltip() {
   return BeginTooltipEx(TooltipFlags_None, WindowFlags_None);
 }
 
-bool Gui::BeginTooltipEx(TooltipFlags tooltip_flags,
-                         WindowFlags extra_window_flags) {
+bool Gui::BeginTooltipEx(int tooltip_flags, int extra_window_flags) {
   Context &g = *GGui;
 
   if (g.DragDropWithinSource || g.DragDropWithinTarget) {
@@ -12007,10 +12015,10 @@ bool Gui::BeginTooltipEx(TooltipFlags tooltip_flags,
         FormatString(window_name, ARRAYSIZE(window_name), "##Tooltip_%02d",
                      ++g.TooltipOverrideCount);
       }
-  WindowFlags flags = WindowFlags_Tooltip | WindowFlags_NoInputs |
-                      WindowFlags_NoTitleBar | WindowFlags_NoMove |
-                      WindowFlags_NoResize | WindowFlags_NoSavedSettings |
-                      WindowFlags_AlwaysAutoResize | WindowFlags_NoDocking;
+  int flags = WindowFlags_Tooltip | WindowFlags_NoInputs |
+              WindowFlags_NoTitleBar | WindowFlags_NoMove |
+              WindowFlags_NoResize | WindowFlags_NoSavedSettings |
+              WindowFlags_AlwaysAutoResize | WindowFlags_NoDocking;
   Begin(window_name, NULL, flags | extra_window_flags);
   // 2023-03-09: Added bool return value to the API, but currently always
   // returning true. If this ever returns false we need to update
@@ -12062,7 +12070,7 @@ void Gui::SetItemTooltipV(const char *fmt, va_list args) {
 //-----------------------------------------------------------------------------
 
 // Supported flags: PopupFlags_AnyPopupId, PopupFlags_AnyPopupLevel
-bool Gui::IsPopupOpen(ID id, PopupFlags popup_flags) {
+bool Gui::IsPopupOpen(int id, int popup_flags) {
   Context &g = *GGui;
   if (popup_flags & PopupFlags_AnyPopupId) {
     // Return true if any popup is open at the current BeginPopup() level of the
@@ -12089,11 +12097,11 @@ bool Gui::IsPopupOpen(ID id, PopupFlags popup_flags) {
   }
 }
 
-bool Gui::IsPopupOpen(const char *str_id, PopupFlags popup_flags) {
+bool Gui::IsPopupOpen(const char *str_id, int popup_flags) {
   Context &g = *GGui;
-  ID id = (popup_flags & PopupFlags_AnyPopupId)
-              ? 0
-              : g.CurrentWindow->GetID(str_id);
+  int id = (popup_flags & PopupFlags_AnyPopupId)
+               ? 0
+               : g.CurrentWindow->GetID(str_id);
   if ((popup_flags & PopupFlags_AnyPopupLevel) && id != 0)
     ASSERT(0 && "Cannot use IsPopupOpen() with a string id and "
                 "PopupFlags_AnyPopupLevel."); // But non-string version is
@@ -12121,31 +12129,29 @@ Window *Gui::GetTopMostAndVisiblePopupModal() {
   return NULL;
 }
 
-void Gui::OpenPopup(const char *str_id, PopupFlags popup_flags) {
+void Gui::OpenPopup(const char *str_id, int popup_flags) {
   Context &g = *GGui;
-  ID id = g.CurrentWindow->GetID(str_id);
+  int id = g.CurrentWindow->GetID(str_id);
   DEBUG_LOG_POPUP("[popup] OpenPopup(\"%s\" -> 0x%08X)\n", str_id, id);
   OpenPopupEx(id, popup_flags);
 }
 
-void Gui::OpenPopup(ID id, PopupFlags popup_flags) {
-  OpenPopupEx(id, popup_flags);
-}
+void Gui::OpenPopup(int id, int popup_flags) { OpenPopupEx(id, popup_flags); }
 
 // Mark popup as open (toggle toward open state).
 // Popups are closed when user click outside, or activate a pressable item, or
 // CloseCurrentPopup() is called within a BeginPopup()/EndPopup() block. Popup
-// identifiers are relative to the current ID-stack (so OpenPopup and BeginPopup
-// needs to be at the same level). One open popup per level of the popup
-// hierarchy (NB: when assigning we reset the Window member of PopupRef to
+// identifiers are relative to the current unsigned int-stack (so OpenPopup and
+// BeginPopup needs to be at the same level). One open popup per level of the
+// popup hierarchy (NB: when assigning we reset the Window member of PopupRef to
 // NULL)
-void Gui::OpenPopupEx(ID id, PopupFlags popup_flags) {
+void Gui::OpenPopupEx(int id, int popup_flags) {
   Context &g = *GGui;
   Window *parent_window = g.CurrentWindow;
   const int current_stack_size = g.BeginPopupStack.Size;
 
   if (popup_flags & PopupFlags_NoOpenOverExistingPopup)
-    if (IsPopupOpen((ID)0, PopupFlags_AnyPopupId))
+    if (IsPopupOpen((unsigned int)0, PopupFlags_AnyPopupId))
       return;
 
   PopupData popup_ref; // Tagged as new ref as Window will be set back to
@@ -12325,7 +12331,7 @@ void Gui::CloseCurrentPopup() {
 }
 
 // Attention! BeginPopup() adds default flags which BeginPopupEx()!
-bool Gui::BeginPopupEx(ID id, WindowFlags flags) {
+bool Gui::BeginPopupEx(int id, int flags) {
   Context &g = *GGui;
   if (!IsPopupOpen(id, PopupFlags_None)) {
     g.NextWindowData.ClearFlags(); // We behave like Begin() and need to consume
@@ -12351,7 +12357,7 @@ bool Gui::BeginPopupEx(ID id, WindowFlags flags) {
   return is_open;
 }
 
-bool Gui::BeginPopup(const char *str_id, WindowFlags flags) {
+bool Gui::BeginPopup(const char *str_id, int flags) {
   Context &g = *GGui;
   if (g.OpenPopupStack.Size <=
       g.BeginPopupStack.Size) // Early out for performance
@@ -12362,7 +12368,7 @@ bool Gui::BeginPopup(const char *str_id, WindowFlags flags) {
   }
   flags |= WindowFlags_AlwaysAutoResize | WindowFlags_NoTitleBar |
            WindowFlags_NoSavedSettings;
-  ID id = g.CurrentWindow->GetID(str_id);
+  int id = g.CurrentWindow->GetID(str_id);
   return BeginPopupEx(id, flags);
 }
 
@@ -12372,10 +12378,10 @@ bool Gui::BeginPopup(const char *str_id, WindowFlags flags) {
 // - *p_open set back to false in BeginPopupModal() when popup is not open.
 // - if you set *p_open to false before calling BeginPopupModal(), it will close
 // the popup.
-bool Gui::BeginPopupModal(const char *name, bool *p_open, WindowFlags flags) {
+bool Gui::BeginPopupModal(const char *name, bool *p_open, int flags) {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
-  const ID id = window->GetID(name);
+  const int id = window->GetID(name);
   if (!IsPopupOpen(id, PopupFlags_None)) {
     g.NextWindowData.ClearFlags(); // We behave like Begin() and need to consume
                                    // those values
@@ -12437,16 +12443,17 @@ void Gui::EndPopup() {
 // Helper to open a popup if mouse button is released over the item
 // - This is essentially the same as BeginPopupContextItem() but without the
 // trailing BeginPopup()
-void Gui::OpenPopupOnItemClick(const char *str_id, PopupFlags popup_flags) {
+void Gui::OpenPopupOnItemClick(const char *str_id, int popup_flags) {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
   int mouse_button = (popup_flags & PopupFlags_MouseButtonMask_);
   if (IsMouseReleased(mouse_button) &&
       IsItemHovered(HoveredFlags_AllowWhenBlockedByPopup)) {
-    ID id = str_id ? window->GetID(str_id)
-                   : g.LastItemData.ID; // If user hasn't passed an ID, we can
-                                        // use the LastItemID. Using LastItemID
-                                        // as a Popup ID won't conflict!
+    int id =
+        str_id ? window->GetID(str_id)
+               : g.LastItemData.ID; // If user hasn't passed an unsigned int, we
+                                    // can use the LastItemID. Using LastItemID
+                                    // as a Popup int won't conflict!
     ASSERT(id != 0); // You cannot pass a NULL str_id if the last item has no
                      // identifier (e.g. a Text() item)
     OpenPopupEx(id, popup_flags);
@@ -12473,21 +12480,20 @@ void Gui::OpenPopupOnItemClick(const char *str_id, PopupFlags popup_flags) {
 //       if (IsItemHovered() && IsMouseReleased(MouseButton_Right))
 //           OpenPopup(id);
 //       return BeginPopup(id);
-//   The main difference being that this is tweaked to avoid computing the ID
-//   twice.
-bool Gui::BeginPopupContextItem(const char *str_id, PopupFlags popup_flags) {
+//   The main difference being that this is tweaked to avoid computing the
+//   unsigned int twice.
+bool Gui::BeginPopupContextItem(const char *str_id, int popup_flags) {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
   if (window->SkipItems)
     return false;
-  ID id =
-      str_id
-          ? window->GetID(str_id)
-          : g.LastItemData
-                .ID; // If user hasn't passed an ID, we can use the LastItemID.
-                     // Using LastItemID as a Popup ID won't conflict!
-  ASSERT(id != 0);   // You cannot pass a NULL str_id if the last item has no
-                     // identifier (e.g. a Text() item)
+  int id = str_id
+               ? window->GetID(str_id)
+               : g.LastItemData.ID; // If user hasn't passed an unsigned int, we
+                                    // can use the LastItemID. Using LastItemID
+                                    // as a Popup int won't conflict!
+  ASSERT(id != 0); // You cannot pass a NULL str_id if the last item has no
+                   // identifier (e.g. a Text() item)
   int mouse_button = (popup_flags & PopupFlags_MouseButtonMask_);
   if (IsMouseReleased(mouse_button) &&
       IsItemHovered(HoveredFlags_AllowWhenBlockedByPopup))
@@ -12497,12 +12503,12 @@ bool Gui::BeginPopupContextItem(const char *str_id, PopupFlags popup_flags) {
                               WindowFlags_NoSavedSettings);
 }
 
-bool Gui::BeginPopupContextWindow(const char *str_id, PopupFlags popup_flags) {
+bool Gui::BeginPopupContextWindow(const char *str_id, int popup_flags) {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
   if (!str_id)
     str_id = "window_context";
-  ID id = window->GetID(str_id);
+  int id = window->GetID(str_id);
   int mouse_button = (popup_flags & PopupFlags_MouseButtonMask_);
   if (IsMouseReleased(mouse_button) &&
       IsWindowHovered(HoveredFlags_AllowWhenBlockedByPopup))
@@ -12513,12 +12519,12 @@ bool Gui::BeginPopupContextWindow(const char *str_id, PopupFlags popup_flags) {
                               WindowFlags_NoSavedSettings);
 }
 
-bool Gui::BeginPopupContextVoid(const char *str_id, PopupFlags popup_flags) {
+bool Gui::BeginPopupContextVoid(const char *str_id, int popup_flags) {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
   if (!str_id)
     str_id = "void_context";
-  ID id = window->GetID(str_id);
+  int id = window->GetID(str_id);
   int mouse_button = (popup_flags & PopupFlags_MouseButtonMask_);
   if (IsMouseReleased(mouse_button) && !IsWindowHovered(HoveredFlags_AnyWindow))
     if (GetTopMostPopupModal() == NULL)
@@ -12538,7 +12544,7 @@ bool Gui::BeginPopupContextVoid(const char *str_id, PopupFlags popup_flags) {
 //  the frame of reference of the current viewport. this allows us to have
 //  tooltips/popups displayed out of the parent viewport.)
 Vec2 Gui::FindBestWindowPosForPopupEx(const Vec2 &ref_pos, const Vec2 &size,
-                                      Dir *last_dir, const Rect &r_outer,
+                                      int *last_dir, const Rect &r_outer,
                                       const Rect &r_avoid,
                                       PopupPositionPolicy policy) {
   Vec2 base_pos_clamped = Clamp(ref_pos, r_outer.Min, r_outer.Max - size);
@@ -12548,10 +12554,10 @@ Vec2 Gui::FindBestWindowPosForPopupEx(const Vec2 &ref_pos, const Vec2 &size,
 
   // Combo Box policy (we want a connecting edge)
   if (policy == PopupPositionPolicy_ComboBox) {
-    const Dir dir_prefered_order[Dir_COUNT] = {Dir_Down, Dir_Right, Dir_Left,
+    const int dir_prefered_order[Dir_COUNT] = {Dir_Down, Dir_Right, Dir_Left,
                                                Dir_Up};
     for (int n = (*last_dir != Dir_None) ? -1 : 0; n < Dir_COUNT; n++) {
-      const Dir dir = (n == -1) ? *last_dir : dir_prefered_order[n];
+      const int dir = (n == -1) ? *last_dir : dir_prefered_order[n];
       if (n != -1 && dir == *last_dir) // Already tried this direction?
         continue;
       Vec2 pos;
@@ -12577,10 +12583,10 @@ Vec2 Gui::FindBestWindowPosForPopupEx(const Vec2 &ref_pos, const Vec2 &size,
   // (Always first try the direction we used on the last frame, if any)
   if (policy == PopupPositionPolicy_Tooltip ||
       policy == PopupPositionPolicy_Default) {
-    const Dir dir_prefered_order[Dir_COUNT] = {Dir_Right, Dir_Down, Dir_Up,
+    const int dir_prefered_order[Dir_COUNT] = {Dir_Right, Dir_Down, Dir_Up,
                                                Dir_Left};
     for (int n = (*last_dir != Dir_None) ? -1 : 0; n < Dir_COUNT; n++) {
-      const Dir dir = (n == -1) ? *last_dir : dir_prefered_order[n];
+      const int dir = (n == -1) ? *last_dir : dir_prefered_order[n];
       if (n != -1 && dir == *last_dir) // Already tried this direction?
         continue;
 
@@ -12749,7 +12755,7 @@ void Gui::NavClearPreferredPosForAxis(Axis axis) {
       FLT_MAX;
 }
 
-void Gui::SetNavID(ID id, NavLayer nav_layer, ID focus_scope_id,
+void Gui::SetNavID(int id, NavLayer nav_layer, int focus_scope_id,
                    const Rect &rect_rel) {
   Context &g = *GGui;
   ASSERT(g.NavWindow != NULL);
@@ -12766,7 +12772,7 @@ void Gui::SetNavID(ID id, NavLayer nav_layer, ID focus_scope_id,
   NavClearPreferredPosForAxis(Axis_Y);
 }
 
-void Gui::SetFocusID(ID id, Window *window) {
+void Gui::SetFocusID(int id, Window *window) {
   Context &g = *GGui;
   ASSERT(id != 0);
 
@@ -12798,7 +12804,7 @@ void Gui::SetFocusID(ID id, Window *window) {
   NavClearPreferredPosForAxis(Axis_Y);
 }
 
-static Dir GetDirQuadrantFromDelta(float dx, float dy) {
+static int GetDirQuadrantFromDelta(float dx, float dy) {
   if (Fabs(dx) > Fabs(dy))
     return (dx > 0.0f) ? Dir_Right : Dir_Left;
   return (dy > 0.0f) ? Dir_Down : Dir_Up;
@@ -12864,7 +12870,7 @@ static bool Gui::NavScoreItem(NavItemData *result) {
 
   // Determine which quadrant of 'curr' our candidate item 'cand' lies in based
   // on distance
-  Dir quadrant;
+  int quadrant;
   float dax = 0.0f, day = 0.0f, dist_axial = 0.0f;
   if (dbx != 0.0f || dby != 0.0f) {
     // For non-overlapping boxes, use distance between boxes
@@ -12886,7 +12892,7 @@ static bool Gui::NavScoreItem(NavItemData *result) {
     quadrant = (g.LastItemData.ID < g.NavId) ? Dir_Left : Dir_Right;
   }
 
-  const Dir move_dir = g.NavMoveDir;
+  const int move_dir = g.NavMoveDir;
 #if DEBUG_NAV_SCORING
   char buf[200];
   if (g.IO.KeyCtrl) // Hold CTRL to preview score in matching quadrant.
@@ -13013,8 +13019,8 @@ void Gui::NavUpdateCurrentWindowIsScrollPushableX() {
 static void Gui::NavProcessItem() {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
-  const ID id = g.LastItemData.ID;
-  const ItemFlags item_flags = g.LastItemData.InFlags;
+  const int id = g.LastItemData.ID;
+  const int item_flags = g.LastItemData.InFlags;
 
   // When inside a container that isn't scrollable with Left<>Right, clip
   // NavRect accordingly (#2221)
@@ -13113,8 +13119,8 @@ static void Gui::NavProcessItem() {
 // - Case 5: tab backward wrap:   store all results, on ref id if no result keep
 // storing until last // FIXME-TABBING: Could be done as next-frame forwarded
 // requested
-void Gui::NavProcessItemForTabbingRequest(ID id, ItemFlags item_flags,
-                                          NavMoveFlags move_flags) {
+void Gui::NavProcessItemForTabbingRequest(int id, int item_flags,
+                                          int move_flags) {
   Context &g = *GGui;
 
   if ((move_flags & NavMoveFlags_FocusApi) == 0)
@@ -13172,9 +13178,8 @@ bool Gui::NavMoveRequestButNoResultYet() {
 }
 
 // FIXME: ScoringRect is not set
-void Gui::NavMoveRequestSubmit(Dir move_dir, Dir clip_dir,
-                               NavMoveFlags move_flags,
-                               ScrollFlags scroll_flags) {
+void Gui::NavMoveRequestSubmit(int move_dir, int clip_dir, int move_flags,
+                               int scroll_flags) {
   Context &g = *GGui;
   ASSERT(g.NavWindow != NULL);
 
@@ -13229,9 +13234,8 @@ void Gui::NavMoveRequestCancel() {
 
 // Forward will reuse the move request again on the next frame (generally with
 // modifications done to it)
-void Gui::NavMoveRequestForward(Dir move_dir, Dir clip_dir,
-                                NavMoveFlags move_flags,
-                                ScrollFlags scroll_flags) {
+void Gui::NavMoveRequestForward(int move_dir, int clip_dir, int move_flags,
+                                int scroll_flags) {
   Context &g = *GGui;
   ASSERT(g.NavMoveForwardToNextFrame == false);
   NavMoveRequestCancel();
@@ -13245,7 +13249,7 @@ void Gui::NavMoveRequestForward(Dir move_dir, Dir clip_dir,
 // Navigation wrap-around logic is delayed to the end of the frame because this
 // operation is only valid after entire popup is assembled and in case of
 // appended popups it is not clear which EndPopup() call is final.
-void Gui::NavMoveRequestTryWrapping(Window *window, NavMoveFlags wrap_flags) {
+void Gui::NavMoveRequestTryWrapping(Window *window, int wrap_flags) {
   Context &g = *GGui;
   ASSERT((wrap_flags & NavMoveFlags_WrapMask_) != 0 &&
          (wrap_flags & ~NavMoveFlags_WrapMask_) ==
@@ -13497,17 +13501,18 @@ static void Gui::NavUpdate() {
         (nav_gamepad_active && IsKeyDown(Key_NavGamepadActivate));
     const bool activate_pressed =
         activate_down &&
-        ((nav_keyboard_active && IsKeyPressed(Key_Space, false)) ||
-         (nav_gamepad_active && IsKeyPressed(Key_NavGamepadActivate, false)));
+        ((nav_keyboard_active && Gui::IsKeyPressed(Key_Space, false)) ||
+         (nav_gamepad_active &&
+          Gui::IsKeyPressed(Key_NavGamepadActivate, false)));
     const bool input_down =
         (nav_keyboard_active &&
          (IsKeyDown(Key_Enter) || IsKeyDown(Key_KeypadEnter))) ||
         (nav_gamepad_active && IsKeyDown(Key_NavGamepadInput));
     const bool input_pressed =
         input_down &&
-        ((nav_keyboard_active && (IsKeyPressed(Key_Enter, false) ||
-                                  IsKeyPressed(Key_KeypadEnter, false))) ||
-         (nav_gamepad_active && IsKeyPressed(Key_NavGamepadInput, false)));
+        ((nav_keyboard_active && (Gui::IsKeyPressed(Key_Enter, false) ||
+                                  Gui::IsKeyPressed(Key_KeypadEnter, false))) ||
+         (nav_gamepad_active && Gui::IsKeyPressed(Key_NavGamepadInput, false)));
     if (g.ActiveId == 0 && activate_pressed) {
       g.NavActivateId = g.NavId;
       g.NavActivateFlags = ActivateFlags_PreferTweak;
@@ -13555,7 +13560,7 @@ static void Gui::NavUpdate() {
         ROUND(window->CalcFontSize() * 100 *
               io.DeltaTime); // We need round the scrolling speed because
                              // sub-pixel scroll isn't reliably supported.
-    const Dir move_dir = g.NavMoveDir;
+    const int move_dir = g.NavMoveDir;
     if (window->DC.NavLayersActiveMask == 0x00 &&
         window->DC.NavWindowHasScrollY && move_dir != Dir_None) {
       if (move_dir == Dir_Left || move_dir == Dir_Right)
@@ -13613,11 +13618,11 @@ static void Gui::NavUpdate() {
           WindowRectRelToAbs(debug_window, debug_window->NavRectRel[layer]);
       draw_list->AddRect(r.Min, r.Max, COL32(255, 200, 0, 255));
     }
-    // if (1) { U32 col = (!debug_window->Hidden) ? COL32(255,0,255,255) :
-    // COL32(255,0,0,255); Vec2 p = NavCalcPreferredRefPos(); char buf[32];
-    // FormatString(buf, 32, "%d", g.NavLayer);
-    // draw_list->AddCircleFilled(p, 3.0f, col); draw_list->AddText(NULL, 13.0f,
-    // p + Vec2(8,-4), col, buf); }
+    // if (1) { unsigned int col = (!debug_window->Hidden) ?
+    // COL32(255,0,255,255) : COL32(255,0,0,255); Vec2 p =
+    // NavCalcPreferredRefPos(); char buf[32]; FormatString(buf, 32, "%d",
+    // g.NavLayer); draw_list->AddCircleFilled(p, 3.0f, col);
+    // draw_list->AddText(NULL, 13.0f, p + Vec2(8,-4), col, buf); }
   }
 #endif
 }
@@ -13654,8 +13659,8 @@ void Gui::NavInitRequestApplyResult() {
 
 // Bias scoring rect ahead of scoring + update preferred pos (if missing) using
 // source position
-static void NavBiasScoringRect(Rect &r, Vec2 &preferred_pos_rel, Dir move_dir,
-                               NavMoveFlags move_flags) {
+static void NavBiasScoringRect(Rect &r, Vec2 &preferred_pos_rel, int move_dir,
+                               int move_flags) {
   // Bias initial rect
   Context &g = *GGui;
   const Vec2 rel_to_abs_offset = g.NavWindow->DC.CursorStartPos;
@@ -13707,34 +13712,37 @@ void Gui::NavUpdateCreateMoveRequest() {
     g.NavMoveScrollFlags = ScrollFlags_None;
     if (window && !g.NavWindowingTarget &&
         !(window->Flags & WindowFlags_NoNavInputs)) {
-      const InputFlags repeat_mode =
-          InputFlags_Repeat | (InputFlags)InputFlags_RepeatRateNavMove;
+      const int repeat_mode =
+          InputFlags_Repeat | (int)InputFlags_RepeatRateNavMove;
       if (!IsActiveIdUsingNavDir(Dir_Left) &&
           ((nav_gamepad_active &&
-            IsKeyPressed(Key_GamepadDpadLeft, KeyOwner_None, repeat_mode)) ||
+            Gui::IsKeyPressed(Key_GamepadDpadLeft, KeyOwner_None,
+                              repeat_mode)) ||
            (nav_keyboard_active &&
-            IsKeyPressed(Key_LeftArrow, KeyOwner_None, repeat_mode)))) {
+            Gui::IsKeyPressed(Key_LeftArrow, KeyOwner_None, repeat_mode)))) {
         g.NavMoveDir = Dir_Left;
       }
       if (!IsActiveIdUsingNavDir(Dir_Right) &&
           ((nav_gamepad_active &&
-            IsKeyPressed(Key_GamepadDpadRight, KeyOwner_None, repeat_mode)) ||
+            Gui::IsKeyPressed(Key_GamepadDpadRight, KeyOwner_None,
+                              repeat_mode)) ||
            (nav_keyboard_active &&
-            IsKeyPressed(Key_RightArrow, KeyOwner_None, repeat_mode)))) {
+            Gui::IsKeyPressed(Key_RightArrow, KeyOwner_None, repeat_mode)))) {
         g.NavMoveDir = Dir_Right;
       }
       if (!IsActiveIdUsingNavDir(Dir_Up) &&
           ((nav_gamepad_active &&
-            IsKeyPressed(Key_GamepadDpadUp, KeyOwner_None, repeat_mode)) ||
+            Gui::IsKeyPressed(Key_GamepadDpadUp, KeyOwner_None, repeat_mode)) ||
            (nav_keyboard_active &&
-            IsKeyPressed(Key_UpArrow, KeyOwner_None, repeat_mode)))) {
+            Gui::IsKeyPressed(Key_UpArrow, KeyOwner_None, repeat_mode)))) {
         g.NavMoveDir = Dir_Up;
       }
       if (!IsActiveIdUsingNavDir(Dir_Down) &&
           ((nav_gamepad_active &&
-            IsKeyPressed(Key_GamepadDpadDown, KeyOwner_None, repeat_mode)) ||
+            Gui::IsKeyPressed(Key_GamepadDpadDown, KeyOwner_None,
+                              repeat_mode)) ||
            (nav_keyboard_active &&
-            IsKeyPressed(Key_DownArrow, KeyOwner_None, repeat_mode)))) {
+            Gui::IsKeyPressed(Key_DownArrow, KeyOwner_None, repeat_mode)))) {
         g.NavMoveDir = Dir_Down;
       }
     }
@@ -13757,7 +13765,7 @@ void Gui::NavUpdateCreateMoveRequest() {
   // the direction.
 #if DEBUG_NAV_SCORING
   // if (io.KeyCtrl && IsKeyPressed(Key_C))
-  //     g.NavMoveDirForDebug = (Dir)((g.NavMoveDirForDebug + 1) & 3);
+  //     g.NavMoveDirForDebug = (int)((g.NavMoveDirForDebug + 1) & 3);
   if (io.KeyCtrl) {
     if (g.NavMoveDir == Dir_None)
       g.NavMoveDir = g.NavMoveDirForDebug;
@@ -13866,7 +13874,7 @@ void Gui::NavUpdateCreateTabbingRequest() {
     return;
 
   const bool tab_pressed =
-      IsKeyPressed(Key_Tab, KeyOwner_None, InputFlags_Repeat) &&
+      Gui::IsKeyPressed(Key_Tab, KeyOwner_None, InputFlags_Repeat) &&
       !g.IO.KeyCtrl && !g.IO.KeyAlt;
   if (!tab_pressed)
     return;
@@ -13883,12 +13891,12 @@ void Gui::NavUpdateCreateTabbingRequest() {
                                                                            : +1;
   else
     g.NavTabbingDir = g.IO.KeyShift ? -1 : (g.ActiveId == 0) ? 0 : +1;
-  NavMoveFlags move_flags = NavMoveFlags_IsTabbing | NavMoveFlags_Activate;
-  ScrollFlags scroll_flags =
+  int move_flags = NavMoveFlags_IsTabbing | NavMoveFlags_Activate;
+  int scroll_flags =
       window->Appearing
           ? ScrollFlags_KeepVisibleEdgeX | ScrollFlags_AlwaysCenterY
           : ScrollFlags_KeepVisibleEdgeX | ScrollFlags_KeepVisibleEdgeY;
-  Dir clip_dir = (g.NavTabbingDir < 0) ? Dir_Up : Dir_Down;
+  int clip_dir = (g.NavTabbingDir < 0) ? Dir_Up : Dir_Down;
   NavMoveRequestSubmit(
       Dir_None, clip_dir, move_flags,
       scroll_flags); // FIXME-NAV: Once we refactor tabbing, add LegacyApi flag
@@ -14037,9 +14045,9 @@ static void Gui::NavUpdateCancelRequest() {
       (g.IO.BackendFlags & BackendFlags_HasGamepad) != 0;
   const bool nav_keyboard_active =
       (g.IO.ConfigFlags & ConfigFlags_NavEnableKeyboard) != 0;
-  if (!(nav_keyboard_active && IsKeyPressed(Key_Escape, KeyOwner_None)) &&
+  if (!(nav_keyboard_active && ::IsKeyPressed(Key_Escape, KeyOwner_None)) &&
       !(nav_gamepad_active &&
-        IsKeyPressed(Key_NavGamepadCancel, KeyOwner_None)))
+        ::IsKeyPressed(Key_NavGamepadCancel, KeyOwner_None)))
     return;
 
   DEBUG_LOG_NAV("[nav] NavUpdateCancelRequest()\n");
@@ -14091,9 +14099,9 @@ static float Gui::NavUpdatePageUpPageDown() {
   const bool page_up_held = IsKeyDown(Key_PageUp, KeyOwner_None);
   const bool page_down_held = IsKeyDown(Key_PageDown, KeyOwner_None);
   const bool home_pressed =
-      IsKeyPressed(Key_Home, KeyOwner_None, InputFlags_Repeat);
+      ::IsKeyPressed(Key_Home, KeyOwner_None, InputFlags_Repeat);
   const bool end_pressed =
-      IsKeyPressed(Key_End, KeyOwner_None, InputFlags_Repeat);
+      ::IsKeyPressed(Key_End, KeyOwner_None, InputFlags_Repeat);
   if (page_up_held == page_down_held &&
       home_pressed == end_pressed) // Proceed if either (not both) are pressed,
                                    // otherwise early out
@@ -14105,9 +14113,9 @@ static float Gui::NavUpdatePageUpPageDown() {
   if (window->DC.NavLayersActiveMask == 0x00 &&
       window->DC.NavWindowHasScrollY) {
     // Fallback manual-scroll when window has no navigable item
-    if (IsKeyPressed(Key_PageUp, KeyOwner_None, InputFlags_Repeat))
+    if (::IsKeyPressed(Key_PageUp, KeyOwner_None, InputFlags_Repeat))
       SetScrollY(window, window->Scroll.y - window->InnerRect.GetHeight());
-    else if (IsKeyPressed(Key_PageDown, KeyOwner_None, InputFlags_Repeat))
+    else if (::IsKeyPressed(Key_PageDown, KeyOwner_None, InputFlags_Repeat))
       SetScrollY(window, window->Scroll.y + window->InnerRect.GetHeight());
     else if (home_pressed)
       SetScrollY(window, 0.0f);
@@ -14119,7 +14127,7 @@ static float Gui::NavUpdatePageUpPageDown() {
         Max(0.0f, window->InnerRect.GetHeight() -
                       window->CalcFontSize() * 1.0f + nav_rect_rel.GetHeight());
     float nav_scoring_rect_offset_y = 0.0f;
-    if (IsKeyPressed(Key_PageUp, true)) {
+    if (Gui::IsKeyPressed(Key_PageUp, true)) {
       nav_scoring_rect_offset_y = -page_offset_y;
       g.NavMoveDir = Dir_Down; // Because our scoring rect is offset up, we
                                // request the down direction (so we can
@@ -14128,7 +14136,7 @@ static float Gui::NavUpdatePageUpPageDown() {
       g.NavMoveFlags = NavMoveFlags_AllowCurrentNavId |
                        NavMoveFlags_AlsoScoreVisibleSet |
                        NavMoveFlags_IsPageMove;
-    } else if (IsKeyPressed(Key_PageDown, true)) {
+    } else if (Gui::IsKeyPressed(Key_PageDown, true)) {
       nav_scoring_rect_offset_y = +page_offset_y;
       g.NavMoveDir = Dir_Up; // Because our scoring rect is offset down, we
                              // request the up direction (so we can always
@@ -14189,9 +14197,9 @@ static void Gui::NavUpdateCreateWrappingRequest() {
 
   bool do_forward = false;
   Rect bb_rel = window->NavRectRel[g.NavLayer];
-  Dir clip_dir = g.NavMoveDir;
+  int clip_dir = g.NavMoveDir;
 
-  const NavMoveFlags move_flags = g.NavMoveFlags;
+  const int move_flags = g.NavMoveFlags;
   // const Axis move_axis = (g.NavMoveDir == Dir_Up || g.NavMoveDir ==
   // Dir_Down) ? Axis_Y : Axis_X;
   if (g.NavMoveDir == Dir_Left &&
@@ -14314,7 +14322,7 @@ static void Gui::NavUpdateWindowing() {
   }
 
   // Start CTRL+Tab or Square+L/R window selection
-  const ID owner_id = HashStr("###NavUpdateWindowing");
+  const int owner_id = HashStr("###NavUpdateWindowing");
   const bool nav_gamepad_active =
       (io.ConfigFlags & ConfigFlags_NavEnableGamepad) != 0 &&
       (io.BackendFlags & BackendFlags_HasGamepad) != 0;
@@ -14330,7 +14338,7 @@ static void Gui::NavUpdateWindowing() {
                InputFlags_Repeat | InputFlags_RouteAlways);
   const bool start_windowing_with_gamepad =
       allow_windowing && nav_gamepad_active && !g.NavWindowingTarget &&
-      IsKeyPressed(Key_NavGamepadMenu, 0, InputFlags_None);
+      ::IsKeyPressed(Key_NavGamepadMenu, 0, InputFlags_None);
   const bool start_windowing_with_keyboard =
       allow_windowing && !g.NavWindowingTarget &&
       (keyboard_next_window ||
@@ -14397,7 +14405,7 @@ static void Gui::NavUpdateWindowing() {
   if (g.NavWindowingTarget && g.NavInputSource == InputSource_Keyboard) {
     // Visuals only appears after a brief time after pressing TAB the first
     // time, so that a fast CTRL+TAB doesn't add visual noise
-    KeyChord shared_mods =
+    int shared_mods =
         ((g.ConfigNavWindowingKeyNext ? g.ConfigNavWindowingKeyNext
                                       : Mod_Mask_) &
          (g.ConfigNavWindowingKeyPrev ? g.ConfigNavWindowingKeyPrev
@@ -14423,7 +14431,7 @@ static void Gui::NavUpdateWindowing() {
   // - AltGR is normally Alt+Ctrl but we can't reliably detect it (not all
   // backends/systems/layout emit it as Alt+Ctrl). But even on keyboards without
   // AltGR we don't want Alt+Ctrl to open menu anyway.
-  if (nav_keyboard_active && IsKeyPressed(Mod_Alt, KeyOwner_None)) {
+  if (nav_keyboard_active && ::IsKeyPressed(Mod_Alt, KeyOwner_None)) {
     g.NavWindowingToggleLayer = true;
     g.NavInputSource = InputSource_Keyboard;
   }
@@ -14638,22 +14646,22 @@ bool Gui::BeginTooltipHidden() {
 // - We then pull and use the mouse button that was used to activate the item
 // and use it to carry on the drag. If the item has no identifier:
 // - Currently always assume left mouse button.
-bool Gui::BeginDragDropSource(DragDropFlags flags) {
+bool Gui::BeginDragDropSource(int flags) {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
 
   // FIXME-DRAGDROP: While in the common-most "drag from non-zero active id"
   // case we can tell the mouse button, in both SourceExtern and id==0 cases we
   // may requires something else (explicit flags or some heuristic).
-  MouseButton mouse_button = MouseButton_Left;
+  int mouse_button = MouseButton_Left;
 
   bool source_drag_active = false;
-  ID source_id = 0;
-  ID source_parent_id = 0;
+  int source_id = 0;
+  int source_parent_id = 0;
   if (!(flags & DragDropFlags_SourceExtern)) {
     source_id = g.LastItemData.ID;
     if (source_id != 0) {
-      // Common path: items with ID
+      // Common path: items with unsigned int
       if (g.ActiveId != source_id)
         return false;
       if (g.ActiveIdMouseButton != -1)
@@ -14662,7 +14670,7 @@ bool Gui::BeginDragDropSource(DragDropFlags flags) {
         return false;
       g.ActiveIdAllowOverlap = false;
     } else {
-      // Uncommon path: items without ID
+      // Uncommon path: items without unsigned int
       if (g.IO.MouseDown[mouse_button] == false || window->SkipItems)
         return false;
       if ((g.LastItemData.StatusFlags & ItemStatusFlags_HoveredRect) == 0 &&
@@ -14678,9 +14686,9 @@ bool Gui::BeginDragDropSource(DragDropFlags flags) {
         return false;
       }
 
-      // Magic fallback to handle items with no assigned ID, e.g. Text(),
-      // Image() We build a throwaway ID based on current ID stack + relative
-      // AABB of items in window. THE IDENTIFIER WON'T SURVIVE ANY
+      // Magic fallback to handle items with no assigned unsigned int, e.g.
+      // Text(), Image() We build a throwaway int based on current int stack +
+      // relative AABB of items in window. THE IDENTIFIER WON'T SURVIVE ANY
       // REPOSITIONING/RESIZINGG OF THE WIDGET, so if your widget moves your
       // dragging operation will be canceled. We don't need to maintain/call
       // ClearActiveID() as releasing the button will early out this function
@@ -14773,7 +14781,7 @@ void Gui::EndDragDropSource() {
 
 // Use 'cond' to choose to submit payload on drag start or every frame
 bool Gui::SetDragDropPayload(const char *type, const void *data,
-                             size_t data_size, Cond cond) {
+                             size_t data_size, int cond) {
   Context &g = *GGui;
   Payload &payload = g.DragDropPayload;
   if (cond == 0)
@@ -14813,7 +14821,7 @@ bool Gui::SetDragDropPayload(const char *type, const void *data,
          (g.DragDropAcceptFrameCount == g.FrameCount - 1);
 }
 
-bool Gui::BeginDragDropTargetCustom(const Rect &bb, ID id) {
+bool Gui::BeginDragDropTargetCustom(const Rect &bb, int id) {
   Context &g = *GGui;
   if (!g.DragDropActive)
     return false;
@@ -14866,7 +14874,7 @@ bool Gui::BeginDragDropTarget() {
       (g.LastItemData.StatusFlags & ItemStatusFlags_HasDisplayRect)
           ? g.LastItemData.DisplayRect
           : g.LastItemData.Rect;
-  ID id = g.LastItemData.ID;
+  int id = g.LastItemData.ID;
   if (id == 0) {
     id = window->GetIDFromRectangle(display_rect);
     KeepAliveID(id);
@@ -14890,8 +14898,7 @@ bool Gui::IsDragDropPayloadBeingAccepted() {
   return g.DragDropActive && g.DragDropAcceptIdPrev != 0;
 }
 
-const Payload *Gui::AcceptDragDropPayload(const char *type,
-                                          DragDropFlags flags) {
+const Payload *Gui::AcceptDragDropPayload(const char *type, int flags) {
   Context &g = *GGui;
   Payload &payload = g.DragDropPayload;
   ASSERT(g.DragDropActive); // Not called between BeginDragDropTarget() and
@@ -14902,7 +14909,7 @@ const Payload *Gui::AcceptDragDropPayload(const char *type,
 
   // Accept smallest drag target bounding box, this allows us to nest drag
   // targets conveniently without ordering constraints. NB: We currently accept
-  // NULL id as target. However, overlapping targets requires a unique ID to
+  // NULL id as target. However, overlapping targets requires a unique int to
   // function!
   const bool was_accepted_previously =
       (g.DragDropAcceptIdPrev == g.DragDropTargetId);
@@ -14990,8 +14997,8 @@ static inline void LogTextV(Context &g, const char *fmt, va_list args) {
   if (g.LogFile) {
     g.LogBuffer.Buf.resize(0);
     g.LogBuffer.appendfv(fmt, args);
-    FileWrite(g.LogBuffer.c_str(), sizeof(char), (U64)g.LogBuffer.size(),
-              g.LogFile);
+    FileWrite(g.LogBuffer.c_str(), sizeof(char),
+              (unsigned long long)g.LogBuffer.size(), g.LogFile);
   } else {
     g.LogBuffer.appendfv(fmt, args);
   }
@@ -15294,7 +15301,7 @@ void Gui::RemoveSettingsHandler(const char *type_name) {
 
 SettingsHandler *Gui::FindSettingsHandler(const char *type_name) {
   Context &g = *GGui;
-  const ID type_hash = HashStr(type_name);
+  const int type_hash = HashStr(type_name);
   for (SettingsHandler &handler : g.SettingsHandlers)
     if (handler.TypeHash == type_hash)
       return &handler;
@@ -15452,7 +15459,7 @@ WindowSettings *Gui::CreateNewWindowSettings(const char *name) {
 // We don't provide a FindWindowSettingsByName() because Docking system doesn't
 // always hold on names. This is called once per window .ini entry + once per
 // newly instantiated window.
-WindowSettings *Gui::FindWindowSettingsByID(ID id) {
+WindowSettings *Gui::FindWindowSettingsByID(int id) {
   Context &g = *GGui;
   for (WindowSettings *settings = g.SettingsWindows.begin(); settings != NULL;
        settings = g.SettingsWindows.next_chunk(settings))
@@ -15496,7 +15503,7 @@ static void WindowSettingsHandler_ClearAll(Context *ctx, SettingsHandler *) {
 
 static void *WindowSettingsHandler_ReadOpen(Context *, SettingsHandler *,
                                             const char *name) {
-  ID id = HashStr(name);
+  int id = HashStr(name);
   WindowSettings *settings = Gui::FindWindowSettingsByID(id);
   if (settings)
     *settings = WindowSettings(); // Clear existing if recycling previous entry
@@ -15512,7 +15519,7 @@ static void WindowSettingsHandler_ReadLine(Context *, SettingsHandler *,
   WindowSettings *settings = (WindowSettings *)entry;
   int x, y;
   int i;
-  U32 u1;
+  unsigned int u1;
   if (sscanf(line, "Pos=%i,%i", &x, &y) == 2) {
     settings->Pos = Vec2ih((short)x, (short)y);
   } else if (sscanf(line, "Size=%i,%i", &x, &y) == 2) {
@@ -15604,7 +15611,8 @@ static void WindowSettingsHandler_WriteAll(Context *ctx,
         buf->appendf("Size=%d,%d\n", settings->Size.x, settings->Size.y);
       buf->appendf("Collapsed=%d\n", settings->Collapsed);
       if (settings->DockId != 0) {
-        // buf->appendf("TabId=0x%08X\n", HashStr("#TAB", 4, settings->ID));
+        // buf->appendf("TabId=0x%08X\n", HashStr("#TAB", 4, settings->unsigned
+        // int));
         // // window->TabId: this is not read back but writing it makes
         // "debugging" the .ini data easier.
         if (settings->DockOrder == -1)
@@ -15665,7 +15673,7 @@ Viewport *Gui::GetMainViewport() {
 
 // FIXME: This leaks access to viewports not listed in PlatformIO.Viewports[].
 // Problematic? (#4236)
-Viewport *Gui::FindViewportByID(ID id) {
+Viewport *Gui::FindViewportByID(int id) {
   Context &g = *GGui;
   for (ViewportP *viewport : g.Viewports)
     if (viewport->ID == id)
@@ -15692,7 +15700,8 @@ void Gui::SetCurrentViewport(Window *current_window, ViewportP *viewport) {
   g.CurrentDpiScale = viewport ? viewport->DpiScale : 1.0f;
   g.CurrentViewport = viewport;
   // DEBUG_LOG_VIEWPORT("[viewport] SetCurrentViewport changed '%s' 0x%08X\n",
-  // current_window ? current_window->Name : NULL, viewport ? viewport->ID : 0);
+  // current_window ? current_window->Name : NULL, viewport ? viewport->unsigned
+  // int : 0);
 
   // Notify platform layer of viewport changes
   // FIXME-DPI: This is only currently used for experimenting with handling of
@@ -15907,9 +15916,8 @@ static void Gui::UpdateViewportsNewFrame() {
             (g.NavWindow->Viewport ==
              focused_viewport); // Update so a window changing viewport won't
                                 // lose focus.
-        FocusRequestFlags focus_request_flags =
-            FocusRequestFlags_UnlessBelowModal |
-            FocusRequestFlags_RestoreFocusedChild;
+        int focus_request_flags = FocusRequestFlags_UnlessBelowModal |
+                                  FocusRequestFlags_RestoreFocusedChild;
         if (focused_viewport->Window != NULL)
           FocusWindow(focused_viewport->Window, focus_request_flags);
         else if (focused_viewport->LastFocusedHadNavWindow)
@@ -16138,8 +16146,8 @@ static void Gui::UpdateViewportsEndFrame() {
 
 // FIXME: We should ideally refactor the system to call this every frame (we
 // currently don't)
-ViewportP *Gui::AddUpdateViewport(Window *window, ID id, const Vec2 &pos,
-                                  const Vec2 &size, ViewportFlags flags) {
+ViewportP *Gui::AddUpdateViewport(Window *window, int id, const Vec2 &pos,
+                                  const Vec2 &size, int flags) {
   Context &g = *GGui;
   ASSERT(id != 0);
 
@@ -16242,7 +16250,7 @@ static void Gui::DestroyViewport(ViewportP *viewport) {
 // rewritten.
 static void Gui::WindowSelectViewport(Window *window) {
   Context &g = *GGui;
-  WindowFlags flags = window->Flags;
+  int flags = window->Flags;
   window->ViewportAllowPlatformMonitorExtend = -1;
 
   // Restore main viewport if multi-viewport is not supported by the backend
@@ -16287,12 +16295,12 @@ static void Gui::WindowSelectViewport(Window *window) {
         (ViewportP *)FindViewportByID(g.NextWindowData.ViewportId);
     window->ViewportId =
         g.NextWindowData
-            .ViewportId; // Store ID even if Viewport isn't resolved yet.
+            .ViewportId; // Store int even if Viewport isn't resolved yet.
     if (window->Viewport && (window->Flags & WindowFlags_DockNodeHost) != 0 &&
         window->Viewport->Window != NULL) {
       window->Viewport->Window = window;
       window->Viewport->ID = window->ViewportId =
-          window->ID; // Overwrite ID (always owned by node)
+          window->ID; // Overwrite int (always owned by node)
     }
     lock_viewport = true;
   } else if ((flags & WindowFlags_ChildWindow) ||
@@ -16435,12 +16443,11 @@ void Gui::WindowSyncOwnedViewport(Window *window,
     UpdateViewportPlatformMonitor(window->Viewport);
 
   // Update common viewport flags
-  const ViewportFlags viewport_flags_to_clear =
+  const int viewport_flags_to_clear =
       ViewportFlags_TopMost | ViewportFlags_NoTaskBarIcon |
       ViewportFlags_NoDecoration | ViewportFlags_NoRendererClear;
-  ViewportFlags viewport_flags =
-      window->Viewport->Flags & ~viewport_flags_to_clear;
-  WindowFlags window_flags = window->Flags;
+  int viewport_flags = window->Viewport->Flags & ~viewport_flags_to_clear;
+  int window_flags = window->Flags;
   const bool is_modal = (window_flags & WindowFlags_Modal) != 0;
   const bool is_short_lived_floating_window =
       (window_flags &
@@ -16487,9 +16494,9 @@ void Gui::WindowSyncOwnedViewport(Window *window,
 
   window->Viewport->Flags = viewport_flags;
 
-  // Update parent viewport ID
+  // Update parent viewport unsigned int
   // (the !IsFallbackWindow test mimic the one done in WindowSelectViewport())
-  if (window->WindowClass.ParentViewportId != (ID)-1)
+  if (window->WindowClass.ParentViewportId != (unsigned int)-1)
     window->Viewport->ParentViewportId = window->WindowClass.ParentViewportId;
   else if ((window_flags & (WindowFlags_Popup | WindowFlags_Tooltip)) &&
            parent_window_in_stack &&
@@ -16582,7 +16589,7 @@ void Gui::UpdatePlatformWindows() {
     if (Window *window_for_title = GetWindowForTitleDisplay(viewport->Window)) {
       const char *title_begin = window_for_title->Name;
       char *title_end = (char *)(intptr_t)FindRenderedTextEnd(title_begin);
-      const ID title_hash = HashStr(title_begin, title_end - title_begin);
+      const int title_hash = HashStr(title_begin, title_end - title_begin);
       if (viewport->LastNameHash != title_hash) {
         char title_end_backup_c = *title_end;
         *title_end = 0; // Cut existing buffer short instead of doing an
@@ -16857,7 +16864,7 @@ struct DockRequest {
   DockNode *DockTargetNode; // Destination/Target Node to dock into
   Window *DockPayload;      // Source/Payload window to dock (may be a loose
                             // window or a DockNode), [Optional]
-  Dir DockSplitDir;
+  int DockSplitDir;
   float DockSplitRatio;
   bool DockSplitOuter;
   Window *UndockTargetWindow;
@@ -16881,7 +16888,7 @@ struct DockPreviewData {
   bool IsSplitDirExplicit; // Set when hovered the drop rect (vs. implicit
                            // SplitDir==None when hovered the window)
   DockNode *SplitNode;
-  Dir SplitDir;
+  int SplitDir;
   float SplitRatio;
   Rect DropRectsDraw[Dir_COUNT +
                      1]; // May be slightly different from hit-testing drop
@@ -16901,14 +16908,14 @@ struct DockPreviewData {
 // Persistent Settings data, stored contiguously in SettingsNodes (sizeof() ~32
 // bytes)
 struct DockNodeSettings {
-  ID ID;
-  ::ID ParentNodeId;
-  ::ID ParentWindowId;
-  ::ID SelectedTabId;
+  int ID;
+  int ParentNodeId;
+  int ParentWindowId;
+  int SelectedTabId;
   signed char SplitAxis;
   char Depth;
-  DockNodeFlags Flags; // NB: We save individual flags one by one in ascii
-                       // format (DockNodeFlags_SavedFlagsMask_)
+  int Flags; // NB: We save individual flags one by one in ascii
+             // format (DockNodeFlags_SavedFlagsMask_)
   Vec2ih Pos;
   Vec2ih Size;
   Vec2ih SizeRef;
@@ -16924,7 +16931,7 @@ struct DockNodeSettings {
 
 namespace Gui {
 // DockContext
-static DockNode *DockContextAddNode(Context *ctx, ID id);
+static DockNode *DockContextAddNode(Context *ctx, int id);
 static void DockContextRemoveNode(Context *ctx, DockNode *node,
                                   bool merge_sibling_into_parent_node);
 static void DockContextQueueNotifyRemovedNode(Context *ctx, DockNode *node);
@@ -16937,17 +16944,17 @@ DockContextBuildNodesFromSettings(Context *ctx,
                                   int node_settings_count);
 static void
 DockContextBuildAddWindowsToNodes(Context *ctx,
-                                  ID root_id); // Use root_id==0 to add all
+                                  int root_id); // Use root_id==0 to add all
 
 // DockNode
 static void DockNodeAddWindow(DockNode *node, Window *window,
                               bool add_to_tab_bar);
 static void DockNodeMoveWindows(DockNode *dst_node, DockNode *src_node);
 static void DockNodeMoveChildNodes(DockNode *dst_node, DockNode *src_node);
-static Window *DockNodeFindWindowByID(DockNode *node, ID id);
+static Window *DockNodeFindWindowByID(DockNode *node, int id);
 static void DockNodeApplyPosSizeToWindows(DockNode *node);
 static void DockNodeRemoveWindow(DockNode *node, Window *window,
-                                 ID save_dock_id);
+                                 int save_dock_id);
 static void DockNodeHideHostWindow(DockNode *node);
 static void DockNodeUpdate(DockNode *node);
 static void DockNodeUpdateForRootNode(DockNode *node);
@@ -16974,9 +16981,9 @@ static void DockNodeCalcTabBarLayout(const DockNode *node, Rect *out_title_rect,
                                      Vec2 *out_window_menu_button_pos,
                                      Vec2 *out_close_button_pos);
 static void DockNodeCalcSplitRects(Vec2 &pos_old, Vec2 &size_old, Vec2 &pos_new,
-                                   Vec2 &size_new, Dir dir,
+                                   Vec2 &size_new, int dir,
                                    Vec2 size_new_desired);
-static bool DockNodeCalcDropRectsAndTestMousePos(const Rect &parent, Dir dir,
+static bool DockNodeCalcDropRectsAndTestMousePos(const Rect &parent, int dir,
                                                  Rect &out_draw,
                                                  bool outer_docking,
                                                  Vec2 *test_mouse_pos);
@@ -17001,9 +17008,10 @@ static DockNode *DockNodeTreeFindVisibleNodeByPos(DockNode *node, Vec2 pos);
 static DockNode *DockNodeTreeFindFallbackLeafNode(DockNode *node);
 
 // Settings
-static void DockSettingsRenameNodeReferences(ID old_node_id, ID new_node_id);
-static void DockSettingsRemoveNodeReferences(ID *node_ids, int node_ids_count);
-static DockNodeSettings *DockSettingsFindNodeSettings(Context *ctx, ID node_id);
+static void DockSettingsRenameNodeReferences(int old_node_id, int new_node_id);
+static void DockSettingsRemoveNodeReferences(int *node_ids, int node_ids_count);
+static DockNodeSettings *DockSettingsFindNodeSettings(Context *ctx,
+                                                      int node_id);
 static void DockSettingsHandler_ClearAll(Context *, SettingsHandler *);
 static void DockSettingsHandler_ApplyAll(Context *, SettingsHandler *);
 static void *DockSettingsHandler_ReadOpen(Context *, SettingsHandler *,
@@ -17071,7 +17079,7 @@ void Gui::DockContextShutdown(Context *ctx) {
       DELETE(node);
 }
 
-void Gui::DockContextClearNodes(Context *ctx, ID root_id,
+void Gui::DockContextClearNodes(Context *ctx, int root_id,
                                 bool clear_settings_refs) {
   UNUSED(ctx);
   ASSERT(ctx == GGui);
@@ -17087,7 +17095,7 @@ void Gui::DockContextRebuildNodes(Context *ctx) {
   DockContext *dc = &ctx->DockContext;
   DEBUG_LOG_DOCKING("[docking] DockContextRebuildNodes\n");
   SaveIniSettingsToMemory();
-  ID root_id = 0; // Rebuild all
+  int root_id = 0; // Rebuild all
   DockContextClearNodes(ctx, root_id, false);
   DockContextBuildNodesFromSettings(ctx, dc->NodesSettings.Data,
                                     dc->NodesSettings.Size);
@@ -17161,8 +17169,9 @@ void Gui::DockContextNewFrameUpdateDocking(Context *ctx) {
   dc->Requests.resize(0);
 
   // Create windows for each automatic docking nodes
-  // We can have NULL pointers when we delete nodes, but because ID are recycled
-  // this should amortize nicely (and our node count will never be very high)
+  // We can have NULL pointers when we delete nodes, but because int are
+  // recycled this should amortize nicely (and our node count will never be very
+  // high)
   for (int n = 0; n < dc->Nodes.Data.Size; n++)
     if (DockNode *node = (DockNode *)dc->Nodes.Data[n].val_p)
       if (node->IsFloatingNode())
@@ -17179,7 +17188,7 @@ void Gui::DockContextEndFrame(Context *ctx) {
           node->HostWindow && node->IsLeafNode() && !node->IsBgDrawnThisFrame) {
         Rect bg_rect(node->Pos + Vec2(0.0f, GetFrameHeight()),
                      node->Pos + node->Size);
-        DrawFlags bg_rounding_flags = CalcRoundingFlagsForRectInRect(
+        int bg_rounding_flags = CalcRoundingFlagsForRectInRect(
             bg_rect, node->HostWindow->Rect(), g.Style.DockingSeparatorSize);
         node->HostWindow->DrawList->ChannelsSetCurrent(
             DOCKING_HOST_DRAW_CHANNEL_BG);
@@ -17189,25 +17198,25 @@ void Gui::DockContextEndFrame(Context *ctx) {
       }
 }
 
-DockNode *Gui::DockContextFindNodeByID(Context *ctx, ID id) {
+DockNode *Gui::DockContextFindNodeByID(Context *ctx, int id) {
   return (DockNode *)ctx->DockContext.Nodes.GetVoidPtr(id);
 }
 
-ID Gui::DockContextGenNodeID(Context *ctx) {
-  // Generate an ID for new node (the exact ID value doesn't matter as long as
+int Gui::DockContextGenNodeID(Context *ctx) {
+  // Generate an int for new node (the exact int value doesn't matter as long as
   // it is not already used)
   // FIXME-OPT FIXME-DOCK: This is suboptimal, even if the node count is small
   // enough not to be a worry.0 We should poke in ctx->Nodes to find a suitable
-  // ID faster. Even more so trivial that ctx->Nodes lookup is already sorted.
-  ID id = 0x0001;
+  // int faster. Even more so trivial that ctx->Nodes lookup is already sorted.
+  int id = 0x0001;
   while (DockContextFindNodeByID(ctx, id) != NULL)
     id++;
   return id;
 }
 
-static DockNode *Gui::DockContextAddNode(Context *ctx, ID id) {
-  // Generate an ID for the new node (the exact ID value doesn't matter as long
-  // as it is not already used) and add the first window.
+static DockNode *Gui::DockContextAddNode(Context *ctx, int id) {
+  // Generate an int for the new node (the exact int value doesn't matter as
+  // long as it is not already used) and add the first window.
   Context &g = *ctx;
   if (id == 0)
     id = DockContextGenNodeID(ctx);
@@ -17264,7 +17273,7 @@ static int CDECL DockNodeComparerDepthMostFirst(const void *lhs,
 // template parameter, so we moved this here.
 struct DockContextPruneNodeData {
   int CountWindows, CountChildWindows, CountChildNodes;
-  ID RootId;
+  int RootId;
   DockContextPruneNodeData() {
     CountWindows = CountChildWindows = CountChildNodes = 0;
     RootId = 0;
@@ -17311,7 +17320,7 @@ static void Gui::DockContextPruneUnusedSettingsNodes(Context *ctx) {
   // to a missing node)
   for (WindowSettings *settings = g.SettingsWindows.begin(); settings != NULL;
        settings = g.SettingsWindows.next_chunk(settings))
-    if (ID dock_id = settings->DockId)
+    if (int dock_id = settings->DockId)
       if (DockContextPruneNodeData *data = pool.GetByKey(dock_id)) {
         data->CountWindows++;
         if (DockContextPruneNodeData *data_root =
@@ -17384,7 +17393,7 @@ Gui::DockContextBuildNodesFromSettings(Context *ctx,
   }
 }
 
-void Gui::DockContextBuildAddWindowsToNodes(Context *ctx, ID root_id) {
+void Gui::DockContextBuildAddWindowsToNodes(Context *ctx, int root_id) {
   // Rebind all windows to nodes (they can also lazily rebind but we'll have a
   // visible glitch during the first frame)
   Context &g = *ctx;
@@ -17417,7 +17426,7 @@ void Gui::DockContextBuildAddWindowsToNodes(Context *ctx, ID root_id) {
 
 void Gui::DockContextQueueDock(Context *ctx, Window *target,
                                DockNode *target_node, Window *payload,
-                               Dir split_dir, float split_ratio,
+                               int split_dir, float split_ratio,
                                bool split_outer) {
   ASSERT(target != payload);
   DockRequest req;
@@ -17475,7 +17484,7 @@ void Gui::DockContextProcessDock(Context *ctx, DockRequest *req) {
         node ? node->ID : 0, req->DockSplitDir);
 
   // Decide which Tab will be selected at the end of the operation
-  ID next_selected_id = 0;
+  int next_selected_id = 0;
   DockNode *payload_node = NULL;
   if (payload_window) {
     payload_node = payload_window->DockNodeAsHost;
@@ -17491,7 +17500,7 @@ void Gui::DockContextProcessDock(Context *ctx, DockRequest *req) {
   }
 
   // FIXME-DOCK: When we are trying to dock an existing single-window node into
-  // a loose window, transfer Node ID as well When processing an interactive
+  // a loose window, transfer Node int as well When processing an interactive
   // split, usually LastFrameAlive will be < g.FrameCount. But DockBuilder
   // operations can make it ==.
   if (node)
@@ -17512,7 +17521,7 @@ void Gui::DockContextProcessDock(Context *ctx, DockRequest *req) {
     }
   }
 
-  Dir split_dir = req->DockSplitDir;
+  int split_dir = req->DockSplitDir;
   if (split_dir != Dir_None) {
     // Split into two, one side will be our payload node unless we are dropping
     // a loose window
@@ -17582,14 +17591,14 @@ void Gui::DockContextProcessDock(Context *ctx, DockRequest *req) {
         ASSERT(node->Windows.Size == 0);
         DockNodeMoveChildNodes(node, payload_node);
       } else {
-        const ID payload_dock_id = payload_node->ID;
+        const int payload_dock_id = payload_node->ID;
         DockNodeMoveWindows(node, payload_node);
         DockSettingsRenameNodeReferences(payload_dock_id, node->ID);
       }
       DockContextRemoveNode(ctx, payload_node, true);
     } else if (payload_window) {
       // Transfer single window
-      const ID payload_dock_id = payload_window->DockId;
+      const int payload_dock_id = payload_window->DockId;
       node->VisibleWindow = payload_window;
       DockNodeAddWindow(node, payload_window, true);
       if (payload_dock_id != 0)
@@ -17702,7 +17711,7 @@ void Gui::DockContextProcessUndockNode(Context *ctx, DockNode *node) {
 // This is mostly used for automation.
 bool Gui::DockContextCalcDropPosForDocking(
     Window *target, DockNode *target_node, Window *payload_window,
-    DockNode *payload_node, Dir split_dir, bool split_outer, Vec2 *out_pos) {
+    DockNode *payload_node, int split_dir, bool split_outer, Vec2 *out_pos) {
   if (target != NULL && target_node == NULL)
     target_node = target->DockNode;
 
@@ -17754,7 +17763,7 @@ bool Gui::DockContextCalcDropPosForDocking(
 // - DockNodePreviewDockRender()
 //-----------------------------------------------------------------------------
 
-DockNode::DockNode(::ID id) {
+DockNode::DockNode(int id) {
   ID = id;
   SharedFlags = LocalFlags = LocalFlagsInWindows = MergedFlags =
       DockNodeFlags_None;
@@ -17868,7 +17877,7 @@ static void Gui::DockNodeAddWindow(DockNode *node, Window *window,
 }
 
 static void Gui::DockNodeRemoveWindow(DockNode *node, Window *window,
-                                      ID save_dock_id) {
+                                      int save_dock_id) {
   Context &g = *GGui;
   ASSERT(window->DockNode == node);
   // ASSERT(window->RootWindowDockTree == node->HostWindow);
@@ -18042,7 +18051,7 @@ static void DockNodeFindInfo(DockNode *node, DockNodeTreeInfo *info) {
     DockNodeFindInfo(node->ChildNodes[1], info);
 }
 
-static Window *Gui::DockNodeFindWindowByID(DockNode *node, ID id) {
+static Window *Gui::DockNodeFindWindowByID(DockNode *node, int id) {
   ASSERT(id != 0);
   for (Window *window : node->Windows)
     if (window->ID == id)
@@ -18097,9 +18106,9 @@ static void Gui::DockNodeUpdateFlagsAndCollapse(DockNode *node) {
       if (node->Windows.Size == 1 && !node->IsCentralNode()) {
         DockNodeHideHostWindow(node);
         node->State = DockNodeState_HostWindowHiddenBecauseSingleWindow;
-        DockNodeRemoveWindow(
-            node, window,
-            node->ID); // Will delete the node so it'll be invalid on return
+        DockNodeRemoveWindow(node, window,
+                             node->ID); // Will delete the node so
+                                        // it'll be invalid on return
         return;
       }
       DockNodeRemoveWindow(node, window, node->ID);
@@ -18116,7 +18125,7 @@ static void Gui::DockNodeUpdateFlagsAndCollapse(DockNode *node) {
   node->UpdateMergedFlags();
 
   // Auto-hide tab bar option
-  DockNodeFlags node_flags = node->MergedFlags;
+  int node_flags = node->MergedFlags;
   if (node->WantHiddenTabBarUpdate && node->Windows.Size == 1 &&
       (node_flags & DockNodeFlags_AutoHideTabBar) && !node->IsHiddenTabBar())
     node->WantHiddenTabBarToggle = true;
@@ -18335,7 +18344,7 @@ static void Gui::DockNodeUpdate(DockNode *node) {
     }
   }
 
-  const DockNodeFlags node_flags = node->MergedFlags;
+  const int node_flags = node->MergedFlags;
 
   // Decide if the node will have a close button and a window menu button
   node->HasWindowMenuButton =
@@ -18391,9 +18400,9 @@ static void Gui::DockNodeUpdate(DockNode *node) {
       // Begin into the host window
       char window_label[20];
       DockNodeGetHostWindowTitle(node, window_label, ARRAYSIZE(window_label));
-      WindowFlags window_flags = WindowFlags_NoScrollbar |
-                                 WindowFlags_NoScrollWithMouse |
-                                 WindowFlags_DockNodeHost;
+      int window_flags = WindowFlags_NoScrollbar |
+                         WindowFlags_NoScrollWithMouse |
+                         WindowFlags_DockNodeHost;
       window_flags |= WindowFlags_NoFocusOnAppearing;
       window_flags |= WindowFlags_NoSavedSettings | WindowFlags_NoNavFocus |
                       WindowFlags_NoCollapse;
@@ -18448,7 +18457,7 @@ static void Gui::DockNodeUpdate(DockNode *node) {
         DockNode *p_node = DockNodeGetRootNode(p_window->DockNode);
         if (p_node == node) {
           node->LastFocusedNodeId =
-              p_window->DockNode->ID; // Note: not using root node ID!
+              p_window->DockNode->ID; // Note: not using root node unsigned int!
           break;
         }
         p_window = p_node->HostWindow ? p_node->HostWindow->RootWindow : NULL;
@@ -18709,7 +18718,7 @@ static void Gui::DockNodeUpdateTabBar(DockNode *node, Window *host_window) {
 
   const bool node_was_active = (node->LastFrameActive + 1 == g.FrameCount);
   const bool closed_all = node->WantCloseAll && node_was_active;
-  const ID closed_one = node->WantCloseTabId && node_was_active;
+  const int closed_one = node->WantCloseTabId && node_was_active;
   node->WantCloseAll = false;
   node->WantCloseTabId = 0;
 
@@ -18745,10 +18754,10 @@ static void Gui::DockNodeUpdateTabBar(DockNode *node, Window *host_window) {
   }
 
   // Use PushOverrideID() instead of PushID() to use the node id _without_ the
-  // host window ID. This is to facilitate computing those ID from the outside,
-  // and will affect more or less only the ID of the collapse button, popup and
-  // tabs, as docked windows themselves will override the stack with their own
-  // root ID.
+  // host window unsigned int. This is to facilitate computing those int from
+  // the outside, and will affect more or less only the int of the collapse
+  // button, popup and tabs, as docked windows themselves will override the
+  // stack with their own root unsigned int.
   PushOverrideID(node->ID);
   TabBar *tab_bar = node->TabBar;
   bool tab_bar_is_recreated =
@@ -18759,10 +18768,10 @@ static void Gui::DockNodeUpdateTabBar(DockNode *node, Window *host_window) {
     tab_bar = node->TabBar;
   }
 
-  ID focus_tab_id = 0;
+  int focus_tab_id = 0;
   node->IsFocused = is_focused;
 
-  const DockNodeFlags node_flags = node->MergedFlags;
+  const int node_flags = node->MergedFlags;
   const bool has_window_menu_button =
       (node_flags & DockNodeFlags_NoWindowMenuButton) == 0 &&
       (style.WindowMenuButtonPosition != Dir_None);
@@ -18771,7 +18780,7 @@ static void Gui::DockNodeUpdateTabBar(DockNode *node, Window *host_window) {
   // FIXME-DOCK FIXME-OPT: Could we recycle popups id across multiple dock
   // nodes?
   if (has_window_menu_button && IsPopupOpen("#WindowMenu")) {
-    ID next_selected_tab_id = tab_bar->NextSelectedTabId;
+    int next_selected_tab_id = tab_bar->NextSelectedTabId;
     DockNodeWindowMenuUpdate(node, tab_bar);
     if (tab_bar->NextSelectedTabId != 0 &&
         tab_bar->NextSelectedTabId != next_selected_tab_id)
@@ -18798,10 +18807,11 @@ static void Gui::DockNodeUpdateTabBar(DockNode *node, Window *host_window) {
   // Title bar
   if (is_focused)
     node->LastFrameFocused = g.FrameCount;
-  U32 title_bar_col = GetColorU32(host_window->Collapsed ? Col_TitleBgCollapsed
-                                  : is_focused           ? Col_TitleBgActive
-                                                         : Col_TitleBg);
-  DrawFlags rounding_flags = CalcRoundingFlagsForRectInRect(
+  unsigned int title_bar_col =
+      GetColorU32(host_window->Collapsed ? Col_TitleBgCollapsed
+                  : is_focused           ? Col_TitleBgActive
+                                         : Col_TitleBg);
+  int rounding_flags = CalcRoundingFlagsForRectInRect(
       title_bar_rect, host_window->Rect(), g.Style.DockingSeparatorSize);
   host_window->DrawList->AddRectFilled(
       title_bar_rect.Min, title_bar_rect.Max, title_bar_col,
@@ -18854,7 +18864,7 @@ static void Gui::DockNodeUpdateTabBar(DockNode *node, Window *host_window) {
   if (g.NavWindow && g.NavWindow->RootWindow->DockNode == node)
     tab_bar->SelectedTabId = g.NavWindow->RootWindow->TabId;
 
-  // Selected newly added tabs, or persistent tab ID if the tab bar was just
+  // Selected newly added tabs, or persistent tab int if the tab bar was just
   // recreated
   if (tab_bar_is_recreated &&
       TabBarFindTabByID(tab_bar, node->SelectedTabId) != NULL)
@@ -18864,7 +18874,7 @@ static void Gui::DockNodeUpdateTabBar(DockNode *node, Window *host_window) {
         tab_bar->Tabs.back().Window->TabId;
 
   // Begin tab bar
-  TabBarFlags tab_bar_flags =
+  int tab_bar_flags =
       TabBarFlags_Reorderable |
       TabBarFlags_AutoSelectNewTabs; // |
                                      // TabBarFlags_NoTabListScrollingButtons);
@@ -18896,7 +18906,7 @@ static void Gui::DockNodeUpdateTabBar(DockNode *node, Window *host_window) {
         !(window->Flags & WindowFlags_UnsavedDocument))
       continue;
     if (window->LastFrameActive + 1 >= g.FrameCount || !node_was_active) {
-      TabItemFlags tab_item_flags = 0;
+      int tab_item_flags = 0;
       tab_item_flags |= window->WindowClass.TabItemFlagsOverrideSet;
       if (window->Flags & WindowFlags_UnsavedDocument)
         tab_item_flags |= TabItemFlags_UnsavedDocument;
@@ -18908,8 +18918,8 @@ static void Gui::DockNodeUpdateTabBar(DockNode *node, Window *host_window) {
         g.Style.Colors[GWindowDockStyleColors[color_n]] =
             ColorConvertU32ToFloat4(window->DockStyle.Colors[color_n]);
 
-      // Note that TabItemEx() calls TabBarCalcTabID() so our tab item ID will
-      // ignore the current ID stack (rightly so)
+      // Note that TabItemEx() calls TabBarCalcTabID() so our tab item int will
+      // ignore the current int stack (rightly so)
       bool tab_open = true;
       TabItemEx(tab_bar, window->Name,
                 window->HasCloseButton ? &tab_open : NULL, tab_item_flags,
@@ -18924,7 +18934,7 @@ static void Gui::DockNodeUpdateTabBar(DockNode *node, Window *host_window) {
       window->DockTabItemStatusFlags = g.LastItemData.StatusFlags;
       window->DockTabItemRect = g.LastItemData.Rect;
 
-      // Update navigation ID on menu layer
+      // Update navigation int on menu layer
       if (g.NavWindow && g.NavWindow->RootWindow == window &&
           (window->DC.NavLayersActiveMask & (1 << NavLayer_Menu)) == 0)
         host_window->NavLastIds[1] = window->TabId;
@@ -18976,7 +18986,7 @@ static void Gui::DockNodeUpdateTabBar(DockNode *node, Window *host_window) {
   // FIXME: TabItems submitted earlier use AllowItemOverlap so we manually
   // perform a more specific test for now (hovered || held) in order to not
   // cover them.
-  ID title_bar_id = host_window->GetID("#TITLEBAR");
+  int title_bar_id = host_window->GetID("#TITLEBAR");
   if (g.HoveredId == 0 || g.HoveredId == title_bar_id ||
       g.ActiveId == title_bar_id) {
     // AllowOverlap mode required for appending into dock node tab bar,
@@ -19148,7 +19158,7 @@ static void Gui::DockNodeCalcTabBarLayout(const DockNode *node,
 }
 
 void Gui::DockNodeCalcSplitRects(Vec2 &pos_old, Vec2 &size_old, Vec2 &pos_new,
-                                 Vec2 &size_new, Dir dir,
+                                 Vec2 &size_new, int dir,
                                  Vec2 size_new_desired) {
   Context &g = *GGui;
   const float dock_spacing = g.Style.ItemInnerSpacing.x;
@@ -19178,7 +19188,7 @@ void Gui::DockNodeCalcSplitRects(Vec2 &pos_old, Vec2 &size_old, Vec2 &pos_new,
 
 // Retrieve the drop rectangles for a given direction or for the center +
 // perform hit testing.
-bool Gui::DockNodeCalcDropRectsAndTestMousePos(const Rect &parent, Dir dir,
+bool Gui::DockNodeCalcDropRectsAndTestMousePos(const Rect &parent, int dir,
                                                Rect &out_r, bool outer_docking,
                                                Vec2 *test_mouse_pos) {
   Context &g = *GGui;
@@ -19264,12 +19274,12 @@ Gui::DockNodePreviewDockSetup(Window *host_window, DockNode *host_node,
     ASSERT(ref_node_for_rect->IsVisible == true);
 
   // Filter, figure out where we are allowed to dock
-  DockNodeFlags src_node_flags =
+  int src_node_flags =
       payload_node ? payload_node->MergedFlags
                    : payload_window->WindowClass.DockNodeFlagsOverrideSet;
-  DockNodeFlags dst_node_flags =
-      host_node ? host_node->MergedFlags
-                : host_window->WindowClass.DockNodeFlagsOverrideSet;
+  int dst_node_flags = host_node
+                           ? host_node->MergedFlags
+                           : host_window->WindowClass.DockNodeFlagsOverrideSet;
   data->IsCenterAvailable = true;
   if (is_outer_docking)
     data->IsCenterAvailable = false;
@@ -19324,9 +19334,9 @@ Gui::DockNodePreviewDockSetup(Window *host_window, DockNode *host_node,
       if (dir != Dir_None && !data->IsSidesAvailable)
         continue;
       if (DockNodeCalcDropRectsAndTestMousePos(
-              data->FutureNode.Rect(), (Dir)dir, data->DropRectsDraw[dir + 1],
+              data->FutureNode.Rect(), (int)dir, data->DropRectsDraw[dir + 1],
               is_outer_docking, &g.IO.MousePos)) {
-        data->SplitDir = (Dir)dir;
+        data->SplitDir = (int)dir;
         data->IsSplitDirExplicit = true;
       }
     }
@@ -19342,7 +19352,7 @@ Gui::DockNodePreviewDockSetup(Window *host_window, DockNode *host_node,
   // Calculate split area
   data->SplitRatio = 0.0f;
   if (data->SplitDir != Dir_None) {
-    Dir split_dir = data->SplitDir;
+    int split_dir = data->SplitDir;
     Axis split_axis =
         (split_dir == Dir_Left || split_dir == Dir_Right) ? Axis_X : Axis_Y;
     Vec2 pos_new, pos_old = data->FutureNode.Pos;
@@ -19387,13 +19397,13 @@ static void Gui::DockNodePreviewDockRender(Window *host_window,
         GetForegroundDrawList(root_payload->Viewport);
 
   // Draw main preview rectangle
-  const U32 overlay_col_main =
+  const unsigned int overlay_col_main =
       GetColorU32(Col_DockingPreview, is_transparent_payload ? 0.60f : 0.40f);
-  const U32 overlay_col_drop =
+  const unsigned int overlay_col_drop =
       GetColorU32(Col_DockingPreview, is_transparent_payload ? 0.90f : 0.70f);
-  const U32 overlay_col_drop_hovered =
+  const unsigned int overlay_col_drop_hovered =
       GetColorU32(Col_DockingPreview, is_transparent_payload ? 1.20f : 1.00f);
-  const U32 overlay_col_lines = GetColorU32(
+  const unsigned int overlay_col_lines = GetColorU32(
       Col_NavWindowingHighlight, is_transparent_payload ? 0.80f : 0.60f);
 
   // Display area preview
@@ -19464,17 +19474,16 @@ static void Gui::DockNodePreviewDockRender(Window *host_window,
       Rect tab_bb(tab_pos.x, tab_pos.y, tab_pos.x + tab_size.x,
                   tab_pos.y + tab_size.y);
       tab_pos.x += tab_size.x + g.Style.ItemInnerSpacing.x;
-      const U32 overlay_col_text = GetColorU32(
+      const unsigned int overlay_col_text = GetColorU32(
           payload_window->DockStyle.Colors[WindowDockStyleCol_Text]);
-      const U32 overlay_col_tabs = GetColorU32(
+      const unsigned int overlay_col_tabs = GetColorU32(
           payload_window->DockStyle.Colors[WindowDockStyleCol_TabActive]);
       PushStyleColor(Col_Text, overlay_col_text);
       for (int overlay_n = 0; overlay_n < overlay_draw_lists_count;
            overlay_n++) {
-        TabItemFlags tab_flags =
-            (payload_window->Flags & WindowFlags_UnsavedDocument)
-                ? TabItemFlags_UnsavedDocument
-                : 0;
+        int tab_flags = (payload_window->Flags & WindowFlags_UnsavedDocument)
+                            ? TabItemFlags_UnsavedDocument
+                            : 0;
         if (!tab_bar_rect.Contains(tab_bb))
           overlay_draw_lists[overlay_n]->PushClipRect(tab_bar_rect.Min,
                                                       tab_bar_rect.Max);
@@ -19498,9 +19507,10 @@ static void Gui::DockNodePreviewDockRender(Window *host_window,
       Rect draw_r = data->DropRectsDraw[dir + 1];
       Rect draw_r_in = draw_r;
       draw_r_in.Expand(-2.0f);
-      U32 overlay_col = (data->SplitDir == (Dir)dir && data->IsSplitDirExplicit)
-                            ? overlay_col_drop_hovered
-                            : overlay_col_drop;
+      unsigned int overlay_col =
+          (data->SplitDir == (int)dir && data->IsSplitDirExplicit)
+              ? overlay_col_drop_hovered
+              : overlay_col_drop;
       for (int overlay_n = 0; overlay_n < overlay_draw_lists_count;
            overlay_n++) {
         Vec2 center = Floor(draw_r_in.GetCenter());
@@ -19817,10 +19827,10 @@ void Gui::DockNodeTreeUpdateSplitter(DockNode *node) {
     // GetForegroundDrawList(g.CurrentWindow->Viewport)->AddRect(bb.Min, bb.Max,
     // COL32(255,0,255,255));
 
-    const DockNodeFlags merged_flags =
+    const int merged_flags =
         child_0->MergedFlags |
         child_1->MergedFlags; // Merged flags for BOTH childs
-    const DockNodeFlags no_resize_axis_flag =
+    const int no_resize_axis_flag =
         (axis == Axis_X) ? DockNodeFlags_NoResizeX : DockNodeFlags_NoResizeY;
     if ((merged_flags & DockNodeFlags_NoResize) ||
         (merged_flags & no_resize_axis_flag)) {
@@ -19841,7 +19851,7 @@ void Gui::DockNodeTreeUpdateSplitter(DockNode *node) {
       resize_limits[1] = node->ChildNodes[1]->Pos[axis] +
                          node->ChildNodes[1]->Size[axis] - min_size;
 
-      ID splitter_id = GetID("##Splitter");
+      int splitter_id = GetID("##Splitter");
       if (g.ActiveId == splitter_id) // Only process when splitter is active
       {
         DockNodeTreeUpdateSplitterFindTouchingNode(child_0, axis, 1,
@@ -19890,7 +19900,7 @@ void Gui::DockNodeTreeUpdateSplitter(DockNode *node) {
       float min_size_0 = resize_limits[0] - child_0->Pos[axis];
       float min_size_1 =
           child_1->Pos[axis] + child_1->Size[axis] - resize_limits[1];
-      U32 bg_col = GetColorU32(Col_WindowBg);
+      unsigned int bg_col = GetColorU32(Col_WindowBg);
       if (SplitterBehavior(bb, GetID("##Splitter"), axis, &cur_size_0,
                            &cur_size_1, min_size_0, min_size_1,
                            WINDOWS_HOVER_PADDING,
@@ -19990,7 +20000,7 @@ DockNode *Gui::DockNodeTreeFindVisibleNodeByPos(DockNode *node, Vec2 pos) {
 //-----------------------------------------------------------------------------
 
 // [Internal] Called via SetNextWindowDockID()
-void Gui::SetWindowDock(Window *window, ID dock_id, Cond cond) {
+void Gui::SetWindowDock(Window *window, int dock_id, int cond) {
   // Test condition (NB: bit 0 is always true) and clear flags for next time
   if (cond && (window->SetWindowDockAllowFlags & cond) == 0)
     return;
@@ -20031,8 +20041,8 @@ void Gui::SetWindowDock(Window *window, ID dock_id, Cond cond) {
 // can host. If you use a dockspace, submit it early in your app. When
 // DockNodeFlags_KeepAliveOnly is set, nothing is submitted in the current
 // window (function may be called from any location).
-ID Gui::DockSpace(ID id, const Vec2 &size_arg, DockNodeFlags flags,
-                  const WindowClass *window_class) {
+int Gui::DockSpace(int id, const Vec2 &size_arg, int flags,
+                   const WindowClass *window_class) {
   Context &g = *GGui;
   Window *window = GetCurrentWindowRead();
   if (!(g.IO.ConfigFlags & ConfigFlags_DockingEnable))
@@ -20072,7 +20082,7 @@ ID Gui::DockSpace(ID id, const Vec2 &size_arg, DockNodeFlags flags,
   if (node->LastFrameActive == g.FrameCount &&
       !(flags & DockNodeFlags_KeepAliveOnly)) {
     ASSERT(node->IsDockSpace() == false &&
-           "Cannot call DockSpace() twice a frame with the same ID");
+           "Cannot call DockSpace() twice a frame with the same unsigned int");
     node->SetLocalFlags(node->LocalFlags | DockNodeFlags_DockSpace);
     return id;
   }
@@ -20105,7 +20115,7 @@ ID Gui::DockSpace(ID id, const Vec2 &size_arg, DockNodeFlags flags,
   // host it in the existing window?
   // FIXME-DOCK: What is the reason for not simply calling BeginChild()? (OK to
   // have a reason but should be commented)
-  WindowFlags window_flags = WindowFlags_ChildWindow | WindowFlags_DockNodeHost;
+  int window_flags = WindowFlags_ChildWindow | WindowFlags_DockNodeHost;
   window_flags |= WindowFlags_NoSavedSettings | WindowFlags_NoResize |
                   WindowFlags_NoCollapse | WindowFlags_NoTitleBar;
   window_flags |= WindowFlags_NoScrollbar | WindowFlags_NoScrollWithMouse;
@@ -20165,9 +20175,8 @@ ID Gui::DockSpace(ID id, const Vec2 &size_arg, DockNodeFlags flags,
 // function. But you can also use BeginMainMenuBar(). If you really want a menu
 // bar inside the same window as the one hosting the dockspace, you will need to
 // copy this code somewhere and tweak it.
-ID Gui::DockSpaceOverViewport(const Viewport *viewport,
-                              DockNodeFlags dockspace_flags,
-                              const WindowClass *window_class) {
+int Gui::DockSpaceOverViewport(const Viewport *viewport, int dockspace_flags,
+                               const WindowClass *window_class) {
   if (viewport == NULL)
     viewport = GetMainViewport();
 
@@ -20175,7 +20184,7 @@ ID Gui::DockSpaceOverViewport(const Viewport *viewport,
   SetNextWindowSize(viewport->WorkSize);
   SetNextWindowViewport(viewport->ID);
 
-  WindowFlags host_window_flags = 0;
+  int host_window_flags = 0;
   host_window_flags |= WindowFlags_NoTitleBar | WindowFlags_NoCollapse |
                        WindowFlags_NoResize | WindowFlags_NoMove |
                        WindowFlags_NoDocking;
@@ -20193,7 +20202,7 @@ ID Gui::DockSpaceOverViewport(const Viewport *viewport,
   Begin(label, NULL, host_window_flags);
   PopStyleVar(3);
 
-  ID dockspace_id = GetID("DockSpace");
+  int dockspace_id = GetID("DockSpace");
   DockSpace(dockspace_id, Vec2(0.0f, 0.0f), dockspace_flags, window_class);
   End();
 
@@ -20224,17 +20233,17 @@ ID Gui::DockSpaceOverViewport(const Viewport *viewport,
 // - DockBuilderFinish()
 //-----------------------------------------------------------------------------
 
-void Gui::DockBuilderDockWindow(const char *window_name, ID node_id) {
+void Gui::DockBuilderDockWindow(const char *window_name, int node_id) {
   // We don't preserve relative order of multiple docked windows (by clearing
   // DockOrder back to -1)
   Context &g = *GGui;
   UNUSED(g);
   DEBUG_LOG_DOCKING("[docking] DockBuilderDockWindow '%s' to node 0x%08X\n",
                     window_name, node_id);
-  ID window_id = HashStr(window_name);
+  int window_id = HashStr(window_name);
   if (Window *window = FindWindowByID(window_id)) {
     // Apply to created window
-    ID prev_node_id = window->DockId;
+    int prev_node_id = window->DockId;
     SetWindowDock(window, node_id, Cond_Always);
     if (window->DockId != prev_node_id)
       window->DockOrder = -1;
@@ -20249,12 +20258,12 @@ void Gui::DockBuilderDockWindow(const char *window_name, ID node_id) {
   }
 }
 
-DockNode *Gui::DockBuilderGetNode(ID node_id) {
+DockNode *Gui::DockBuilderGetNode(int node_id) {
   Context &g = *GGui;
   return DockContextFindNodeByID(&g, node_id);
 }
 
-void Gui::DockBuilderSetNodePos(ID node_id, Vec2 pos) {
+void Gui::DockBuilderSetNodePos(int node_id, Vec2 pos) {
   Context &g = *GGui;
   DockNode *node = DockContextFindNodeByID(&g, node_id);
   if (node == NULL)
@@ -20263,7 +20272,7 @@ void Gui::DockBuilderSetNodePos(ID node_id, Vec2 pos) {
   node->AuthorityForPos = DataAuthority_DockNode;
 }
 
-void Gui::DockBuilderSetNodeSize(ID node_id, Vec2 size) {
+void Gui::DockBuilderSetNodeSize(int node_id, Vec2 size) {
   Context &g = *GGui;
   DockNode *node = DockContextFindNodeByID(&g, node_id);
   if (node == NULL)
@@ -20286,7 +20295,7 @@ void Gui::DockBuilderSetNodeSize(ID node_id, Vec2 size) {
 //   otherwise space may not be allocated as precisely as you would expect.
 // - Use (id == 0) to let the system allocate a node identifier.
 // - Existing node with a same id will be removed.
-ID Gui::DockBuilderAddNode(ID node_id, DockNodeFlags flags) {
+int Gui::DockBuilderAddNode(int node_id, int flags) {
   Context &g = *GGui;
   UNUSED(g);
   DEBUG_LOG_DOCKING("[docking] DockBuilderAddNode 0x%08X flags=%08X\n", node_id,
@@ -20309,7 +20318,7 @@ ID Gui::DockBuilderAddNode(ID node_id, DockNodeFlags flags) {
   return node->ID;
 }
 
-void Gui::DockBuilderRemoveNode(ID node_id) {
+void Gui::DockBuilderRemoveNode(int node_id) {
   Context &g = *GGui;
   UNUSED(g);
   DEBUG_LOG_DOCKING("[docking] DockBuilderRemoveNode 0x%08X\n", node_id);
@@ -20330,7 +20339,7 @@ void Gui::DockBuilderRemoveNode(ID node_id) {
 }
 
 // root_id = 0 to remove all, root_id != 0 to remove child of given node.
-void Gui::DockBuilderRemoveNodeChildNodes(ID root_id) {
+void Gui::DockBuilderRemoveNodeChildNodes(int root_id) {
   Context &g = *GGui;
   DockContext *dc = &g.DockContext;
 
@@ -20339,9 +20348,9 @@ void Gui::DockBuilderRemoveNodeChildNodes(ID root_id) {
     return;
   bool has_central_node = false;
 
-  DataAuthority backup_root_node_authority_for_pos =
+  int backup_root_node_authority_for_pos =
       root_node ? root_node->AuthorityForPos : DataAuthority_Auto;
-  DataAuthority backup_root_node_authority_for_size =
+  int backup_root_node_authority_for_size =
       root_node ? root_node->AuthorityForSize : DataAuthority_Auto;
 
   // Process active windows
@@ -20376,7 +20385,7 @@ void Gui::DockBuilderRemoveNodeChildNodes(ID root_id) {
   // Apply to settings
   for (WindowSettings *settings = g.SettingsWindows.begin(); settings != NULL;
        settings = g.SettingsWindows.next_chunk(settings))
-    if (ID window_settings_dock_id = settings->DockId)
+    if (int window_settings_dock_id = settings->DockId)
       for (int n = 0; n < nodes_to_remove.Size; n++)
         if (nodes_to_remove[n]->ID == window_settings_dock_id) {
           settings->DockId = root_id;
@@ -20400,7 +20409,7 @@ void Gui::DockBuilderRemoveNodeChildNodes(ID root_id) {
   }
 }
 
-void Gui::DockBuilderRemoveNodeDockedWindows(ID root_id,
+void Gui::DockBuilderRemoveNodeDockedWindows(int root_id,
                                              bool clear_settings_refs) {
   // Clear references in settings
   Context &g = *GGui;
@@ -20426,7 +20435,7 @@ void Gui::DockBuilderRemoveNodeDockedWindows(ID root_id,
          DockNodeGetRootNode(window->DockNode)->ID == root_id) ||
         (window->DockNodeAsHost && window->DockNodeAsHost->ID == root_id);
     if (want_removal) {
-      const ID backup_dock_id = window->DockId;
+      const int backup_dock_id = window->DockId;
       UNUSED(backup_dock_id);
       DockContextProcessUndockWindow(&g, window, clear_settings_refs);
       if (!clear_settings_refs)
@@ -20436,13 +20445,13 @@ void Gui::DockBuilderRemoveNodeDockedWindows(ID root_id,
 }
 
 // If 'out_id_at_dir' or 'out_id_at_opposite_dir' are non NULL, the function
-// will write out the ID of the two new nodes created. Return value is ID of the
-// node at the specified direction, so same as (*out_id_at_dir) if that pointer
-// is set.
+// will write out the int of the two new nodes created. Return value is int of
+// the node at the specified direction, so same as (*out_id_at_dir) if that
+// pointer is set.
 // FIXME-DOCK: We are not exposing nor using split_outer.
-ID Gui::DockBuilderSplitNode(ID id, Dir split_dir,
-                             float size_ratio_for_node_at_dir,
-                             ID *out_id_at_dir, ID *out_id_at_opposite_dir) {
+int Gui::DockBuilderSplitNode(int id, int split_dir,
+                              float size_ratio_for_node_at_dir,
+                              int *out_id_at_dir, int *out_id_at_opposite_dir) {
   Context &g = *GGui;
   ASSERT(split_dir != Dir_None);
   DEBUG_LOG_DOCKING(
@@ -20469,10 +20478,10 @@ ID Gui::DockBuilderSplitNode(ID id, Dir split_dir,
   req.DockSplitOuter = false;
   DockContextProcessDock(&g, &req);
 
-  ID id_at_dir =
+  int id_at_dir =
       node->ChildNodes[(split_dir == Dir_Left || split_dir == Dir_Up) ? 0 : 1]
           ->ID;
-  ID id_at_opposite_dir =
+  int id_at_opposite_dir =
       node->ChildNodes[(split_dir == Dir_Left || split_dir == Dir_Up) ? 1 : 0]
           ->ID;
   if (out_id_at_dir)
@@ -20482,9 +20491,9 @@ ID Gui::DockBuilderSplitNode(ID id, Dir split_dir,
   return id_at_dir;
 }
 
-static DockNode *DockBuilderCopyNodeRec(DockNode *src_node,
-                                        ID dst_node_id_if_known,
-                                        Vector<ID> *out_node_remap_pairs) {
+static DockNode *
+DockBuilderCopyNodeRec(DockNode *src_node, int dst_node_id_if_known,
+                       Vector<unsigned int> *out_node_remap_pairs) {
   Context &g = *GGui;
   DockNode *dst_node = Gui::DockContextAddNode(&g, dst_node_id_if_known);
   dst_node->SharedFlags = src_node->SharedFlags;
@@ -20512,8 +20521,8 @@ static DockNode *DockBuilderCopyNodeRec(DockNode *src_node,
   return dst_node;
 }
 
-void Gui::DockBuilderCopyNode(ID src_node_id, ID dst_node_id,
-                              Vector<ID> *out_node_remap_pairs) {
+void Gui::DockBuilderCopyNode(int src_node_id, int dst_node_id,
+                              Vector<unsigned int> *out_node_remap_pairs) {
   Context &g = *GGui;
   ASSERT(src_node_id != 0);
   ASSERT(dst_node_id != 0);
@@ -20561,7 +20570,7 @@ void Gui::DockBuilderCopyWindowSettings(const char *src_name,
 // FIXME: Will probably want to change this signature, in particular how the
 // window remapping pairs are passed.
 void Gui::DockBuilderCopyDockSpace(
-    ID src_dockspace_id, ID dst_dockspace_id,
+    int src_dockspace_id, int dst_dockspace_id,
     Vector<const char *> *in_window_remap_pairs) {
   Context &g = *GGui;
   ASSERT(src_dockspace_id != 0);
@@ -20574,28 +20583,28 @@ void Gui::DockBuilderCopyDockSpace(
   // dockspace window class but that are docked in a same node will be split
   // apart, whereas we could attempt to at least keep them together in a new,
   // same floating node.
-  Vector<ID> node_remap_pairs;
+  Vector<unsigned int> node_remap_pairs;
   DockBuilderCopyNode(src_dockspace_id, dst_dockspace_id, &node_remap_pairs);
 
   // Attempt to transition all the upcoming windows associated to
   // dst_dockspace_id into the newly created hierarchy of dock nodes (The
   // windows associated to src_dockspace_id are staying in place)
-  Vector<ID> src_windows;
+  Vector<unsigned int> src_windows;
   for (int remap_window_n = 0; remap_window_n < in_window_remap_pairs->Size;
        remap_window_n += 2) {
     const char *src_window_name = (*in_window_remap_pairs)[remap_window_n];
     const char *dst_window_name = (*in_window_remap_pairs)[remap_window_n + 1];
-    ID src_window_id = HashStr(src_window_name);
+    int src_window_id = HashStr(src_window_name);
     src_windows.push_back(src_window_id);
 
     // Search in the remapping tables
-    ID src_dock_id = 0;
+    int src_dock_id = 0;
     if (Window *src_window = FindWindowByID(src_window_id))
       src_dock_id = src_window->DockId;
     else if (WindowSettings *src_window_settings =
                  FindWindowSettingsByID(src_window_id))
       src_dock_id = src_window_settings->DockId;
-    ID dst_dock_id = 0;
+    int dst_dock_id = 0;
     for (int dock_remap_n = 0; dock_remap_n < node_remap_pairs.Size;
          dock_remap_n += 2)
       if (node_remap_pairs[dock_remap_n] == src_dock_id) {
@@ -20628,8 +20637,8 @@ void Gui::DockBuilderCopyDockSpace(
   // as undocking would invalidate source dock nodes.
   struct DockRemainingWindowTask {
     Window *Window;
-    ID DockId;
-    DockRemainingWindowTask(::Window *window, ID dock_id) {
+    int DockId;
+    DockRemainingWindowTask(::Window *window, int dock_id) {
       Window = window;
       DockId = dock_id;
     }
@@ -20637,8 +20646,8 @@ void Gui::DockBuilderCopyDockSpace(
   Vector<DockRemainingWindowTask> dock_remaining_windows;
   for (int dock_remap_n = 0; dock_remap_n < node_remap_pairs.Size;
        dock_remap_n += 2)
-    if (ID src_dock_id = node_remap_pairs[dock_remap_n]) {
-      ID dst_dock_id = node_remap_pairs[dock_remap_n + 1];
+    if (int src_dock_id = node_remap_pairs[dock_remap_n]) {
+      int dst_dock_id = node_remap_pairs[dock_remap_n + 1];
       DockNode *node = DockBuilderGetNode(src_dock_id);
       for (int window_n = 0; window_n < node->Windows.Size; window_n++) {
         Window *window = node->Windows[window_n];
@@ -20658,7 +20667,7 @@ void Gui::DockBuilderCopyDockSpace(
 
 // FIXME-DOCK: This is awkward because in series of split user is likely to
 // loose access to its root node.
-void Gui::DockBuilderFinish(ID root_id) {
+void Gui::DockBuilderFinish(int root_id) {
   Context &g = *GGui;
   // DockContextRebuild(&g);
   DockContextBuildAddWindowsToNodes(&g, root_id);
@@ -21030,8 +21039,8 @@ void Gui::BeginDockableDragDropTarget(Window *window) {
 // - DockSettingsHandler_WriteAll()
 //-----------------------------------------------------------------------------
 
-static void Gui::DockSettingsRenameNodeReferences(ID old_node_id,
-                                                  ID new_node_id) {
+static void Gui::DockSettingsRenameNodeReferences(int old_node_id,
+                                                  int new_node_id) {
   Context &g = *GGui;
   DEBUG_LOG_DOCKING(
       "[docking] DockSettingsRenameNodeReferences: from 0x%08X -> to 0x%08X\n",
@@ -21050,7 +21059,7 @@ static void Gui::DockSettingsRenameNodeReferences(ID old_node_id,
 
 // Remove references stored in WindowSettings to the given
 // DockNodeSettings
-static void Gui::DockSettingsRemoveNodeReferences(ID *node_ids,
+static void Gui::DockSettingsRemoveNodeReferences(int *node_ids,
                                                   int node_ids_count) {
   Context &g = *GGui;
   int found = 0;
@@ -21068,7 +21077,7 @@ static void Gui::DockSettingsRemoveNodeReferences(ID *node_ids,
 }
 
 static DockNodeSettings *Gui::DockSettingsFindNodeSettings(Context *ctx,
-                                                           ID id) {
+                                                           int id) {
   // FIXME-OPT
   DockContext *dc = &ctx->DockContext;
   for (int n = 0; n < dc->NodesSettings.Size; n++)
@@ -21109,9 +21118,9 @@ static void Gui::DockSettingsHandler_ReadLine(Context *ctx, SettingsHandler *,
   int r = 0;
 
   // Parsing, e.g.
-  // " DockNode   ID=0x00000001 Pos=383,193 Size=201,322 Split=Y,0.506 "
-  // "   DockNode ID=0x00000002 Parent=0x00000001 "
-  // Important: this code expect currently fields in a fixed order.
+  // " DockNode   ID=0x00000001 Pos=383,193 Size=201,322 Split=Y,0.506
+  // " "   DockNode ID=0x00000002 Parent=0x00000001 " Important: this
+  // code expect currently fields in a fixed order.
   DockNodeSettings node;
   line = StrSkipBlank(line);
   if (strncmp(line, "DockNode", 8) == 0) {
@@ -21693,7 +21702,7 @@ static void DebugFlashStyleColorStop() {
 
 // Flash a given style color for some + inhibit modifications of this color via
 // PushStyleColor() calls.
-void Gui::DebugFlashStyleColor(Col idx) {
+void Gui::DebugFlashStyleColor(int idx) {
   Context &g = *GGui;
   DebugFlashStyleColorStop();
   g.DebugFlashStyleColorTime = 0.5f;
@@ -21943,7 +21952,7 @@ void Gui::ShowMetricsWindow(bool *p_open) {
     MetricsHelpMarker(
         "You can also call Gui::ShowDebugLogWindow() from your code.");
 
-    Checkbox("Show ID Stack Tool", &cfg->ShowIDStackTool);
+    Checkbox("Show int Stack Tool", &cfg->ShowIDStackTool);
     SameLine();
     MetricsHelpMarker(
         "You can also call Gui::ShowIDStackToolWindow() from your code.");
@@ -21998,7 +22007,7 @@ void Gui::ShowMetricsWindow(bool *p_open) {
               Rect r = Funcs::GetTableRect(table, rect_n, column_n);
               FormatString(
                   buf, ARRAYSIZE(buf),
-                  "(%6.1f,%6.1f) (%6.1f,%6.1f) Size (%6.1f,%6.1f) Col %d %s",
+                  "(%6.1f,%6.1f) (%6.1f,%6.1f) Size (%6.1f,%6.1f) int %d %s",
                   r.Min.x, r.Min.y, r.Max.x, r.Max.y, r.GetWidth(),
                   r.GetHeight(), column_n, trt_rects_names[rect_n]);
               Selectable(buf);
@@ -22081,8 +22090,8 @@ void Gui::ShowMetricsWindow(bool *p_open) {
       bool viewport_has_drawlist = false;
       for (DrawList *draw_list : viewport->DrawDataP.CmdLists) {
         if (!viewport_has_drawlist)
-          Text("Active DrawLists in Viewport #%d, ID: 0x%08X", viewport->Idx,
-               viewport->ID);
+          Text("Active DrawLists in Viewport #%d, unsigned int: 0x%08X",
+               viewport->Idx, viewport->ID);
         viewport_has_drawlist = true;
         DebugNodeDrawList(NULL, viewport, draw_list, "DrawList");
       }
@@ -22131,7 +22140,8 @@ void Gui::ShowMetricsWindow(bool *p_open) {
               ViewportComparerByLastFocusedStampCount);
       for (ViewportP *viewport : viewports)
         BulletText(
-            "Viewport #%d, ID: 0x%08X, LastFocused = %08d, PlatformFocused = "
+            "Viewport #%d, unsigned int: 0x%08X, LastFocused = %08d, "
+            "PlatformFocused = "
             "%s, Window: \"%s\"",
             viewport->Idx, viewport->ID, viewport->LastFocusedStampCount,
             (g.PlatformIO.Platform_GetWindowFocus &&
@@ -22585,9 +22595,9 @@ void Gui::ShowMetricsWindow(bool *p_open) {
         for (int column_n = 0; column_n < table->ColumnsCount; column_n++) {
           Rect r =
               Funcs::GetTableRect(table, cfg->ShowTablesRectsType, column_n);
-          U32 col = (table->HoveredColumnBody == column_n)
-                        ? COL32(255, 255, 128, 255)
-                        : COL32(255, 0, 128, 255);
+          unsigned int col = (table->HoveredColumnBody == column_n)
+                                 ? COL32(255, 255, 128, 255)
+                                 : COL32(255, 0, 128, 255);
           float thickness =
               (table->HoveredColumnBody == column_n) ? 3.0f : 1.0f;
           draw_list->AddRect(r.Min, r.Max, col, 0.0f, 0, thickness);
@@ -22648,7 +22658,7 @@ void Gui::DebugNodeColumns(OldColumns *columns) {
   TreePop();
 }
 
-static void DebugNodeDockNodeFlags(DockNodeFlags *p_flags, const char *label,
+static void DebugNodeDockNodeFlags(int *p_flags, const char *label,
                                    bool enabled) {
   using namespace Gui;
   PushID(label);
@@ -22692,7 +22702,7 @@ void Gui::DebugNodeDockNode(DockNode *node, const char *label) {
     PushStyleColor(Col_Text, GetStyleColorVec4(Col_TextDisabled));
   }
   bool open;
-  TreeNodeFlags tree_node_flags =
+  int tree_node_flags =
       node->IsFocused ? TreeNodeFlags_Selected : TreeNodeFlags_None;
   if (node->Windows.Size > 0)
     open = TreeNodeEx((void *)(intptr_t)node->ID, tree_node_flags,
@@ -22891,7 +22901,7 @@ void Gui::DebugNodeDrawList(Window *window, ViewportP *viewport,
 
         Selectable(buf, false);
         if (fg_draw_list && IsItemHovered()) {
-          DrawListFlags backup_flags = fg_draw_list->Flags;
+          int backup_flags = fg_draw_list->Flags;
           fg_draw_list->Flags &=
               ~DrawListFlags_AntiAliasedLines; // Disable AA on triangle
                                                // outlines is more readable
@@ -22918,7 +22928,7 @@ void Gui::DebugNodeDrawCmdShowMeshAndBoundingBox(DrawList *out_draw_list,
   // Draw wire-frame version of all triangles
   Rect clip_rect = draw_cmd->ClipRect;
   Rect vtxs_rect(FLT_MAX, FLT_MAX, -FLT_MAX, -FLT_MAX);
-  DrawListFlags backup_flags = out_draw_list->Flags;
+  int backup_flags = out_draw_list->Flags;
   out_draw_list->Flags &=
       ~DrawListFlags_AntiAliasedLines; // Disable AA on triangle outlines is
                                        // more readable for very large and
@@ -23008,7 +23018,7 @@ void Gui::DebugNodeFont(Font *font) {
   // Display all glyphs of the fonts in separate pages of 256 characters
   if (TreeNode("Glyphs", "Glyphs (%d)", font->Glyphs.Size)) {
     DrawList *draw_list = GetWindowDrawList();
-    const U32 glyph_col = GetColorU32(Col_Text);
+    const unsigned int glyph_col = GetColorU32(Col_Text);
     const float cell_size = font->FontSize * 1;
     const float cell_spacing = GetStyle().ItemSpacing.y;
     for (unsigned int base = 0; base <= UNICODE_CODEPOINT_MAX; base += 256) {
@@ -23145,11 +23155,12 @@ void Gui::DebugNodeTabBar(TabBar *tab_bar, const char *label) {
 
 void Gui::DebugNodeViewport(ViewportP *viewport) {
   SetNextItemOpen(true, Cond_Once);
-  if (TreeNode((void *)(intptr_t)viewport->ID,
-               "Viewport #%d, ID: 0x%08X, Parent: 0x%08X, Window: \"%s\"",
-               viewport->Idx, viewport->ID, viewport->ParentViewportId,
-               viewport->Window ? viewport->Window->Name : "N/A")) {
-    WindowFlags flags = viewport->Flags;
+  if (TreeNode(
+          (void *)(intptr_t)viewport->ID,
+          "Viewport #%d, unsigned int: 0x%08X, Parent: 0x%08X, Window: \"%s\"",
+          viewport->Idx, viewport->ID, viewport->ParentViewportId,
+          viewport->Window ? viewport->Window->Name : "N/A")) {
+    int flags = viewport->Flags;
     BulletText(
         "Main Pos: (%.0f,%.0f), Size: (%.0f,%.0f)\nWorkArea Offset Left: %.0f "
         "Top: %.0f, Right: %.0f, Bottom: %.0f\nMonitor: %d, DpiScale: %.0f%%",
@@ -23198,7 +23209,7 @@ void Gui::DebugNodeWindow(Window *window, const char *label) {
 
   Context &g = *GGui;
   const bool is_active = window->WasActive;
-  TreeNodeFlags tree_node_flags =
+  int tree_node_flags =
       (window == g.NavWindow) ? TreeNodeFlags_Selected : TreeNodeFlags_None;
   if (!is_active) {
     PushStyleColor(Col_Text, GetStyleColorVec4(Col_TextDisabled));
@@ -23217,7 +23228,7 @@ void Gui::DebugNodeWindow(Window *window, const char *label) {
   if (window->MemoryCompacted)
     TextDisabled("Note: some memory buffers have been compacted/freed.");
 
-  WindowFlags flags = window->Flags;
+  int flags = window->Flags;
   DebugNodeDrawList(window, window->Viewport, window->DrawList, "DrawList");
   BulletText("Pos: (%.1f,%.1f), Size: (%.1f,%.1f), ContentSize (%.1f,%.1f) "
              "Ideal (%.1f,%.1f)",
@@ -23414,7 +23425,7 @@ void Gui::ShowDebugLogWindow(bool *p_open) {
              WindowFlags_AlwaysVerticalScrollbar |
                  WindowFlags_AlwaysHorizontalScrollbar);
 
-  const DebugLogFlags backup_log_flags = g.DebugLogFlags;
+  const int backup_log_flags = g.DebugLogFlags;
   g.DebugLogFlags &= ~DebugLogFlags_EventClipper;
 
   ListClipper clipper;
@@ -23432,7 +23443,7 @@ void Gui::ShowDebugLogWindow(bool *p_open) {
         for (const char *p = line_begin; p <= line_end - 10;
              p++) // Search for 0x???????? identifiers
         {
-          ID id = 0;
+          int id = 0;
           if (p[0] != '0' || (p[1] != 'x' && p[1] != 'X') ||
               sscanf(p + 2, "%X", &id) != 1)
             continue;
@@ -23455,11 +23466,11 @@ void Gui::ShowDebugLogWindow(bool *p_open) {
 }
 
 //-----------------------------------------------------------------------------
-// [SECTION] OTHER DEBUG TOOLS (ITEM PICKER, ID STACK TOOL)
+// [SECTION] OTHER DEBUG TOOLS (ITEM PICKER, int STACK TOOL)
 //-----------------------------------------------------------------------------
 
 // Draw a small cross at current CursorPos in current window's DrawList
-void Gui::DebugDrawCursorPos(U32 col) {
+void Gui::DebugDrawCursorPos(unsigned int col) {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
   Vec2 pos = window->DC.CursorPos;
@@ -23471,7 +23482,7 @@ void Gui::DebugDrawCursorPos(U32 col) {
 
 // Draw a 10px wide rectangle around CurposPos.x using Line Y1/Y2 in current
 // window's DrawList
-void Gui::DebugDrawLineExtents(U32 col) {
+void Gui::DebugDrawLineExtents(unsigned int col) {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
   float curr_x = window->DC.CursorPos.x;
@@ -23488,23 +23499,24 @@ void Gui::DebugDrawLineExtents(U32 col) {
 }
 
 // Draw last item rect in ForegroundDrawList (so it is always visible)
-void Gui::DebugDrawItemRect(U32 col) {
+void Gui::DebugDrawItemRect(unsigned int col) {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
   GetForegroundDrawList(window)->AddRect(g.LastItemData.Rect.Min,
                                          g.LastItemData.Rect.Max, col);
 }
 
-// [DEBUG] Locate item position/rectangle given an ID.
-static const U32 DEBUG_LOCATE_ITEM_COLOR = COL32(0, 255, 0, 255); // Green
+// [DEBUG] Locate item position/rectangle given an unsigned int.
+static const unsigned int DEBUG_LOCATE_ITEM_COLOR =
+    COL32(0, 255, 0, 255); // Green
 
-void Gui::DebugLocateItem(ID target_id) {
+void Gui::DebugLocateItem(int target_id) {
   Context &g = *GGui;
   g.DebugLocateId = target_id;
   g.DebugLocateFrames = 2;
 }
 
-void Gui::DebugLocateItemOnHover(ID target_id) {
+void Gui::DebugLocateItemOnHover(int target_id) {
   if (target_id == 0 ||
       !IsItemHovered(HoveredFlags_AllowWhenBlockedByActiveItem |
                      HoveredFlags_AllowWhenBlockedByPopup))
@@ -23543,7 +23555,7 @@ void Gui::UpdateDebugToolItemPicker() {
   if (!g.DebugItemPickerActive)
     return;
 
-  const ID hovered_id = g.HoveredIdPreviousFrame;
+  const int hovered_id = g.HoveredIdPreviousFrame;
   SetMouseCursor(MouseCursor_Hand);
   if (IsKeyPressed(Key_Escape))
     g.DebugItemPickerActive = false;
@@ -23555,7 +23567,7 @@ void Gui::UpdateDebugToolItemPicker() {
   }
   for (int mouse_button = 0; mouse_button < 3; mouse_button++)
     if (change_mapping && IsMouseClicked(mouse_button))
-      g.DebugItemPickerMouseButton = (U8)mouse_button;
+      g.DebugItemPickerMouseButton = (unsigned char)mouse_button;
   SetNextWindowBgAlpha(0.70f);
   if (!BeginTooltip())
     return;
@@ -23571,7 +23583,7 @@ void Gui::UpdateDebugToolItemPicker() {
   EndTooltip();
 }
 
-// [DEBUG] ID Stack Tool: update queries. Called by NewFrame()
+// [DEBUG] int Stack Tool: update queries. Called by NewFrame()
 void Gui::UpdateDebugToolStackQueries() {
   Context &g = *GGui;
   IDStackTool *tool = &g.DebugIDStackTool;
@@ -23582,9 +23594,9 @@ void Gui::UpdateDebugToolStackQueries() {
     return;
 
   // Update queries. The steps are: -1: query Stack, >= 0: query each stack item
-  // We can only perform 1 ID Info query every frame. This is designed so the
+  // We can only perform 1 int Info query every frame. This is designed so the
   // GetID() tests are cheap and constant-time
-  const ID query_id =
+  const int query_id =
       g.HoveredIdPreviousFrame ? g.HoveredIdPreviousFrame : g.ActiveId;
   if (tool->QueryId != query_id) {
     tool->QueryId = query_id;
@@ -23612,15 +23624,15 @@ void Gui::UpdateDebugToolStackQueries() {
   }
 }
 
-// [DEBUG] ID Stack tool: hooks called by GetID() family functions
-void Gui::DebugHookIdInfo(ID id, DataType data_type, const void *data_id,
+// [DEBUG] int Stack tool: hooks called by GetID() family functions
+void Gui::DebugHookIdInfo(int id, int data_type, const void *data_id,
                           const void *data_id_end) {
   Context &g = *GGui;
   Window *window = g.CurrentWindow;
   IDStackTool *tool = &g.DebugIDStackTool;
 
   // Step 0: stack query
-  // This assumes that the ID was computed with the current ID stack, which
+  // This assumes that the int was computed with the current int stack, which
   // tends to be the case for our widget.
   if (tool->StackLevel == -1) {
     tool->StackLevel++;
@@ -23673,8 +23685,8 @@ static int StackToolFormatLevelInfo(IDStackTool *tool, int n,
   StackLevelInfo *info = &tool->Results[n];
   Window *window =
       (info->Desc[0] == 0 && n == 0) ? Gui::FindWindowByID(info->ID) : NULL;
-  if (window) // Source: window name (because the root ID don't call GetID() and
-              // so doesn't get hooked)
+  if (window) // Source: window name (because the root int don't call GetID()
+              // and so doesn't get hooked)
     return FormatString(buf, buf_size, format_for_ui ? "\"%s\" [window]" : "%s",
                         window->Name);
   if (info->QuerySuccess) // Source: GetID() hooks (prioritize over ItemInfo()
@@ -23699,12 +23711,12 @@ static int StackToolFormatLevelInfo(IDStackTool *tool, int n,
   return FormatString(buf, buf_size, "???");
 }
 
-// ID Stack Tool: Display UI
+// int Stack Tool: Display UI
 void Gui::ShowIDStackToolWindow(bool *p_open) {
   Context &g = *GGui;
   if (!(g.NextWindowData.Flags & NextWindowDataFlags_HasSize))
     SetNextWindowSize(Vec2(0.0f, GetFontSize() * 8.0f), Cond_FirstUseEver);
-  if (!Begin("Gui ID Stack Tool", p_open) ||
+  if (!Begin("Gui int Stack Tool", p_open) ||
       GetCurrentWindow()->BeginCount > 1) {
     End();
     return;
@@ -23712,8 +23724,8 @@ void Gui::ShowIDStackToolWindow(bool *p_open) {
 
   // Display hovered/active status
   IDStackTool *tool = &g.DebugIDStackTool;
-  const ID hovered_id = g.HoveredIdPreviousFrame;
-  const ID active_id = g.ActiveId;
+  const int hovered_id = g.HoveredIdPreviousFrame;
+  const int active_id = g.ActiveId;
 #ifdef ENABLE_TEST_ENGINE
   Text("HoveredId: 0x%08X (\"%s\"), ActiveId:  0x%08X (\"%s\")", hovered_id,
        hovered_id ? TestEngine_FindItemDebugLabel(&g, hovered_id) : "",
@@ -23724,11 +23736,12 @@ void Gui::ShowIDStackToolWindow(bool *p_open) {
 #endif
   SameLine();
   MetricsHelpMarker(
-      "Hover an item with the mouse to display elements of the ID Stack "
-      "leading to the item's final ID.\nEach level of the stack correspond to "
+      "Hover an item with the mouse to display elements of the int Stack "
+      "leading to the item's final unsigned int.\nEach level of the stack "
+      "correspond to "
       "a PushID() call.\nAll levels of the stack are hashed together to make "
-      "the final ID of a widget (ID displayed at the bottom level of the "
-      "stack).\nRead FAQ entry about the ID stack for details.");
+      "the final int of a widget (int displayed at the bottom level of the "
+      "stack).\nRead FAQ entry about the int stack for details.");
 
   // CTRL+C to copy path
   const float time_since_copy = (float)g.Time - tool->CopyToClipboardLastTime;
@@ -23807,7 +23820,7 @@ void Gui::DebugLog(const char *, ...) {}
 void Gui::DebugLogV(const char *, va_list) {}
 void Gui::ShowDebugLogWindow(bool *) {}
 void Gui::ShowIDStackToolWindow(bool *) {}
-void Gui::DebugHookIdInfo(ID, DataType, const void *, const void *) {}
+void Gui::DebugHookIdInfo(unsigned int, DataType, const void *, const void *) {}
 void Gui::UpdateDebugToolItemPicker() {}
 void Gui::UpdateDebugToolStackQueries() {}
 void Gui::UpdateDebugToolFlashStyleColor() {}

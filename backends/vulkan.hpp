@@ -10,7 +10,7 @@
 //  new viewport).
 
 // Important: on 32-bit systems, user texture binding is only supported if your
-// imconfig file has '#define TextureID U64'. See vulkan.cpp file
+// imconfig file has '#define TextureID unsigned long long'. See vulkan.cpp file
 // for details.
 //
 // Important note to the reader who wish to integrate vulkan.cpp/.h

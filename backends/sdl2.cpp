@@ -549,16 +549,16 @@ static bool SDL2_Init(SDL_Window *window, SDL_Renderer *renderer,
   io.BackendPlatformUserData = (void *)bd;
   io.BackendPlatformName = "sdl2";
   io.BackendFlags |=
-      BackendFlags_HasMouseCursors; // We can honor GetMouseCursor() values
-                                    // (optional)
+      BackendFlags_HasMouseCursors; // We can honor GetMouseCursor()
+                                    // values (optional)
   io.BackendFlags |=
       BackendFlags_HasSetMousePos; // We can honor io.WantSetMousePos
                                    // requests (optional, rarely used)
   if (mouse_can_use_global_state)
     io.BackendFlags |=
-        BackendFlags_PlatformHasViewports; // We can create multi-viewports
-                                           // on the Platform side
-                                           // (optional)
+        BackendFlags_PlatformHasViewports; // We can create
+                                           // multi-viewports on the
+                                           // Platform side (optional)
 
   bd->Window = window;
   bd->Renderer = renderer;
@@ -696,7 +696,7 @@ void SDL2_Shutdown() {
 
   if (bd->ClipboardTextData)
     SDL_free(bd->ClipboardTextData);
-  for (MouseCursor cursor_n = 0; cursor_n < MouseCursor_COUNT; cursor_n++)
+  for (int cursor_n = 0; cursor_n < MouseCursor_COUNT; cursor_n++)
     SDL_FreeCursor(bd->MouseCursors[cursor_n]);
   bd->LastMouseCursor = nullptr;
 
@@ -782,7 +782,7 @@ static void SDL2_UpdateMouseData() {
   // behind focused and dragged from (we need this to find a useful drag and
   // drop target).
   if (io.BackendFlags & BackendFlags_HasMouseHoveredViewport) {
-    ID mouse_viewport_id = 0;
+    int mouse_viewport_id = 0;
     if (SDL_Window *sdl_mouse_window = SDL_GetWindowFromID(bd->MouseWindowID))
       if (Viewport *mouse_viewport =
               Gui::FindViewportByPlatformHandle((void *)sdl_mouse_window))
@@ -797,7 +797,7 @@ static void SDL2_UpdateMouseCursor() {
     return;
   SDL2_Data *bd = SDL2_GetBackendData();
 
-  MouseCursor cursor = Gui::GetMouseCursor();
+  int cursor = Gui::GetMouseCursor();
   if (io.MouseDrawCursor || cursor == MouseCursor_None) {
     // Hide OS mouse cursor if imgui is drawing it or if it wants no cursor
     SDL_ShowCursor(SDL_FALSE);
@@ -1178,8 +1178,10 @@ static void SDL2_SwapBuffers(Viewport *viewport, void *) {
 // <vulkan/vulkan.h> so we can safely include this.
 #if SDL_HAS_VULKAN
 #include <SDL2/SDL_vulkan.h>
-static int SDL2_CreateVkSurface(Viewport *viewport, U64 vk_instance,
-                                const void *vk_allocator, U64 *out_vk_surface) {
+static int SDL2_CreateVkSurface(Viewport *viewport,
+                                unsigned long long vk_instance,
+                                const void *vk_allocator,
+                                unsigned long long *out_vk_surface) {
   SDL2_ViewportData *vd = (SDL2_ViewportData *)viewport->PlatformUserData;
   (void)vk_allocator;
   SDL_bool ret = SDL_Vulkan_CreateSurface(vd->Window, (VkInstance)vk_instance,

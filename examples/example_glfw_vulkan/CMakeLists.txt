@@ -42,4 +42,4 @@ file(GLOB sources *.cpp)
 
 add_executable(example_glfw_vulkan ${sources} ${DIR}/backends/glfw.cpp ${DIR}/backends/vulkan.cpp ${DIR}/gui.cpp ${DIR}/draw.cpp ${DIR}/demo.cpp ${DIR}/tables.cpp ${DIR}/widgets.cpp)
 target_link_libraries(example_glfw_vulkan ${LIBRARIES})
-target_compile_definitions(example_glfw_vulkan PUBLIC -DTextureID=U64)
+target_compile_definitions(example_glfw_vulkan PUBLIC -DTextureID=unsigned long long)

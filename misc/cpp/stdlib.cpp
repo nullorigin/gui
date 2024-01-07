@@ -3,6 +3,7 @@
 
 #include "stdlib.h"
 #include "../../gui.hpp"
+#include <string>
 
 // Clang warnings with -Weverything
 #if defined(__clang__)
@@ -36,7 +37,7 @@ static int InputTextCallback(InputTextCallbackData *data) {
   return 0;
 }
 
-bool Gui::InputText(const char *label, std::string *str, InputTextFlags flags,
+bool Gui::InputText(const char *label, std::string *str, int flags,
                     InputTextCallback callback, void *user_data) {
   ASSERT((flags & InputTextFlags_CallbackResize) == 0);
   flags |= InputTextFlags_CallbackResize;
@@ -50,7 +51,7 @@ bool Gui::InputText(const char *label, std::string *str, InputTextFlags flags,
 }
 
 bool Gui::InputTextMultiline(const char *label, std::string *str,
-                             const Vec2 &size, InputTextFlags flags,
+                             const Vec2 &size, int flags,
                              InputTextCallback callback, void *user_data) {
   ASSERT((flags & InputTextFlags_CallbackResize) == 0);
   flags |= InputTextFlags_CallbackResize;
@@ -64,7 +65,7 @@ bool Gui::InputTextMultiline(const char *label, std::string *str,
 }
 
 bool Gui::InputTextWithHint(const char *label, const char *hint,
-                            std::string *str, InputTextFlags flags,
+                            std::string *str, int flags,
                             InputTextCallback callback, void *user_data) {
   ASSERT((flags & InputTextFlags_CallbackResize) == 0);
   flags |= InputTextFlags_CallbackResize;

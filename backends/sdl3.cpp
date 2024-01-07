@@ -25,6 +25,11 @@
 //  'SDL_SetHint(SDL_HINT_IME_SHOW_UI, "1");' before SDL_CreateWindow()!.
 
 #include "../gui.hpp"
+#include <SDL_events.h>
+#include <SDL_keyboard.h>
+#include <SDL_keycode.h>
+#include <SDL_mouse.h>
+#include <SDL_stdinc.h>
 #ifndef DISABLE
 #include "sdl3.hpp"
 
@@ -367,10 +372,10 @@ static Key SDL3_KeycodeToKey(int keycode) {
 
 static void SDL3_UpdateKeyModifiers(SDL_Keymod sdl_key_mods) {
   IO &io = Gui::GetIO();
-  io.AddKeyEvent(Mod_Ctrl, (sdl_key_mods & SDL_KMOD_CTRL) != 0);
-  io.AddKeyEvent(Mod_Shift, (sdl_key_mods & SDL_KMOD_SHIFT) != 0);
-  io.AddKeyEvent(Mod_Alt, (sdl_key_mods & SDL_KMOD_ALT) != 0);
-  io.AddKeyEvent(Mod_Super, (sdl_key_mods & SDL_KMOD_GUI) != 0);
+  io.AddKeyEvent(Mod_Ctrl, (sdl_key_mods & KMOD_CTRL) != 0);
+  io.AddKeyEvent(Mod_Shift, (sdl_key_mods & KMOD_SHIFT) != 0);
+  io.AddKeyEvent(Mod_Alt, (sdl_key_mods & KMOD_ALT) != 0);
+  io.AddKeyEvent(Mod_Super, (sdl_key_mods & KMOD_GUI) != 0);
 }
 
 // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to tell if
@@ -388,7 +393,7 @@ bool SDL3_ProcessEvent(const SDL_Event *event) {
   SDL3_Data *bd = SDL3_GetBackendData();
 
   switch (event->type) {
-  case SDL_EVENT_MOUSE_MOTION: {
+  case SDL_MOUSEMOTION: {
     Vec2 mouse_pos((float)event->motion.x, (float)event->motion.y);
     if (io.ConfigFlags & ConfigFlags_ViewportsEnable) {
       int window_x, window_y;
@@ -403,7 +408,7 @@ bool SDL3_ProcessEvent(const SDL_Event *event) {
     io.AddMousePosEvent(mouse_pos.x, mouse_pos.y);
     return true;
   }
-  case SDL_EVENT_MOUSE_WHEEL: {
+  case SDL_MOUSEWHEEL: {
     // DEBUG_LOG("wheel %.2f %.2f, precise %.2f %.2f\n", (float)event->wheel.x,
     // (float)event->wheel.y, event->wheel.preciseX, event->wheel.preciseY);
     float wheel_x = -event->wheel.x;
@@ -417,8 +422,8 @@ bool SDL3_ProcessEvent(const SDL_Event *event) {
     io.AddMouseWheelEvent(wheel_x, wheel_y);
     return true;
   }
-  case SDL_EVENT_MOUSE_BUTTON_DOWN:
-  case SDL_EVENT_MOUSE_BUTTON_UP: {
+  case SDL_MOUSEBUTTONDOWN:
+  case SDL_MOUSEBUTTONUP: {
     int mouse_button = -1;
     if (event->button.button == SDL_BUTTON_LEFT) {
       mouse_button = 0;
@@ -440,22 +445,21 @@ bool SDL3_ProcessEvent(const SDL_Event *event) {
     io.AddMouseSourceEvent(event->button.which == SDL_TOUCH_MOUSEID
                                ? MouseSource_TouchScreen
                                : MouseSource_Mouse);
-    io.AddMouseButtonEvent(mouse_button,
-                           (event->type == SDL_EVENT_MOUSE_BUTTON_DOWN));
-    bd->MouseButtonsDown = (event->type == SDL_EVENT_MOUSE_BUTTON_DOWN)
+    io.AddMouseButtonEvent(mouse_button, (event->type == SDL_MOUSEBUTTONDOWN));
+    bd->MouseButtonsDown = (event->type == SDL_MOUSEBUTTONDOWN)
                                ? (bd->MouseButtonsDown | (1 << mouse_button))
                                : (bd->MouseButtonsDown & ~(1 << mouse_button));
     return true;
   }
-  case SDL_EVENT_TEXT_INPUT: {
+  case SDL_TEXTINPUT: {
     io.AddInputCharactersUTF8(event->text.text);
     return true;
   }
-  case SDL_EVENT_KEY_DOWN:
-  case SDL_EVENT_KEY_UP: {
+  case SDL_KEYDOWN:
+  case SDL_KEYUP: {
     SDL3_UpdateKeyModifiers((SDL_Keymod)event->key.keysym.mod);
     Key key = SDL3_KeycodeToKey(event->key.keysym.sym);
-    io.AddKeyEvent(key, (event->type == SDL_EVENT_KEY_DOWN));
+    io.AddKeyEvent(key, (event->type == SDL_KEYDOWN));
     io.SetKeyEventNativeData(
         key, event->key.keysym.sym, event->key.keysym.scancode,
         event->key.keysym.scancode); // To support legacy indexing (<1.87 user
@@ -486,7 +490,7 @@ bool SDL3_ProcessEvent(const SDL_Event *event) {
     bd->PendingMouseLeaveFrame = Gui::GetFrameCount() + 1;
     return true;
   }
-  case SDL_EVENT_WINDOW_FOCUS_GAINED:
+  case SDL_WINDOWEVENT_FOCUS_GAINED:
     io.AddFocusEvent(true);
     return true;
   case SDL_EVENT_WINDOW_FOCUS_LOST:

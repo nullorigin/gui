@@ -1,0 +1,44 @@
+[
+{
+  "directory": "/home/matt/src/gui/build",
+  "command": "/usr/lib/llvm/17/bin/clang++  -I/home/matt/src/gui/. -I/home/matt/src/gui/backends -isystem /usr/include/SDL2 -g -std=gnu++20 -o CMakeFiles/Gui.dir/gui.cpp.o -c /home/matt/src/gui/gui.cpp",
+  "file": "/home/matt/src/gui/gui.cpp",
+  "output": "CMakeFiles/Gui.dir/gui.cpp.o"
+},
+{
+  "directory": "/home/matt/src/gui/build",
+  "command": "/usr/lib/llvm/17/bin/clang++  -I/home/matt/src/gui/. -I/home/matt/src/gui/backends -isystem /usr/include/SDL2 -g -std=gnu++20 -o CMakeFiles/Gui.dir/draw.cpp.o -c /home/matt/src/gui/draw.cpp",
+  "file": "/home/matt/src/gui/draw.cpp",
+  "output": "CMakeFiles/Gui.dir/draw.cpp.o"
+},
+{
+  "directory": "/home/matt/src/gui/build",
+  "command": "/usr/lib/llvm/17/bin/clang++  -I/home/matt/src/gui/. -I/home/matt/src/gui/backends -isystem /usr/include/SDL2 -g -std=gnu++20 -o CMakeFiles/Gui.dir/tables.cpp.o -c /home/matt/src/gui/tables.cpp",
+  "file": "/home/matt/src/gui/tables.cpp",
+  "output": "CMakeFiles/Gui.dir/tables.cpp.o"
+},
+{
+  "directory": "/home/matt/src/gui/build",
+  "command": "/usr/lib/llvm/17/bin/clang++  -I/home/matt/src/gui/. -I/home/matt/src/gui/backends -isystem /usr/include/SDL2 -g -std=gnu++20 -o CMakeFiles/Gui.dir/widgets.cpp.o -c /home/matt/src/gui/widgets.cpp",
+  "file": "/home/matt/src/gui/widgets.cpp",
+  "output": "CMakeFiles/Gui.dir/widgets.cpp.o"
+},
+{
+  "directory": "/home/matt/src/gui/build",
+  "command": "/usr/lib/llvm/17/bin/clang++  -I/home/matt/src/gui/. -I/home/matt/src/gui/backends -isystem /usr/include/SDL2 -g -std=gnu++20 -o CMakeFiles/Gui.dir/backends/opengl3.cpp.o -c /home/matt/src/gui/backends/opengl3.cpp",
+  "file": "/home/matt/src/gui/backends/opengl3.cpp",
+  "output": "CMakeFiles/Gui.dir/backends/opengl3.cpp.o"
+},
+{
+  "directory": "/home/matt/src/gui/build",
+  "command": "/usr/lib/llvm/17/bin/clang++  -I/home/matt/src/gui/. -I/home/matt/src/gui/backends -isystem /usr/include/SDL2 -g -std=gnu++20 -o CMakeFiles/Gui.dir/backends/sdl2.cpp.o -c /home/matt/src/gui/backends/sdl2.cpp",
+  "file": "/home/matt/src/gui/backends/sdl2.cpp",
+  "output": "CMakeFiles/Gui.dir/backends/sdl2.cpp.o"
+},
+{
+  "directory": "/home/matt/src/gui/build",
+  "command": "/usr/lib/llvm/17/bin/clang++  -I/home/matt/src/gui/. -I/home/matt/src/gui/backends -isystem /usr/include/SDL2 -g -std=gnu++20 -o CMakeFiles/Gui.dir/demo.cpp.o -c /home/matt/src/gui/demo.cpp",
+  "file": "/home/matt/src/gui/demo.cpp",
+  "output": "CMakeFiles/Gui.dir/demo.cpp.o"
+}
+]

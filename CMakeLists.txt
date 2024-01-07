@@ -7,9 +7,11 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE INTERNAL "")
+set(CMAKE_CXX_LINK_WHAT_YOU_USE_FLAGS ON)
 # Add library target with source files listed in SOURCE_FILES variable
-add_library(Gui "gui.cpp" "draw.cpp" "tables.cpp" "widgets.cpp" "backends/opengl3.cpp" "backends/sdl2.cpp")
+add_library(Gui "gui.cpp" "gui.hpp" "internal.hpp" "rectpack.hpp" "textedit.hpp" "truetype.hpp" "draw.cpp" "tables.cpp" "widgets.cpp" "backends/opengl3.cpp" "backends/opengl3.hpp" "backends/sdl2.cpp" "backends/sdl2.hpp" "demo.cpp")
 set(CMAKE_CXX_STANDARD 20)
 find_package(SDL2 REQUIRED)
 find_package(OpenGL REQUIRED OpenGL GLX EGL)

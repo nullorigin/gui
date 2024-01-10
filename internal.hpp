@@ -5185,10 +5185,9 @@ inline KeyOwnerData *GetKeyOwnerData(Context *ctx, Key key) {
 API bool IsKeyDown(Key key, int owner_id);
 API bool IsKeyPressed(
     Key key, int owner_id,
-    int flags =
-        0); // Important: when transitioning from old to new IsKeyPressed(): old
-            // API has "bool repeat = true", so would default to repeat. New API
-            // requiress explicit InputFlags_Repeat.
+    int flags); // Important: when transitioning from old to new IsKeyPressed():
+                // old API has "bool repeat = true", so would default to repeat.
+                // New API requiress explicit InputFlags_Repeat.
 API bool IsKeyReleased(Key key, int owner_id);
 API bool IsMouseDown(int button, int owner_id);
 API bool IsMouseClicked(int button, int owner_id, int flags = 0);

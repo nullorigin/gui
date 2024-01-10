@@ -1785,8 +1785,8 @@ API void ColorConvertHSVtoRGB(float h, float s, float v, float &out_r,
 API bool IsKeyDown(Key key); // is key being held.
 API bool IsKeyPressed(
     Key key,
-    bool repeat = true); // was key pressed (went from !Down to Down)? if
-                         // repeat=true, uses io.KeyRepeatDelay / KeyRepeatRate
+    bool repeat); // was key pressed (went from !Down to Down)? if
+                  // repeat=true, uses io.KeyRepeatDelay / KeyRepeatRate
 API bool IsKeyReleased(Key key); // was key released (went from Down to !Down)?
 API bool IsKeyChordPressed(
     int key_chord); // was key chord (mods + key) pressed, e.g. you can

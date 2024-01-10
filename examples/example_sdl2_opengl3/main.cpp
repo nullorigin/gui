@@ -4,6 +4,7 @@
 
 #include "gui.hpp"
 #include "opengl3.hpp"
+#include "opengl3_loader.hpp"
 #include "sdl2.hpp"
 #include <SDL.h>
 #include <stdio.h>

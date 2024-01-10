@@ -31,7 +31,8 @@
             "inheritConfigureEnvironment": true,
             "configuration": "Debug",
             "targets": [
-                "Gui"
+                "Gui",
+                "Example"
             ]
         }
     ]

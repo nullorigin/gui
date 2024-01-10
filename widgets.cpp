@@ -5537,26 +5537,26 @@ bool Gui::InputTextEx(const char *label, const char *hint, char *buf,
         (nav_gamepad_active && Shortcut(Key_NavGamepadCancel, id, f_repeat));
 
     // FIXME: Should use more Shortcut() and reduce
-    // IsKeyPressed()+SetKeyOwner(), but requires modifiers combination to be
-    // taken account of.
-    if (IsKeyPressed(Key_LeftArrow)) {
+    // IsKeyPressed()+SetKeyOwner(), but requires modifiers combination to
+    // be taken account of.
+    if (IsKeyPressed(Key_LeftArrow, true)) {
       state->OnKeyPressed((is_startend_key_down   ? TEXTEDIT_K_LINESTART
                            : is_wordmove_key_down ? TEXTEDIT_K_WORDLEFT
                                                   : TEXTEDIT_K_LEFT) |
                           k_mask);
-    } else if (IsKeyPressed(Key_RightArrow)) {
+    } else if (IsKeyPressed(Key_RightArrow, true)) {
       state->OnKeyPressed((is_startend_key_down   ? TEXTEDIT_K_LINEEND
                            : is_wordmove_key_down ? TEXTEDIT_K_WORDRIGHT
                                                   : TEXTEDIT_K_RIGHT) |
                           k_mask);
-    } else if (IsKeyPressed(Key_UpArrow) && is_multiline) {
+    } else if (IsKeyPressed(Key_UpArrow, true) && is_multiline) {
       if (io.KeyCtrl)
         SetScrollY(draw_window, Max(draw_window->Scroll.y - g.FontSize, 0.0f));
       else
         state->OnKeyPressed(
             (is_startend_key_down ? TEXTEDIT_K_TEXTSTART : TEXTEDIT_K_UP) |
             k_mask);
-    } else if (IsKeyPressed(Key_DownArrow) && is_multiline) {
+    } else if (IsKeyPressed(Key_DownArrow, true) && is_multiline) {
       if (io.KeyCtrl)
         SetScrollY(draw_window,
                    Min(draw_window->Scroll.y + g.FontSize, GetScrollMaxY()));
@@ -5564,19 +5564,19 @@ bool Gui::InputTextEx(const char *label, const char *hint, char *buf,
         state->OnKeyPressed(
             (is_startend_key_down ? TEXTEDIT_K_TEXTEND : TEXTEDIT_K_DOWN) |
             k_mask);
-    } else if (IsKeyPressed(Key_PageUp) && is_multiline) {
+    } else if (IsKeyPressed(Key_PageUp, true) && is_multiline) {
       state->OnKeyPressed(TEXTEDIT_K_PGUP | k_mask);
       scroll_y -= row_count_per_page * g.FontSize;
-    } else if (IsKeyPressed(Key_PageDown) && is_multiline) {
+    } else if (IsKeyPressed(Key_PageDown, true) && is_multiline) {
       state->OnKeyPressed(TEXTEDIT_K_PGDOWN | k_mask);
       scroll_y += row_count_per_page * g.FontSize;
-    } else if (IsKeyPressed(Key_Home)) {
+    } else if (IsKeyPressed(Key_Home, true)) {
       state->OnKeyPressed(io.KeyCtrl ? TEXTEDIT_K_TEXTSTART | k_mask
                                      : TEXTEDIT_K_LINESTART | k_mask);
-    } else if (IsKeyPressed(Key_End)) {
+    } else if (IsKeyPressed(Key_End, true)) {
       state->OnKeyPressed(io.KeyCtrl ? TEXTEDIT_K_TEXTEND | k_mask
                                      : TEXTEDIT_K_LINEEND | k_mask);
-    } else if (IsKeyPressed(Key_Delete) && !is_readonly && !is_cut) {
+    } else if (IsKeyPressed(Key_Delete, true) && !is_readonly && !is_cut) {
       if (!state->HasSelection()) {
         // OSX doesn't seem to have Super+Delete to delete until end-of-line, so
         // we don't emulate that (as opposed to Super+Backspace)
@@ -5584,7 +5584,7 @@ bool Gui::InputTextEx(const char *label, const char *hint, char *buf,
           state->OnKeyPressed(TEXTEDIT_K_WORDRIGHT | TEXTEDIT_K_SHIFT);
       }
       state->OnKeyPressed(TEXTEDIT_K_DELETE | k_mask);
-    } else if (IsKeyPressed(Key_Backspace) && !is_readonly) {
+    } else if (IsKeyPressed(Key_Backspace, true) && !is_readonly) {
       if (!state->HasSelection()) {
         if (is_wordmove_key_down)
           state->OnKeyPressed(TEXTEDIT_K_WORDLEFT | TEXTEDIT_K_SHIFT);
@@ -5769,11 +5769,11 @@ bool Gui::InputTextEx(const char *label, const char *hint, char *buf,
           event_flag = InputTextFlags_CallbackCompletion;
           event_key = Key_Tab;
         } else if ((flags & InputTextFlags_CallbackHistory) != 0 &&
-                   IsKeyPressed(Key_UpArrow)) {
+                   IsKeyPressed(Key_UpArrow, true)) {
           event_flag = InputTextFlags_CallbackHistory;
           event_key = Key_UpArrow;
         } else if ((flags & InputTextFlags_CallbackHistory) != 0 &&
-                   IsKeyPressed(Key_DownArrow)) {
+                   IsKeyPressed(Key_DownArrow, true)) {
           event_flag = InputTextFlags_CallbackHistory;
           event_key = Key_DownArrow;
         } else if ((flags & InputTextFlags_CallbackEdit) && state->Edited) {
@@ -8196,8 +8196,9 @@ TypingSelectRequest *Gui::GetTypingSelectRequest(int flags) {
     clear_buffer |= g.ActiveId != 0 &&
                     g.NavActivateId ==
                         0; // Allow temporary SPACE activation to not interfere
-    clear_buffer |= IsKeyPressed(Key_Escape) || IsKeyPressed(Key_Enter);
-    clear_buffer |= IsKeyPressed(Key_Backspace) &&
+    clear_buffer |=
+        IsKeyPressed(Key_Escape, true) || IsKeyPressed(Key_Enter, true);
+    clear_buffer |= IsKeyPressed(Key_Backspace, true) &&
                     (flags & TypingSelectFlags_AllowBackspace) == 0;
     // if (clear_buffer) { DEBUG_LOG("GetTypingSelectRequest(): Clear
     // SearchBuffer.\n"); }

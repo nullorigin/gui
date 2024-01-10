@@ -9582,14 +9582,14 @@ bool Gui::IsKeyDown(Key key, int owner_id) {
   return true;
 }
 
-bool IsKeyPressed(Key key, bool repeat) {
+bool Gui::IsKeyPressed(Key key, bool repeat) {
   return Gui::IsKeyPressed(key, KeyOwner_Any,
                            repeat ? InputFlags_Repeat : InputFlags_None);
 }
 
 // Important: unless legacy IsKeyPressed(Key, bool repeat=true) which
 // DEFAULT to repeat, this requires EXPLICIT repeat.
-bool IsKeyPressed(Key key, int owner_id, int flags) {
+bool Gui::IsKeyPressed(Key key, int owner_id, int flags) {
   const KeyData *key_data = Gui::GetKeyData(key);
   if (!key_data
            ->Down) // In theory this should already be encoded as (DownDuration
@@ -13501,18 +13501,17 @@ static void Gui::NavUpdate() {
         (nav_gamepad_active && IsKeyDown(Key_NavGamepadActivate));
     const bool activate_pressed =
         activate_down &&
-        ((nav_keyboard_active && Gui::IsKeyPressed(Key_Space, false)) ||
-         (nav_gamepad_active &&
-          Gui::IsKeyPressed(Key_NavGamepadActivate, false)));
+        ((nav_keyboard_active && IsKeyPressed(Key_Space, false)) ||
+         (nav_gamepad_active && IsKeyPressed(Key_NavGamepadActivate, false)));
     const bool input_down =
         (nav_keyboard_active &&
          (IsKeyDown(Key_Enter) || IsKeyDown(Key_KeypadEnter))) ||
         (nav_gamepad_active && IsKeyDown(Key_NavGamepadInput));
     const bool input_pressed =
         input_down &&
-        ((nav_keyboard_active && (Gui::IsKeyPressed(Key_Enter, false) ||
-                                  Gui::IsKeyPressed(Key_KeypadEnter, false))) ||
-         (nav_gamepad_active && Gui::IsKeyPressed(Key_NavGamepadInput, false)));
+        ((nav_keyboard_active && (IsKeyPressed(Key_Enter, false) ||
+                                  IsKeyPressed(Key_KeypadEnter, false))) ||
+         (nav_gamepad_active && IsKeyPressed(Key_NavGamepadInput, false)));
     if (g.ActiveId == 0 && activate_pressed) {
       g.NavActivateId = g.NavId;
       g.NavActivateFlags = ActivateFlags_PreferTweak;
@@ -13739,10 +13738,9 @@ void Gui::NavUpdateCreateMoveRequest() {
       }
       if (!IsActiveIdUsingNavDir(Dir_Down) &&
           ((nav_gamepad_active &&
-            Gui::IsKeyPressed(Key_GamepadDpadDown, KeyOwner_None,
-                              repeat_mode)) ||
+            IsKeyPressed(Key_GamepadDpadDown, KeyOwner_None, repeat_mode)) ||
            (nav_keyboard_active &&
-            Gui::IsKeyPressed(Key_DownArrow, KeyOwner_None, repeat_mode)))) {
+            IsKeyPressed(Key_DownArrow, KeyOwner_None, repeat_mode)))) {
         g.NavMoveDir = Dir_Down;
       }
     }
@@ -13874,7 +13872,7 @@ void Gui::NavUpdateCreateTabbingRequest() {
     return;
 
   const bool tab_pressed =
-      Gui::IsKeyPressed(Key_Tab, KeyOwner_None, InputFlags_Repeat) &&
+      IsKeyPressed(Key_Tab, KeyOwner_None, InputFlags_Repeat) &&
       !g.IO.KeyCtrl && !g.IO.KeyAlt;
   if (!tab_pressed)
     return;
@@ -14045,9 +14043,9 @@ static void Gui::NavUpdateCancelRequest() {
       (g.IO.BackendFlags & BackendFlags_HasGamepad) != 0;
   const bool nav_keyboard_active =
       (g.IO.ConfigFlags & ConfigFlags_NavEnableKeyboard) != 0;
-  if (!(nav_keyboard_active && ::IsKeyPressed(Key_Escape, KeyOwner_None)) &&
+  if (!(nav_keyboard_active && IsKeyPressed(Key_Escape, KeyOwner_None)) &&
       !(nav_gamepad_active &&
-        ::IsKeyPressed(Key_NavGamepadCancel, KeyOwner_None)))
+        IsKeyPressed(Key_NavGamepadCancel, KeyOwner_None)))
     return;
 
   DEBUG_LOG_NAV("[nav] NavUpdateCancelRequest()\n");
@@ -14099,9 +14097,9 @@ static float Gui::NavUpdatePageUpPageDown() {
   const bool page_up_held = IsKeyDown(Key_PageUp, KeyOwner_None);
   const bool page_down_held = IsKeyDown(Key_PageDown, KeyOwner_None);
   const bool home_pressed =
-      ::IsKeyPressed(Key_Home, KeyOwner_None, InputFlags_Repeat);
+      Gui::IsKeyPressed(Key_Home, KeyOwner_None, InputFlags_Repeat);
   const bool end_pressed =
-      ::IsKeyPressed(Key_End, KeyOwner_None, InputFlags_Repeat);
+      Gui::IsKeyPressed(Key_End, KeyOwner_None, InputFlags_Repeat);
   if (page_up_held == page_down_held &&
       home_pressed == end_pressed) // Proceed if either (not both) are pressed,
                                    // otherwise early out
@@ -14113,9 +14111,9 @@ static float Gui::NavUpdatePageUpPageDown() {
   if (window->DC.NavLayersActiveMask == 0x00 &&
       window->DC.NavWindowHasScrollY) {
     // Fallback manual-scroll when window has no navigable item
-    if (::IsKeyPressed(Key_PageUp, KeyOwner_None, InputFlags_Repeat))
+    if (IsKeyPressed(Key_PageUp, KeyOwner_None, InputFlags_Repeat))
       SetScrollY(window, window->Scroll.y - window->InnerRect.GetHeight());
-    else if (::IsKeyPressed(Key_PageDown, KeyOwner_None, InputFlags_Repeat))
+    else if (IsKeyPressed(Key_PageDown, KeyOwner_None, InputFlags_Repeat))
       SetScrollY(window, window->Scroll.y + window->InnerRect.GetHeight());
     else if (home_pressed)
       SetScrollY(window, 0.0f);
@@ -14338,7 +14336,7 @@ static void Gui::NavUpdateWindowing() {
                InputFlags_Repeat | InputFlags_RouteAlways);
   const bool start_windowing_with_gamepad =
       allow_windowing && nav_gamepad_active && !g.NavWindowingTarget &&
-      ::IsKeyPressed(Key_NavGamepadMenu, 0, InputFlags_None);
+      IsKeyPressed(Key_NavGamepadMenu, 0, InputFlags_None);
   const bool start_windowing_with_keyboard =
       allow_windowing && !g.NavWindowingTarget &&
       (keyboard_next_window ||
@@ -14379,8 +14377,8 @@ static void Gui::NavUpdateWindowing() {
                      0.05f));
 
     // Select window to focus
-    const int focus_change_dir =
-        (int)IsKeyPressed(Key_GamepadL1) - (int)IsKeyPressed(Key_GamepadR1);
+    const int focus_change_dir = (int)Gui::IsKeyPressed(Key_GamepadL1, true) -
+                                 (int)Gui::IsKeyPressed(Key_GamepadR1, true);
     if (focus_change_dir != 0) {
       NavUpdateWindowingHighlightWindow(focus_change_dir);
       g.NavWindowingHighlightAlpha = 1.0f;
@@ -14431,7 +14429,7 @@ static void Gui::NavUpdateWindowing() {
   // - AltGR is normally Alt+Ctrl but we can't reliably detect it (not all
   // backends/systems/layout emit it as Alt+Ctrl). But even on keyboards without
   // AltGR we don't want Alt+Ctrl to open menu anyway.
-  if (nav_keyboard_active && ::IsKeyPressed(Mod_Alt, KeyOwner_None)) {
+  if (nav_keyboard_active && IsKeyPressed(Mod_Alt, KeyOwner_None)) {
     g.NavWindowingToggleLayer = true;
     g.NavInputSource = InputSource_Keyboard;
   }
@@ -22372,7 +22370,7 @@ void Gui::ShowMetricsWindow(bool *p_open) {
       Text("Keys pressed:");
       for (Key key = Key_KeysData_OFFSET; key < Key_COUNT;
            key = (Key)(key + 1)) {
-        if (funcs::IsLegacyNativeDupe(key) || !IsKeyPressed(key))
+        if (funcs::IsLegacyNativeDupe(key) || !Gui::IsKeyPressed(key, true))
           continue;
         SameLine();
         Text(IsNamedKey(key) ? "\"%s\"" : "\"%s\" %d", GetKeyName(key), key);
@@ -23557,7 +23555,7 @@ void Gui::UpdateDebugToolItemPicker() {
 
   const int hovered_id = g.HoveredIdPreviousFrame;
   SetMouseCursor(MouseCursor_Hand);
-  if (IsKeyPressed(Key_Escape))
+  if (IsKeyPressed(Key_Escape, true))
     g.DebugItemPickerActive = false;
   const bool change_mapping = g.IO.KeyMods == (Mod_Ctrl | Mod_Shift);
   if (!change_mapping && IsMouseClicked(g.DebugItemPickerMouseButton) &&
@@ -23753,7 +23751,7 @@ void Gui::ShowIDStackToolWindow(bool *p_open) {
                   : Vec4(),
               "*COPIED*");
   if (tool->CopyToClipboardOnCtrlC && IsKeyDown(Mod_Ctrl) &&
-      IsKeyPressed(Key_C)) {
+      Gui::IsKeyPressed(Key_C, true)) {
     tool->CopyToClipboardLastTime = (float)g.Time;
     char *p = g.TempBuffer.Data;
     char *p_end = p + g.TempBuffer.Size;

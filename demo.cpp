@@ -515,7 +515,7 @@ void Gui::ShowDemoWindow(bool *p_open) {
           Gui::SameLine();
           Gui::Text("<<PRESS SPACE TO DISABLE>>");
         }
-        if (Gui::IsKeyPressed(Key_Space))
+        if (Gui::IsKeyPressed(Key_Space, true))
           io.ConfigFlags &= ~ConfigFlags_NoMouse;
       }
       Gui::CheckboxFlags("io.ConfigFlags: NoMouseCursorChange", &io.ConfigFlags,

@@ -1,14 +1,14 @@
 // gui: standalone example application for Android + OpenGL ES 3
-
 #include "android.hpp"
 #include "gui.hpp"
 #include "opengl3.hpp"
 #include <EGL/egl.h>
 #include <GLES3/gl3.h>
+#include <string>
+// android specific includes
 #include <android/asset_manager.h>
 #include <android/log.h>
 #include <android_native_app_glue.h>
-#include <string>
 
 // Data
 static EGLDisplay g_EglDisplay = EGL_NO_DISPLAY;
@@ -28,7 +28,7 @@ static int PollUnicodeChars();
 static int GetAssetData(const char *filename, void **out_data);
 
 // Main code
-static void handleAppCmd(struct android_app *app, int32_t appCmd) {
+static void handleAppCmd(struct android_app *app, int appCmd) {
   switch (appCmd) {
   case APP_CMD_SAVE_STATE:
     break;
@@ -44,8 +44,7 @@ static void handleAppCmd(struct android_app *app, int32_t appCmd) {
   }
 }
 
-static int32_t handleInputEvent(struct android_app *app,
-                                AInputEvent *inputEvent) {
+static int handleInputEvent(struct android_app *app, AInputEvent *inputEvent) {
   return Android_HandleInputEvent(inputEvent);
 }
 

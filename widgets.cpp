@@ -4543,7 +4543,7 @@ static Vec2 InputTextCalcTextSizeW(Context *ctx, const Wchar *text_begin,
                                    const Wchar **remaining, Vec2 *out_offset,
                                    bool stop_on_new_line) {
   Context &g = *ctx;
-  Font *font = g.Font;
+  Gui::Font *font = g.Font;
   const float line_height = g.FontSize;
   const float scale = line_height / font->FontSize;
 

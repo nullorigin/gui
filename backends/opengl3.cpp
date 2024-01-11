@@ -233,7 +233,7 @@ bool OpenGL3_Init(const char *glsl_version) {
   // Initialize our loader
 #if !defined(OPENGL_ES2) && !defined(OPENGL_ES3) &&                            \
     !defined(OPENGL_LOADER_CUSTOM)
-  if (imgl3wInit() != 0) {
+  if (gl3wInit() != 0) {
     fprintf(stderr, "Failed to initialize OpenGL loader!\n");
     return false;
   }

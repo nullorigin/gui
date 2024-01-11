@@ -457,9 +457,9 @@ void WGPU_RenderDrawData(DrawData *draw_data,
 
         // Apply scissor/clipping rectangle, Draw
         wgpuRenderPassEncoderSetScissorRect(
-            pass_encoder, (uint32_t)clip_min.x, (uint32_t)clip_min.y,
-            (uint32_t)(clip_max.x - clip_min.x),
-            (uint32_t)(clip_max.y - clip_min.y));
+            pass_encoder, (unsigned int)clip_min.x, (unsigned int)clip_min.y,
+            (unsigned int)(clip_max.x - clip_min.x),
+            (unsigned int)(clip_max.y - clip_min.y));
         wgpuRenderPassEncoderDrawIndexed(pass_encoder, pcmd->ElemCount, 1,
                                          pcmd->IdxOffset + global_idx_offset,
                                          pcmd->VtxOffset + global_vtx_offset,
@@ -517,9 +517,10 @@ static void WGPU_CreateFontsTexture() {
     layout.offset = 0;
     layout.bytesPerRow = width * size_pp;
     layout.rowsPerImage = height;
-    WGPUExtent3D size = {(uint32_t)width, (uint32_t)height, 1};
+    WGPUExtent3D size = {(unsigned int)width, (unsigned int)height, 1};
     wgpuQueueWriteTexture(bd->defaultQueue, &dst_view, pixels,
-                          (uint32_t)(width * size_pp * height), &layout, &size);
+                          (unsigned int)(width * size_pp * height), &layout,
+                          &size);
   }
 
   // Create the associated sampler

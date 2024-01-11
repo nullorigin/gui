@@ -1939,7 +1939,7 @@ void DrawList::AddBezierQuadratic(const Vec2 &p1, const Vec2 &p2,
   PathStroke(col, 0, thickness);
 }
 
-void DrawList::AddText(const Font *font, float font_size, const Vec2 &pos,
+void DrawList::AddText(const Gui::Font *font, float font_size, const Vec2 &pos,
                        unsigned int col, const char *text_begin,
                        const char *text_end, float wrap_width,
                        const Vec4 *cpu_fine_clip_rect) {
@@ -2399,7 +2399,7 @@ void Gui::ShadeVertsTransformPos(DrawList *draw_list, int vert_start_idx,
 // [SECTION] FontConfig
 //-----------------------------------------------------------------------------
 
-FontConfig::FontConfig() {
+Gui::FontConfig::FontConfig() {
   memset(this, 0, sizeof(*this));
   FontDataOwnedByAtlas = true;
   OversampleH = 2;
@@ -2413,7 +2413,7 @@ FontConfig::FontConfig() {
 //-----------------------------------------------------------------------------
 // [SECTION] FontAtlas
 //-----------------------------------------------------------------------------
-
+namespace Gui {
 // A work of art lies ahead! (. = white layer, X = black layer, others are
 // blank) The 2x2 white texels on the top left are the ones we'll use everywhere
 // in Gui to render filled shapes. (This is used when io.MouseDrawCursor
@@ -2635,7 +2635,7 @@ Font *FontAtlas::AddFont(const FontConfig *font_cfg) {
   ClearTexData();
   return new_font_cfg.DstFont;
 }
-
+} // namespace Gui
 // Default font TTF is compressed with compress then base85 encoded (see
 // misc/fonts/binary_to_compressed_c.cpp for encoder)
 static unsigned int decompress_length(const unsigned char *input);
@@ -2658,7 +2658,7 @@ static void Decode85(const unsigned char *src, unsigned char *dst) {
     dst += 4;
   }
 }
-
+namespace Gui {
 // Load embedded ProggyClean.ttf at size 13, disable oversampling
 Font *FontAtlas::AddFontDefault(const FontConfig *font_cfg_template) {
   FontConfig font_cfg = font_cfg_template ? *font_cfg_template : FontConfig();
@@ -2763,7 +2763,7 @@ Font *FontAtlas::AddFontFromMemoryCompressedBase85TTF(
   return font;
 }
 
-int FontAtlas::AddCustomRectRegular(int width, int height) {
+int Gui::FontAtlas::AddCustomRectRegular(int width, int height) {
   assert(width > 0 && width <= 0xFFFF);
   assert(height > 0 && height <= 0xFFFF);
   FontAtlasCustomRect r;
@@ -2843,7 +2843,7 @@ bool FontAtlas::Build() {
   //   up static data, store your own instance of FontBuilderIO somewhere and
   //   point to it instead of pointing directly to return value of the
   //   GetBuilderXXX functions.
-  const ::FontBuilderIO *builder_io = FontBuilderIO;
+  const Gui::FontBuilderIO *builder_io = FontBuilderIO;
   if (builder_io == NULL) {
 #ifdef ENABLE_FREETYPE
     builder_io = FreeType::GetBuilderForFreeType();
@@ -2921,7 +2921,7 @@ static void UnpackBitVectorToFlatIndexList(const BitVector *in,
           out->push_back((int)(((it - it_begin) << 5) + bit_n));
 }
 
-static bool FontAtlasBuildWithStbTruetype(FontAtlas *atlas) {
+static bool FontAtlasBuildWithStbTruetype(Gui::FontAtlas *atlas) {
   assert(atlas->ConfigData.Size > 0);
 
   FontAtlasBuildInit(atlas);
@@ -2944,7 +2944,7 @@ static bool FontAtlasBuildWithStbTruetype(FontAtlas *atlas) {
   // 1. Initialize font loading structure, check font data validity
   for (int src_i = 0; src_i < atlas->ConfigData.Size; src_i++) {
     FontBuildSrcData &src_tmp = src_tmp_array[src_i];
-    FontConfig &cfg = atlas->ConfigData[src_i];
+    Gui::FontConfig &cfg = atlas->ConfigData[src_i];
     assert(cfg.DstFont &&
            (!cfg.DstFont->IsLoaded() || cfg.DstFont->ContainerAtlas == atlas));
 
@@ -3060,7 +3060,7 @@ static bool FontAtlasBuildWithStbTruetype(FontAtlas *atlas) {
     buf_packedchars_out_n += src_tmp.GlyphsCount;
 
     // Convert our ranges in the format truetype wants
-    FontConfig &cfg = atlas->ConfigData[src_i];
+    Gui::FontConfig &cfg = atlas->ConfigData[src_i];
     src_tmp.PackRange.font_size = cfg.SizePixels * cfg.RasterizerDensity;
     src_tmp.PackRange.first_unicode_codepoint_in_range = 0;
     src_tmp.PackRange.array_of_unicode_codepoints = src_tmp.GlyphsList.Data;
@@ -3138,7 +3138,7 @@ static bool FontAtlasBuildWithStbTruetype(FontAtlas *atlas) {
   }
 
   // 7. Allocate texture
-  atlas->TexHeight = (atlas->Flags & FontAtlasFlags_NoPowerOfTwoHeight)
+  atlas->TexHeight = (atlas->Flags & Gui::FontAtlasFlags_NoPowerOfTwoHeight)
                          ? (atlas->TexHeight + 1)
                          : UpperPowerOfTwo(atlas->TexHeight);
   atlas->TexUvScale = Vec2(1.0f / atlas->TexWidth, 1.0f / atlas->TexHeight);
@@ -3150,7 +3150,7 @@ static bool FontAtlasBuildWithStbTruetype(FontAtlas *atlas) {
 
   // 8. Render/rasterize font characters into the texture
   for (int src_i = 0; src_i < src_tmp_array.Size; src_i++) {
-    FontConfig &cfg = atlas->ConfigData[src_i];
+    Gui::FontConfig &cfg = atlas->ConfigData[src_i];
     FontBuildSrcData &src_tmp = src_tmp_array[src_i];
     if (src_tmp.GlyphsCount == 0)
       continue;
@@ -3183,8 +3183,8 @@ static bool FontAtlasBuildWithStbTruetype(FontAtlas *atlas) {
     // - We can have multiple input fonts writing into a same destination font.
     // - dst_font->ConfigData is != from cfg which is our source configuration.
     FontBuildSrcData &src_tmp = src_tmp_array[src_i];
-    FontConfig &cfg = atlas->ConfigData[src_i];
-    Font *dst_font = cfg.DstFont;
+    Gui::FontConfig &cfg = atlas->ConfigData[src_i];
+    Gui::Font *dst_font = cfg.DstFont;
 
     const float font_scale =
         tt_ScaleForPixelHeight(&src_tmp.FontInfo, cfg.SizePixels);
@@ -3234,7 +3234,7 @@ const FontBuilderIO *FontAtlasGetBuilderForStbTruetype() {
 
 #endif // ENABLE_TRUETYPE
 
-void FontAtlasUpdateConfigDataPointers(FontAtlas *atlas) {
+void FontAtlasUpdateConfigDataPointers(Gui::FontAtlas *atlas) {
   for (FontConfig &font_cfg : atlas->ConfigData) {
     Font *font = font_cfg.DstFont;
     if (!font_cfg.MergeMode) {
@@ -4704,7 +4704,7 @@ void Font::RenderText(DrawList *draw_list, float size, const Vec2 &pos,
   draw_list->_IdxWritePtr = idx_write;
   draw_list->_VtxCurrentIdx = vtx_index;
 }
-
+} // namespace Gui
 //-----------------------------------------------------------------------------
 // [SECTION] Gui Internal Render Helpers
 //-----------------------------------------------------------------------------

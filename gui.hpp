@@ -156,8 +156,9 @@ struct DrawListSharedData; // Data shared among multiple draw lists (typically
 struct DrawListSplitter;   // Helper to split a draw list into different layers
                            // which can be drawn into out of order, then
                            // flattened back.
-struct DrawVert;  // A single vertex (pos + uv + col = 20 bytes by default.
-                  // Override layout with OVERRIDE_DRAWVERT_STRUCT_LAYOUT)
+struct DrawVert; // A single vertex (pos + uv + col = 20 bytes by default.
+// Override layout with OVERRIDE_DRAWVERT_STRUCT_LAYOUT)
+namespace Gui {
 struct Font;      // Runtime data for a single font within a parent FontAtlas
 struct FontAtlas; // Runtime data for multiple fonts, bake multiple fonts into
                   // a single texture, TTF/OTF font loader
@@ -168,6 +169,7 @@ struct FontGlyph;     // A single font glyph (code point + coordinates within in
                       // FontAtlas + offset)
 struct FontGlyphRangesBuilder; // Helper to build glyph ranges from
                                // text/string data
+} // namespace Gui
 struct Color;   // Helper functions to create a color that can be converted to
                 // either u32 or float4 (*OBSOLETE* please avoid using)
 struct Context; // Gui context (opaque structure, unless including
@@ -4132,13 +4134,13 @@ struct IO {
                            // to Gui::LogToFile when no file is specified).
   void *UserData;          // = NULL           // Store your own data.
 
-  FontAtlas *Fonts;      // <auto>           // Font atlas: load, rasterize and
+  Gui::FontAtlas *Fonts; // <auto>           // Font atlas: load, rasterize and
                          // pack one or more fonts into a single texture.
   float FontGlobalScale; // = 1.0f           // Global scale all fonts
   bool FontAllowUserScaling; // = false          // Allow user scaling text of
                              // individual window with CTRL+Wheel.
-  Font *FontDefault; // = NULL           // Font to use on NewFrame(). Use
-                     // NULL to uses Fonts->Fonts[0].
+  Gui::Font *FontDefault; // = NULL           // Font to use on NewFrame(). Use
+                          // NULL to uses Fonts->Fonts[0].
   Vec2 DisplayFramebufferScale; // = (1, 1)         // For retina display or
                                 // other situations where window coordinates
                                 // are different from framebuffer coordinates.
@@ -5509,7 +5511,7 @@ struct DrawList {
                             int num_segments = 0);
   API void AddText(const Vec2 &pos, unsigned int col, const char *text_begin,
                    const char *text_end = NULL);
-  API void AddText(const Font *font, float font_size, const Vec2 &pos,
+  API void AddText(const Gui::Font *font, float font_size, const Vec2 &pos,
                    unsigned int col, const char *text_begin,
                    const char *text_end = NULL, float wrap_width = 0.0f,
                    const Vec4 *cpu_fine_clip_rect = NULL);
@@ -5715,7 +5717,7 @@ struct DrawData {
 // [SECTION] Font API (FontConfig, FontGlyph, int, FontAtlas,
 // FontGlyphRangesBuilder, Font)
 //-----------------------------------------------------------------------------
-
+namespace Gui {
 struct FontConfig {
   void *FontData;            //          // TTF/OTF data
   int FontDataSize;          //          // TTF/OTF data size
@@ -6191,7 +6193,7 @@ struct Font {
   API void SetGlyphVisible(Wchar c, bool visible);
   API bool IsGlyphRangeUnused(unsigned int c_begin, unsigned int c_last);
 };
-
+} // namespace Gui
 //-----------------------------------------------------------------------------
 // [SECTION] Viewports
 //-----------------------------------------------------------------------------

@@ -13,18 +13,11 @@
 #define DEFINE_MATH_OPERATORS
 #endif
 
-#include "../../gui.hpp"
-#ifdef ENABLE_FREETYPE
-#include "../../misc/freetype/freetype.hpp"
-#endif
-
+#include "gui.hpp"
 #ifdef IMPLEMENTATION
-#include "../../demo.cpp"
-#include "../../draw.cpp"
-#include "../../gui.cpp"
-#include "../../tables.cpp"
-#include "../../widgets.cpp"
-#ifdef ENABLE_FREETYPE
-#include "../../misc/freetype/freetype.cpp"
-#endif
+#include "demo.cpp"
+#include "draw.cpp"
+#include "gui.cpp"
+#include "tables.cpp"
+#include "widgets.cpp"
 #endif

@@ -6,6 +6,7 @@
 #include "glfw.hpp"
 #include "gui.hpp"
 #include "opengl3.hpp"
+#include <GL/gl.h>
 #include <stdio.h>
 #define GL_SILENCE_DEPRECATION
 #if defined(OPENGL_ES2)
@@ -21,12 +22,6 @@
 // that is adequate for your version of Visual Studio.
 #if defined(_MSC_VER) && (_MSC_VER >= 1900) && !defined(DISABLE_WIN32_FUNCTIONS)
 #pragma comment(lib, "legacy_stdio_definitions")
-#endif
-
-// This example can also compile and run with Emscripten! See
-// 'Makefile.emscripten' for details.
-#ifdef __EMSCRIPTEN__
-#include "../libs/emscripten/emscripten_mainloop_stub.h"
 #endif
 
 static void glfw_error_callback(int error, const char *description) {
@@ -136,16 +131,7 @@ int main(int, char **) {
   Vec4 clear_color = Vec4(0.45f, 0.55f, 0.60f, 1.00f);
 
   // Main loop
-#ifdef __EMSCRIPTEN__
-  // For an Emscripten build we are disabling file-system access, so let's not
-  // attempt to do a fopen() of the gui.ini file. You may manually call
-  // LoadIniSettingsFromMemory() to load settings from your own storage.
-  io.IniFilename = nullptr;
-  EMSCRIPTEN_MAINLOOP_BEGIN
-#else
-  while (!glfwWindowShouldClose(window))
-#endif
-  {
+  while (!glfwWindowShouldClose(window)) {
     // Poll and handle events (inputs, window resize, etc.)
     // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to
     // tell if gui wants to use your inputs.
@@ -238,9 +224,6 @@ int main(int, char **) {
 
     glfwSwapBuffers(window);
   }
-#ifdef __EMSCRIPTEN__
-  EMSCRIPTEN_MAINLOOP_END;
-#endif
 
   // Cleanup
   OpenGL3_Shutdown();

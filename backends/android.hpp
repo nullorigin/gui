@@ -24,14 +24,14 @@
 //  application (see examples/ and issue #3446)
 
 #pragma once
-#include "../gui.hpp" // API
+#include "gui.hpp" // API
 #ifndef DISABLE
 
 struct ANativeWindow;
 struct AInputEvent;
 
 API bool Android_Init(ANativeWindow *window);
-API int32_t Android_HandleInputEvent(const AInputEvent *input_event);
+API int Android_HandleInputEvent(const AInputEvent *input_event);
 API void Android_Shutdown();
 API void Android_NewFrame();
 

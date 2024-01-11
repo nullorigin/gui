@@ -143,16 +143,7 @@ int main(int, char **) {
 
   // Main loop
   bool done = false;
-#ifdef __EMSCRIPTEN__
-  // For an Emscripten build we are disabling file-system access, so let's not
-  // attempt to do a fopen() of the gui.ini file. You may manually call
-  // LoadIniSettingsFromMemory() to load settings from your own storage.
-  io.IniFilename = nullptr;
-  EMSCRIPTEN_MAINLOOP_BEGIN
-#else
-  while (!done)
-#endif
-  {
+  while (!done) {
     // Poll and handle events (inputs, window resize, etc.)
     // You can read the io.WantCaptureMouse, io.WantCaptureKeyboard flags to
     // tell if gui wants to use your inputs.
@@ -253,9 +244,6 @@ int main(int, char **) {
 
     SDL_GL_SwapWindow(window);
   }
-#ifdef __EMSCRIPTEN__
-  EMSCRIPTEN_MAINLOOP_END;
-#endif
 
   // Cleanup
   OpenGL3_Shutdown();

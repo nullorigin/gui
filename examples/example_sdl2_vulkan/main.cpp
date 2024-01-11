@@ -6,7 +6,7 @@
 // with vulkan.cpp/.h.
 //   You will use those if you want to use this rendering backend in your
 //   engine/app.
-// - Helper VulkanH_XXX functions and structures are only used by this
+// - Helper Vulkan_XXX functions and structures are only used by this
 // example (main.cpp) and by
 //   the backend itself (vulkan.cpp), but should PROBABLY NOT be used
 //   by your own engine/app code.
@@ -15,8 +15,9 @@
 #include "gui.hpp"
 #include "sdl2.hpp"
 #include "vulkan.hpp"
-#include <SDL.h>
-#include <SDL_vulkan.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_main.h>
+#include <SDL2/SDL_vulkan.h>
 #include <stdio.h>  // printf, fprintf
 #include <stdlib.h> // abort
 #include <vulkan/vulkan.h>
@@ -32,14 +33,14 @@ static VkAllocationCallbacks *g_Allocator = nullptr;
 static VkInstance g_Instance = VK_NULL_HANDLE;
 static VkPhysicalDevice g_PhysicalDevice = VK_NULL_HANDLE;
 static VkDevice g_Device = VK_NULL_HANDLE;
-static uint32_t g_QueueFamily = (uint32_t)-1;
+static unsigned int g_QueueFamily = -1;
 static VkQueue g_Queue = VK_NULL_HANDLE;
 static VkDebugReportCallbackEXT g_DebugReport = VK_NULL_HANDLE;
 static VkPipelineCache g_PipelineCache = VK_NULL_HANDLE;
 static VkDescriptorPool g_DescriptorPool = VK_NULL_HANDLE;
 
-static VulkanH_Window g_MainWindowData;
-static uint32_t g_MinImageCount = 2;
+static Vulkan_Window g_MainWindowData;
+static unsigned int g_MinImageCount = 2;
 static bool g_SwapChainRebuild = false;
 
 static void check_vk_result(VkResult err) {
@@ -77,7 +78,7 @@ IsExtensionAvailable(const Vector<VkExtensionProperties> &properties,
 }
 
 static VkPhysicalDevice SetupVulkan_SelectPhysicalDevice() {
-  uint32_t gpu_count;
+  unsigned int gpu_count;
   VkResult err = vkEnumeratePhysicalDevices(g_Instance, &gpu_count, nullptr);
   check_vk_result(err);
   assert(gpu_count > 0);
@@ -113,7 +114,7 @@ static void SetupVulkan(Vector<const char *> instance_extensions) {
     create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 
     // Enumerate available extensions
-    uint32_t properties_count;
+    unsigned int properties_count;
     Vector<VkExtensionProperties> properties;
     vkEnumerateInstanceExtensionProperties(nullptr, &properties_count, nullptr);
     properties.resize(properties_count);
@@ -144,7 +145,7 @@ static void SetupVulkan(Vector<const char *> instance_extensions) {
 #endif
 
     // Create Vulkan Instance
-    create_info.enabledExtensionCount = (uint32_t)instance_extensions.Size;
+    create_info.enabledExtensionCount = (unsigned int)instance_extensions.Size;
     create_info.ppEnabledExtensionNames = instance_extensions.Data;
     err = vkCreateInstance(&create_info, g_Allocator, &g_Instance);
     check_vk_result(err);
@@ -174,18 +175,18 @@ static void SetupVulkan(Vector<const char *> instance_extensions) {
 
   // Select graphics queue family
   {
-    uint32_t count;
+    unsigned int count;
     vkGetPhysicalDeviceQueueFamilyProperties(g_PhysicalDevice, &count, nullptr);
     VkQueueFamilyProperties *queues = (VkQueueFamilyProperties *)malloc(
         sizeof(VkQueueFamilyProperties) * count);
     vkGetPhysicalDeviceQueueFamilyProperties(g_PhysicalDevice, &count, queues);
-    for (uint32_t i = 0; i < count; i++)
+    for (unsigned int i = 0; i < count; i++)
       if (queues[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
         g_QueueFamily = i;
         break;
       }
     free(queues);
-    assert(g_QueueFamily != (uint32_t)-1);
+    assert(g_QueueFamily != (unsigned int)-1);
   }
 
   // Create Logical Device (with 1 queue)
@@ -194,7 +195,7 @@ static void SetupVulkan(Vector<const char *> instance_extensions) {
     device_extensions.push_back("VK_KHR_swapchain");
 
     // Enumerate physical device extension
-    uint32_t properties_count;
+    unsigned int properties_count;
     Vector<VkExtensionProperties> properties;
     vkEnumerateDeviceExtensionProperties(g_PhysicalDevice, nullptr,
                                          &properties_count, nullptr);
@@ -218,7 +219,7 @@ static void SetupVulkan(Vector<const char *> instance_extensions) {
     create_info.queueCreateInfoCount =
         sizeof(queue_info) / sizeof(queue_info[0]);
     create_info.pQueueCreateInfos = queue_info;
-    create_info.enabledExtensionCount = (uint32_t)device_extensions.Size;
+    create_info.enabledExtensionCount = (unsigned int)device_extensions.Size;
     create_info.ppEnabledExtensionNames = device_extensions.Data;
     err =
         vkCreateDevice(g_PhysicalDevice, &create_info, g_Allocator, &g_Device);
@@ -238,7 +239,7 @@ static void SetupVulkan(Vector<const char *> instance_extensions) {
     pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
     pool_info.maxSets = 1;
-    pool_info.poolSizeCount = (uint32_t)ARRAYSIZE(pool_sizes);
+    pool_info.poolSizeCount = (unsigned int)ARRAYSIZE(pool_sizes);
     pool_info.pPoolSizes = pool_sizes;
     err = vkCreateDescriptorPool(g_Device, &pool_info, g_Allocator,
                                  &g_DescriptorPool);
@@ -246,9 +247,9 @@ static void SetupVulkan(Vector<const char *> instance_extensions) {
   }
 }
 
-// All the VulkanH_XXX structures/functions are optional helpers used
+// All the Vulkan_XXX structures/functions are optional helpers used
 // by the demo. Your real engine/app may not use them.
-static void SetupVulkanWindow(VulkanH_Window *wd, VkSurfaceKHR surface,
+static void SetupVulkanWindow(Vulkan_Window *wd, VkSurfaceKHR surface,
                               int width, int height) {
   wd->Surface = surface;
 
@@ -267,7 +268,7 @@ static void SetupVulkanWindow(VulkanH_Window *wd, VkSurfaceKHR surface,
       VK_FORMAT_B8G8R8_UNORM, VK_FORMAT_R8G8B8_UNORM};
   const VkColorSpaceKHR requestSurfaceColorSpace =
       VK_COLORSPACE_SRGB_NONLINEAR_KHR;
-  wd->SurfaceFormat = VulkanH_SelectSurfaceFormat(
+  wd->SurfaceFormat = Vulkan_SelectSurfaceFormat(
       g_PhysicalDevice, wd->Surface, requestSurfaceImageFormat,
       (size_t)ARRAYSIZE(requestSurfaceImageFormat), requestSurfaceColorSpace);
 
@@ -280,15 +281,15 @@ static void SetupVulkanWindow(VulkanH_Window *wd, VkSurfaceKHR surface,
   VkPresentModeKHR present_modes[] = {VK_PRESENT_MODE_FIFO_KHR};
 #endif
   wd->PresentMode =
-      VulkanH_SelectPresentMode(g_PhysicalDevice, wd->Surface,
-                                &present_modes[0], ARRAYSIZE(present_modes));
+      Vulkan_SelectPresentMode(g_PhysicalDevice, wd->Surface, &present_modes[0],
+                               ARRAYSIZE(present_modes));
   // printf("[vulkan] Selected PresentMode = %d\n", wd->PresentMode);
 
   // Create SwapChain, RenderPass, Framebuffer, etc.
   assert(g_MinImageCount >= 2);
-  VulkanH_CreateOrResizeWindow(g_Instance, g_PhysicalDevice, g_Device, wd,
-                               g_QueueFamily, g_Allocator, width, height,
-                               g_MinImageCount);
+  Vulkan_CreateOrResizeWindow(g_Instance, g_PhysicalDevice, g_Device, wd,
+                              g_QueueFamily, g_Allocator, width, height,
+                              g_MinImageCount);
 }
 
 static void CleanupVulkan() {
@@ -307,10 +308,10 @@ static void CleanupVulkan() {
 }
 
 static void CleanupVulkanWindow() {
-  VulkanH_DestroyWindow(g_Instance, g_Device, &g_MainWindowData, g_Allocator);
+  Vulkan_DestroyWindow(g_Instance, g_Device, &g_MainWindowData, g_Allocator);
 }
 
-static void FrameRender(VulkanH_Window *wd, DrawData *draw_data) {
+static void FrameRender(Vulkan_Window *wd, DrawData *draw_data) {
   VkResult err;
 
   VkSemaphore image_acquired_semaphore =
@@ -326,7 +327,7 @@ static void FrameRender(VulkanH_Window *wd, DrawData *draw_data) {
   }
   check_vk_result(err);
 
-  VulkanH_Frame *fd = &wd->Frames[wd->FrameIndex];
+  Vulkan_Frame *fd = &wd->Frames[wd->FrameIndex];
   {
     err = vkWaitForFences(
         g_Device, 1, &fd->Fence, VK_TRUE,
@@ -382,7 +383,7 @@ static void FrameRender(VulkanH_Window *wd, DrawData *draw_data) {
   }
 }
 
-static void FramePresent(VulkanH_Window *wd) {
+static void FramePresent(Vulkan_Window *wd) {
   if (g_SwapChainRebuild)
     return;
   VkSemaphore render_complete_semaphore =
@@ -432,7 +433,7 @@ int main(int, char **) {
   }
 
   Vector<const char *> extensions;
-  uint32_t extensions_count = 0;
+  unsigned int extensions_count = 0;
   SDL_Vulkan_GetInstanceExtensions(window, &extensions_count, nullptr);
   extensions.resize(extensions_count);
   SDL_Vulkan_GetInstanceExtensions(window, &extensions_count, extensions.Data);
@@ -449,7 +450,7 @@ int main(int, char **) {
   // Create Framebuffers
   int w, h;
   SDL_GetWindowSize(window, &w, &h);
-  VulkanH_Window *wd = &g_MainWindowData;
+  Vulkan_Window *wd = &g_MainWindowData;
   SetupVulkanWindow(wd, surface, w, h);
 
   // Setup Gui context
@@ -555,7 +556,7 @@ int main(int, char **) {
       SDL_GetWindowSize(window, &width, &height);
       if (width > 0 && height > 0) {
         Vulkan_SetMinImageCount(g_MinImageCount);
-        VulkanH_CreateOrResizeWindow(
+        Vulkan_CreateOrResizeWindow(
             g_Instance, g_PhysicalDevice, g_Device, &g_MainWindowData,
             g_QueueFamily, g_Allocator, width, height, g_MinImageCount);
         g_MainWindowData.FrameIndex = 0;

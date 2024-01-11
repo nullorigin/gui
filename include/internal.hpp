@@ -1323,7 +1323,7 @@ struct TextIndex {
 // changes to this structure.
 struct API DrawListSharedData {
   Vec2 TexUvWhitePixel; // UV of white pixel in the atlas
-  Font
+  Gui::Font
       *Font; // Current/default font (optional, for simplified AddText overload)
   float FontSize; // Current/default font size (optional, for simplified AddText
                   // overload)
@@ -3135,7 +3135,8 @@ struct Context {
   Style Style;
   int ConfigFlagsCurrFrame; // = g.IO.ConfigFlags at the time of NewFrame()
   int ConfigFlagsLastFrame;
-  Font *Font; // (Shortcut) == FontStack.empty() ? IO.Font : FontStack.back()
+  Gui::Font
+      *Font; // (Shortcut) == FontStack.empty() ? IO.Font : FontStack.back()
   float
       FontSize; // (Shortcut) == FontBaseSize * g.CurrentWindow->FontWindowScale
                 // == window->FontSize(). Text height for current window.
@@ -3296,7 +3297,7 @@ struct Context {
                                // inherited by Begin()
   Vector<StyleMod> StyleVarStack; // Stack for PushStyleVar()/PopStyleVar() -
                                   // inherited by Begin()
-  Vector<::Font *>
+  Vector<Gui::Font *>
       FontStack; // Stack for PushFont()/PopFont() - inherited by Begin()
   Vector<unsigned int>
       FocusScopeStack; // Stack for PushFocusScope()/PopFocusScope() - inherited
@@ -3535,7 +3536,7 @@ struct Context {
   // Widget state
   InputTextState InputTextState;
   InputTextDeactivatedState InputTextDeactivatedState;
-  struct Font InputTextPasswordFont;
+  struct Gui::Font InputTextPasswordFont;
   int TempInputId; // Temporary text input when CTRL+clicking on a slider, etc.
   int ColorEditOptions;    // Store user options for color edit widgets
   int ColorEditCurrentID;  // Set temporarily while inside of the parent-most
@@ -3657,7 +3658,7 @@ struct Context {
   int WantTextInputNextFrame;
   Vector<char> TempBuffer; // Temporary text buffer
 
-  Context(FontAtlas *shared_font_atlas) {
+  Context(Gui::FontAtlas *shared_font_atlas) {
     IO.Ctx = this;
     InputTextState.Ctx = this;
 
@@ -3666,7 +3667,7 @@ struct Context {
     FontAtlasOwnedByContext = shared_font_atlas ? false : true;
     Font = NULL;
     FontSize = FontBaseSize = 0.0f;
-    IO.Fonts = shared_font_atlas ? shared_font_atlas : NEW(FontAtlas)();
+    IO.Fonts = shared_font_atlas ? shared_font_atlas : NEW(Gui::FontAtlas)();
     Time = 0.0f;
     FrameCount = 0;
     FrameCountEnded = FrameCountPlatformEnded = FrameCountRendered = -1;
@@ -5809,7 +5810,7 @@ inline bool IsKeyPressedMap(Key key, bool repeat = true) {
 //-----------------------------------------------------------------------------
 // [SECTION] FontAtlas internal API
 //-----------------------------------------------------------------------------
-
+namespace Gui {
 // This structure is likely to evolve as we add support for incremental atlas
 // updates
 struct FontBuilderIO {
@@ -5838,7 +5839,7 @@ API void FontAtlasBuildMultiplyCalcLookupTable(unsigned char out_table[256],
 API void FontAtlasBuildMultiplyRectAlpha8(const unsigned char table[256],
                                           unsigned char *pixels, int x, int y,
                                           int w, int h, int stride);
-
+} // namespace Gui
 //-----------------------------------------------------------------------------
 // [SECTION] Test Engine specific hooks (test_engine)
 //-----------------------------------------------------------------------------

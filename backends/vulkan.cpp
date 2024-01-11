@@ -28,15 +28,15 @@
 // with vulkan.cpp/.h.
 //   You will use those if you want to use this rendering backend in your
 //   engine/app.
-// - Helper VulkanH_XXX functions and structures are only used by this
+// - Helper Vulkan_XXX functions and structures are only used by this
 // example (main.cpp) and by
 //   the backend itself (vulkan.cpp), but should PROBABLY NOT be used
 //   by your own engine/app code.
 // Read comments in vulkan.hpp.
 
-#include "../gui.hpp"
-#ifndef DISABLE
 #include "vulkan.hpp"
+#include "gui.hpp"
+#ifndef DISABLE
 #include <stdio.h>
 #ifndef MAX
 #define MAX(A, B) (((A) >= (B)) ? (A) : (B))
@@ -48,31 +48,30 @@
 #endif
 
 // Forward Declarations
-struct VulkanH_FrameRenderBuffers;
-struct VulkanH_WindowRenderBuffers;
+struct Vulkan_FrameRenderBuffers;
+struct Vulkan_WindowRenderBuffers;
 bool Vulkan_CreateDeviceObjects();
 void Vulkan_DestroyDeviceObjects();
-void VulkanH_DestroyFrame(VkDevice device, VulkanH_Frame *fd,
-                          const VkAllocationCallbacks *allocator);
-void VulkanH_DestroyFrameSemaphores(VkDevice device,
-                                    VulkanH_FrameSemaphores *fsd,
-                                    const VkAllocationCallbacks *allocator);
-void VulkanH_DestroyFrameRenderBuffers(VkDevice device,
-                                       VulkanH_FrameRenderBuffers *buffers,
+void Vulkan_DestroyFrame(VkDevice device, Vulkan_Frame *fd,
+                         const VkAllocationCallbacks *allocator);
+void Vulkan_DestroyFrameSemaphores(VkDevice device, Vulkan_FrameSemaphores *fsd,
+                                   const VkAllocationCallbacks *allocator);
+void Vulkan_DestroyFrameRenderBuffers(VkDevice device,
+                                      Vulkan_FrameRenderBuffers *buffers,
+                                      const VkAllocationCallbacks *allocator);
+void Vulkan_DestroyWindowRenderBuffers(VkDevice device,
+                                       Vulkan_WindowRenderBuffers *buffers,
                                        const VkAllocationCallbacks *allocator);
-void VulkanH_DestroyWindowRenderBuffers(VkDevice device,
-                                        VulkanH_WindowRenderBuffers *buffers,
-                                        const VkAllocationCallbacks *allocator);
-void VulkanH_DestroyAllViewportsRenderBuffers(
+void Vulkan_DestroyAllViewportsRenderBuffers(
     VkDevice device, const VkAllocationCallbacks *allocator);
-void VulkanH_CreateWindowSwapChain(VkPhysicalDevice physical_device,
-                                   VkDevice device, VulkanH_Window *wd,
-                                   const VkAllocationCallbacks *allocator,
-                                   int w, int h, uint32_t min_image_count);
-void VulkanH_CreateWindowCommandBuffers(VkPhysicalDevice physical_device,
-                                        VkDevice device, VulkanH_Window *wd,
-                                        uint32_t queue_family,
-                                        const VkAllocationCallbacks *allocator);
+void Vulkan_CreateWindowSwapChain(VkPhysicalDevice physical_device,
+                                  VkDevice device, Vulkan_Window *wd,
+                                  const VkAllocationCallbacks *allocator, int w,
+                                  int h, unsigned int min_image_count);
+void Vulkan_CreateWindowCommandBuffers(VkPhysicalDevice physical_device,
+                                       VkDevice device, Vulkan_Window *wd,
+                                       unsigned int queue_family,
+                                       const VkAllocationCallbacks *allocator);
 
 // Vulkan prototypes for use with custom loaders
 // (see description of VULKAN_NO_PROTOTYPES in vulkan.hpp
@@ -169,7 +168,7 @@ static PFN_vkCmdEndRenderingKHR VulkanFuncs_vkCmdEndRenderingKHR;
 
 // Reusable buffers used for rendering 1 current in-flight frame, for
 // Vulkan_RenderDrawData() [Please zero-clear before use!]
-struct VulkanH_FrameRenderBuffers {
+struct Vulkan_FrameRenderBuffers {
   VkDeviceMemory VertexBufferMemory;
   VkDeviceMemory IndexBufferMemory;
   VkDeviceSize VertexBufferSize;
@@ -178,12 +177,12 @@ struct VulkanH_FrameRenderBuffers {
   VkBuffer IndexBuffer;
 };
 
-// Each viewport will hold 1 VulkanH_WindowRenderBuffers
+// Each viewport will hold 1 Vulkan_WindowRenderBuffers
 // [Please zero-clear before use!]
-struct VulkanH_WindowRenderBuffers {
-  uint32_t Index;
-  uint32_t Count;
-  VulkanH_FrameRenderBuffers *FrameRenderBuffers;
+struct Vulkan_WindowRenderBuffers {
+  unsigned int Index;
+  unsigned int Count;
+  Vulkan_FrameRenderBuffers *FrameRenderBuffers;
 };
 
 // For multi-viewport support:
@@ -191,8 +190,8 @@ struct VulkanH_WindowRenderBuffers {
 // Viewport to easily retrieve our backend data.
 struct Vulkan_ViewportData {
   bool WindowOwned;
-  VulkanH_Window Window;                     // Used by secondary viewports only
-  VulkanH_WindowRenderBuffers RenderBuffers; // Used by all viewports
+  Vulkan_Window Window;                     // Used by secondary viewports only
+  Vulkan_WindowRenderBuffers RenderBuffers; // Used by all viewports
 
   Vulkan_ViewportData() {
     WindowOwned = false;
@@ -210,7 +209,7 @@ struct Vulkan_Data {
   VkDescriptorSetLayout DescriptorSetLayout;
   VkPipelineLayout PipelineLayout;
   VkPipeline Pipeline;
-  uint32_t Subpass;
+  unsigned int Subpass;
   VkShaderModule ShaderModuleVert;
   VkShaderModule ShaderModuleFrag;
 
@@ -224,7 +223,7 @@ struct Vulkan_Data {
   VkCommandBuffer FontCommandBuffer;
 
   // Render buffers for main window
-  VulkanH_WindowRenderBuffers MainWindowRenderBuffers;
+  Vulkan_WindowRenderBuffers MainWindowRenderBuffers;
 
   Vulkan_Data() {
     memset((void *)this, 0, sizeof(*this));
@@ -260,7 +259,7 @@ void main()
     gl_Position = vec4(aPos * pc.uScale + pc.uTranslate, 0, 1);
 }
 */
-static uint32_t __glsl_shader_vert_spv[] = {
+static unsigned int __glsl_shader_vert_spv[] = {
     0x07230203, 0x00010000, 0x00080001, 0x0000002e, 0x00000000, 0x00020011,
     0x00000001, 0x0006000b, 0x00000001, 0x4c534c47, 0x6474732e, 0x3035342e,
     0x00000000, 0x0003000e, 0x00000000, 0x00000001, 0x000a000f, 0x00000000,
@@ -328,7 +327,7 @@ void main()
     fColor = In.Color * texture(sTexture, In.UV.st);
 }
 */
-static uint32_t __glsl_shader_frag_spv[] = {
+static unsigned int __glsl_shader_frag_spv[] = {
     0x07230203, 0x00010000, 0x00080001, 0x0000001e, 0x00000000, 0x00020011,
     0x00000001, 0x0006000b, 0x00000001, 0x4c534c47, 0x6474732e, 0x3035342e,
     0x00000000, 0x0003000e, 0x00000000, 0x00000001, 0x0007000f, 0x00000004,
@@ -379,13 +378,13 @@ static Vulkan_Data *Vulkan_GetBackendData() {
              : nullptr;
 }
 
-static uint32_t Vulkan_MemoryType(VkMemoryPropertyFlags properties,
-                                  uint32_t type_bits) {
+static unsigned int Vulkan_MemoryType(VkMemoryPropertyFlags properties,
+                                      unsigned int type_bits) {
   Vulkan_Data *bd = Vulkan_GetBackendData();
   Vulkan_InitInfo *v = &bd->VulkanInitInfo;
   VkPhysicalDeviceMemoryProperties prop;
   vkGetPhysicalDeviceMemoryProperties(v->PhysicalDevice, &prop);
-  for (uint32_t i = 0; i < prop.memoryTypeCount; i++)
+  for (unsigned int i = 0; i < prop.memoryTypeCount; i++)
     if ((prop.memoryTypes[i].propertyFlags & properties) == properties &&
         type_bits & (1 << i))
       return i;
@@ -445,8 +444,8 @@ static void CreateOrResizeBuffer(VkBuffer &buffer,
 
 static void Vulkan_SetupRenderState(DrawData *draw_data, VkPipeline pipeline,
                                     VkCommandBuffer command_buffer,
-                                    VulkanH_FrameRenderBuffers *rb,
-                                    int fb_width, int fb_height) {
+                                    Vulkan_FrameRenderBuffers *rb, int fb_width,
+                                    int fb_height) {
   Vulkan_Data *bd = Vulkan_GetBackendData();
 
   // Bind pipeline:
@@ -519,18 +518,18 @@ void Vulkan_RenderDrawData(DrawData *draw_data, VkCommandBuffer command_buffer,
   Vulkan_ViewportData *viewport_renderer_data =
       (Vulkan_ViewportData *)draw_data->OwnerViewport->RendererUserData;
   assert(viewport_renderer_data != nullptr);
-  VulkanH_WindowRenderBuffers *wrb = &viewport_renderer_data->RenderBuffers;
+  Vulkan_WindowRenderBuffers *wrb = &viewport_renderer_data->RenderBuffers;
   if (wrb->FrameRenderBuffers == nullptr) {
     wrb->Index = 0;
     wrb->Count = v->ImageCount;
-    wrb->FrameRenderBuffers = (VulkanH_FrameRenderBuffers *)ALLOC(
-        sizeof(VulkanH_FrameRenderBuffers) * wrb->Count);
+    wrb->FrameRenderBuffers = (Vulkan_FrameRenderBuffers *)ALLOC(
+        sizeof(Vulkan_FrameRenderBuffers) * wrb->Count);
     memset(wrb->FrameRenderBuffers, 0,
-           sizeof(VulkanH_FrameRenderBuffers) * wrb->Count);
+           sizeof(Vulkan_FrameRenderBuffers) * wrb->Count);
   }
   assert(wrb->Count == v->ImageCount);
   wrb->Index = (wrb->Index + 1) % wrb->Count;
-  VulkanH_FrameRenderBuffers *rb = &wrb->FrameRenderBuffers[wrb->Index];
+  Vulkan_FrameRenderBuffers *rb = &wrb->FrameRenderBuffers[wrb->Index];
 
   if (draw_data->TotalVtxCount > 0) {
     // Create or resize the vertex/index buffers
@@ -633,8 +632,8 @@ void Vulkan_RenderDrawData(DrawData *draw_data, VkCommandBuffer command_buffer,
         VkRect2D scissor;
         scissor.offset.x = (int32_t)(clip_min.x);
         scissor.offset.y = (int32_t)(clip_min.y);
-        scissor.extent.width = (uint32_t)(clip_max.x - clip_min.x);
-        scissor.extent.height = (uint32_t)(clip_max.y - clip_min.y);
+        scissor.extent.width = (unsigned int)(clip_max.x - clip_min.x);
+        scissor.extent.height = (unsigned int)(clip_max.y - clip_min.y);
         vkCmdSetScissor(command_buffer, 0, 1, &scissor);
 
         // Bind DescriptorSet with font or user texture
@@ -670,7 +669,8 @@ void Vulkan_RenderDrawData(DrawData *draw_data, VkCommandBuffer command_buffer,
   // not sure this is possible. We perform a call to vkCmdSetScissor() to set
   // back a full viewport which is likely to fix things for 99% users but
   // technically this is not perfect. (See github #4644)
-  VkRect2D scissor = {{0, 0}, {(uint32_t)fb_width, (uint32_t)fb_height}};
+  VkRect2D scissor = {{0, 0},
+                      {(unsigned int)fb_width, (unsigned int)fb_height}};
   vkCmdSetScissor(command_buffer, 0, 1, &scissor);
 }
 
@@ -914,7 +914,7 @@ static void Vulkan_CreateShaderModules(VkDevice device,
     VkShaderModuleCreateInfo vert_info = {};
     vert_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     vert_info.codeSize = sizeof(__glsl_shader_vert_spv);
-    vert_info.pCode = (uint32_t *)__glsl_shader_vert_spv;
+    vert_info.pCode = (unsigned int *)__glsl_shader_vert_spv;
     VkResult err = vkCreateShaderModule(device, &vert_info, allocator,
                                         &bd->ShaderModuleVert);
     check_vk_result(err);
@@ -923,7 +923,7 @@ static void Vulkan_CreateShaderModules(VkDevice device,
     VkShaderModuleCreateInfo frag_info = {};
     frag_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     frag_info.codeSize = sizeof(__glsl_shader_frag_spv);
-    frag_info.pCode = (uint32_t *)__glsl_shader_frag_spv;
+    frag_info.pCode = (unsigned int *)__glsl_shader_frag_spv;
     VkResult err = vkCreateShaderModule(device, &frag_info, allocator,
                                         &bd->ShaderModuleFrag);
     check_vk_result(err);
@@ -935,7 +935,7 @@ static void Vulkan_CreatePipeline(VkDevice device,
                                   VkPipelineCache pipelineCache,
                                   VkRenderPass renderPass,
                                   VkSampleCountFlagBits MSAASamples,
-                                  VkPipeline *pipeline, uint32_t subpass) {
+                                  VkPipeline *pipeline, unsigned int subpass) {
   Vulkan_Data *bd = Vulkan_GetBackendData();
   Vulkan_CreateShaderModules(device, allocator);
 
@@ -1020,7 +1020,7 @@ static void Vulkan_CreatePipeline(VkDevice device,
                                       VK_DYNAMIC_STATE_SCISSOR};
   VkPipelineDynamicStateCreateInfo dynamic_state = {};
   dynamic_state.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-  dynamic_state.dynamicStateCount = (uint32_t)ARRAYSIZE(dynamic_states);
+  dynamic_state.dynamicStateCount = (unsigned int)ARRAYSIZE(dynamic_states);
   dynamic_state.pDynamicStates = dynamic_states;
 
   VkGraphicsPipelineCreateInfo info = {};
@@ -1125,7 +1125,7 @@ bool Vulkan_CreateDeviceObjects() {
 void Vulkan_DestroyDeviceObjects() {
   Vulkan_Data *bd = Vulkan_GetBackendData();
   Vulkan_InitInfo *v = &bd->VulkanInitInfo;
-  VulkanH_DestroyAllViewportsRenderBuffers(v->Device, v->Allocator);
+  Vulkan_DestroyAllViewportsRenderBuffers(v->Device, v->Allocator);
   Vulkan_DestroyFontsTexture();
 
   if (bd->FontCommandBuffer) {
@@ -1298,7 +1298,7 @@ void Vulkan_NewFrame() {
     Vulkan_CreateFontsTexture();
 }
 
-void Vulkan_SetMinImageCount(uint32_t min_image_count) {
+void Vulkan_SetMinImageCount(unsigned int min_image_count) {
   Vulkan_Data *bd = Vulkan_GetBackendData();
   assert(min_image_count >= 2);
   if (bd->VulkanInitInfo.MinImageCount == min_image_count)
@@ -1308,7 +1308,7 @@ void Vulkan_SetMinImageCount(uint32_t min_image_count) {
   Vulkan_InitInfo *v = &bd->VulkanInitInfo;
   VkResult err = vkDeviceWaitIdle(v->Device);
   check_vk_result(err);
-  VulkanH_DestroyAllViewportsRenderBuffers(v->Device, v->Allocator);
+  Vulkan_DestroyAllViewportsRenderBuffers(v->Device, v->Allocator);
 
   bd->VulkanInitInfo.MinImageCount = min_image_count;
 }
@@ -1372,11 +1372,11 @@ void Vulkan_RemoveTexture(VkDescriptorSet descriptor_set) {
 // Your engine/app will likely _already_ have code to setup all that stuff (swap
 // chain, render pass, frame buffers, etc.). You may read this code to learn
 // about Vulkan, but it is recommended you use you own custom tailored code to
-// do equivalent work. (The VulkanH_XXX functions do not interact with
+// do equivalent work. (The Vulkan_XXX functions do not interact with
 // any of the state used by the regular Vulkan_XXX functions)
 //-------------------------------------------------------------------------
 
-VkSurfaceFormatKHR VulkanH_SelectSurfaceFormat(
+VkSurfaceFormatKHR Vulkan_SelectSurfaceFormat(
     VkPhysicalDevice physical_device, VkSurfaceKHR surface,
     const VkFormat *request_formats, int request_formats_count,
     VkColorSpaceKHR request_color_space) {
@@ -1393,7 +1393,7 @@ VkSurfaceFormatKHR VulkanH_SelectSurfaceFormat(
   // were introduced with Vulkan Spec v1.0.40, hence we must make sure that a
   // format with the mostly available color space,
   // VK_COLOR_SPACE_SRGB_NONLINEAR_KHR, is found and used.
-  uint32_t avail_count;
+  unsigned int avail_count;
   vkGetPhysicalDeviceSurfaceFormatsKHR(physical_device, surface, &avail_count,
                                        nullptr);
   Vector<VkSurfaceFormatKHR> avail_format;
@@ -1415,8 +1415,9 @@ VkSurfaceFormatKHR VulkanH_SelectSurfaceFormat(
     }
   } else {
     // Request several formats, the first found will be used
-    for (int request_i = 0; request_i < request_formats_count; request_i++)
-      for (uint32_t avail_i = 0; avail_i < avail_count; avail_i++)
+    for (unsigned int request_i = 0; request_i < request_formats_count;
+         request_i++)
+      for (unsigned int avail_i = 0; avail_i < avail_count; avail_i++)
         if (avail_format[avail_i].format == request_formats[request_i] &&
             avail_format[avail_i].colorSpace == request_color_space)
           return avail_format[avail_i];
@@ -1427,9 +1428,10 @@ VkSurfaceFormatKHR VulkanH_SelectSurfaceFormat(
   }
 }
 
-VkPresentModeKHR VulkanH_SelectPresentMode(
-    VkPhysicalDevice physical_device, VkSurfaceKHR surface,
-    const VkPresentModeKHR *request_modes, int request_modes_count) {
+::VkPresentModeKHR
+Vulkan_SelectPresentMode(VkPhysicalDevice physical_device, VkSurfaceKHR surface,
+                         const VkPresentModeKHR *request_modes,
+                         int request_modes_count) {
   assert(g_FunctionsLoaded &&
          "Need to call Vulkan_LoadFunctions() if "
          "VULKAN_NO_PROTOTYPES or VK_NO_PROTOTYPES are set!");
@@ -1438,37 +1440,38 @@ VkPresentModeKHR VulkanH_SelectPresentMode(
 
   // Request a certain mode and confirm that it is available. If not use
   // VK_PRESENT_MODE_FIFO_KHR which is mandatory
-  uint32_t avail_count = 0;
+  unsigned int avail_count = 0;
   vkGetPhysicalDeviceSurfacePresentModesKHR(physical_device, surface,
                                             &avail_count, nullptr);
   Vector<VkPresentModeKHR> avail_modes;
   avail_modes.resize((int)avail_count);
   vkGetPhysicalDeviceSurfacePresentModesKHR(physical_device, surface,
                                             &avail_count, avail_modes.Data);
-  // for (uint32_t avail_i = 0; avail_i < avail_count; avail_i++)
+  // for (unsigned int avail_i = 0; avail_i < avail_count; avail_i++)
   //     printf("[vulkan] avail_modes[%d] = %d\n", avail_i,
   //     avail_modes[avail_i]);
 
   for (int request_i = 0; request_i < request_modes_count; request_i++)
-    for (uint32_t avail_i = 0; avail_i < avail_count; avail_i++)
+    for (unsigned int avail_i = 0; avail_i < avail_count; avail_i++)
       if (request_modes[request_i] == avail_modes[avail_i])
         return request_modes[request_i];
 
   return VK_PRESENT_MODE_FIFO_KHR; // Always available
 }
 
-void VulkanH_CreateWindowCommandBuffers(
-    VkPhysicalDevice physical_device, VkDevice device, VulkanH_Window *wd,
-    uint32_t queue_family, const VkAllocationCallbacks *allocator) {
+void Vulkan_CreateWindowCommandBuffers(VkPhysicalDevice physical_device,
+                                       VkDevice device, Vulkan_Window *wd,
+                                       unsigned int queue_family,
+                                       const VkAllocationCallbacks *allocator) {
   assert(physical_device != VK_NULL_HANDLE && device != VK_NULL_HANDLE);
   (void)physical_device;
   (void)allocator;
 
   // Create Command Buffers
   VkResult err;
-  for (uint32_t i = 0; i < wd->ImageCount; i++) {
-    VulkanH_Frame *fd = &wd->Frames[i];
-    VulkanH_FrameSemaphores *fsd = &wd->FrameSemaphores[i];
+  for (unsigned int i = 0; i < wd->ImageCount; i++) {
+    Vulkan_Frame *fd = &wd->Frames[i];
+    Vulkan_FrameSemaphores *fsd = &wd->FrameSemaphores[i];
     {
       VkCommandPoolCreateInfo info = {};
       info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -1506,7 +1509,7 @@ void VulkanH_CreateWindowCommandBuffers(
   }
 }
 
-int VulkanH_GetMinImageCountFromPresentMode(VkPresentModeKHR present_mode) {
+int Vulkan_GetMinImageCountFromPresentMode(VkPresentModeKHR present_mode) {
   if (present_mode == VK_PRESENT_MODE_MAILBOX_KHR)
     return 3;
   if (present_mode == VK_PRESENT_MODE_FIFO_KHR ||
@@ -1519,21 +1522,21 @@ int VulkanH_GetMinImageCountFromPresentMode(VkPresentModeKHR present_mode) {
 }
 
 // Also destroy old swap chain and in-flight frames data, if any.
-void VulkanH_CreateWindowSwapChain(VkPhysicalDevice physical_device,
-                                   VkDevice device, VulkanH_Window *wd,
-                                   const VkAllocationCallbacks *allocator,
-                                   int w, int h, uint32_t min_image_count) {
+void Vulkan_CreateWindowSwapChain(VkPhysicalDevice physical_device,
+                                  VkDevice device, Vulkan_Window *wd,
+                                  const VkAllocationCallbacks *allocator, int w,
+                                  int h, unsigned int min_image_count) {
   VkResult err;
   VkSwapchainKHR old_swapchain = wd->Swapchain;
   wd->Swapchain = VK_NULL_HANDLE;
   err = vkDeviceWaitIdle(device);
   check_vk_result(err);
 
-  // We don't use VulkanH_DestroyWindow() because we want to preserve
+  // We don't use Vulkan_DestroyWindow() because we want to preserve
   // the old swapchain to create the new one. Destroy old Framebuffer
-  for (uint32_t i = 0; i < wd->ImageCount; i++) {
-    VulkanH_DestroyFrame(device, &wd->Frames[i], allocator);
-    VulkanH_DestroyFrameSemaphores(device, &wd->FrameSemaphores[i], allocator);
+  for (unsigned int i = 0; i < wd->ImageCount; i++) {
+    Vulkan_DestroyFrame(device, &wd->Frames[i], allocator);
+    Vulkan_DestroyFrameSemaphores(device, &wd->FrameSemaphores[i], allocator);
   }
   FREE(wd->Frames);
   FREE(wd->FrameSemaphores);
@@ -1548,7 +1551,7 @@ void VulkanH_CreateWindowSwapChain(VkPhysicalDevice physical_device,
   // If min image count was not specified, request different count of images
   // dependent on selected present mode
   if (min_image_count == 0)
-    min_image_count = VulkanH_GetMinImageCountFromPresentMode(wd->PresentMode);
+    min_image_count = Vulkan_GetMinImageCountFromPresentMode(wd->PresentMode);
 
   // Create Swapchain
   {
@@ -1597,13 +1600,13 @@ void VulkanH_CreateWindowSwapChain(VkPhysicalDevice physical_device,
     check_vk_result(err);
 
     assert(wd->Frames == nullptr);
-    wd->Frames = (VulkanH_Frame *)ALLOC(sizeof(VulkanH_Frame) * wd->ImageCount);
-    wd->FrameSemaphores = (VulkanH_FrameSemaphores *)ALLOC(
-        sizeof(VulkanH_FrameSemaphores) * wd->ImageCount);
+    wd->Frames = (Vulkan_Frame *)ALLOC(sizeof(Vulkan_Frame) * wd->ImageCount);
+    wd->FrameSemaphores = (Vulkan_FrameSemaphores *)ALLOC(
+        sizeof(Vulkan_FrameSemaphores) * wd->ImageCount);
     memset(wd->Frames, 0, sizeof(wd->Frames[0]) * wd->ImageCount);
     memset(wd->FrameSemaphores, 0,
            sizeof(wd->FrameSemaphores[0]) * wd->ImageCount);
-    for (uint32_t i = 0; i < wd->ImageCount; i++)
+    for (unsigned int i = 0; i < wd->ImageCount; i++)
       wd->Frames[i].Backbuffer = backbuffers[i];
   }
   if (old_swapchain)
@@ -1666,8 +1669,8 @@ void VulkanH_CreateWindowSwapChain(VkPhysicalDevice physical_device,
     VkImageSubresourceRange image_range = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0,
                                            1};
     info.subresourceRange = image_range;
-    for (uint32_t i = 0; i < wd->ImageCount; i++) {
-      VulkanH_Frame *fd = &wd->Frames[i];
+    for (unsigned int i = 0; i < wd->ImageCount; i++) {
+      Vulkan_Frame *fd = &wd->Frames[i];
       info.image = fd->Backbuffer;
       err = vkCreateImageView(device, &info, allocator, &fd->BackbufferView);
       check_vk_result(err);
@@ -1685,8 +1688,8 @@ void VulkanH_CreateWindowSwapChain(VkPhysicalDevice physical_device,
     info.width = wd->Width;
     info.height = wd->Height;
     info.layers = 1;
-    for (uint32_t i = 0; i < wd->ImageCount; i++) {
-      VulkanH_Frame *fd = &wd->Frames[i];
+    for (unsigned int i = 0; i < wd->ImageCount; i++) {
+      Vulkan_Frame *fd = &wd->Frames[i];
       attachment[0] = fd->BackbufferView;
       err = vkCreateFramebuffer(device, &info, allocator, &fd->Framebuffer);
       check_vk_result(err);
@@ -1695,37 +1698,37 @@ void VulkanH_CreateWindowSwapChain(VkPhysicalDevice physical_device,
 }
 
 // Create or resize window
-void VulkanH_CreateOrResizeWindow(VkInstance instance,
-                                  VkPhysicalDevice physical_device,
-                                  VkDevice device, VulkanH_Window *wd,
-                                  uint32_t queue_family,
-                                  const VkAllocationCallbacks *allocator,
-                                  int width, int height,
-                                  uint32_t min_image_count) {
+void Vulkan_CreateOrResizeWindow(VkInstance instance,
+                                 VkPhysicalDevice physical_device,
+                                 VkDevice device, Vulkan_Window *wd,
+                                 unsigned int queue_family,
+                                 const VkAllocationCallbacks *allocator,
+                                 int width, int height,
+                                 unsigned int min_image_count) {
   assert(g_FunctionsLoaded &&
          "Need to call Vulkan_LoadFunctions() if "
          "VULKAN_NO_PROTOTYPES or VK_NO_PROTOTYPES are set!");
   (void)instance;
-  VulkanH_CreateWindowSwapChain(physical_device, device, wd, allocator, width,
-                                height, min_image_count);
+  Vulkan_CreateWindowSwapChain(physical_device, device, wd, allocator, width,
+                               height, min_image_count);
   // Vulkan_CreatePipeline(device, allocator, VK_NULL_HANDLE,
   // wd->RenderPass, VK_SAMPLE_COUNT_1_BIT, &wd->Pipeline,
   // g_VulkanInitInfo.Subpass);
-  VulkanH_CreateWindowCommandBuffers(physical_device, device, wd, queue_family,
-                                     allocator);
+  Vulkan_CreateWindowCommandBuffers(physical_device, device, wd, queue_family,
+                                    allocator);
 }
 
-void VulkanH_DestroyWindow(VkInstance instance, VkDevice device,
-                           VulkanH_Window *wd,
-                           const VkAllocationCallbacks *allocator) {
+void Vulkan_DestroyWindow(VkInstance instance, VkDevice device,
+                          Vulkan_Window *wd,
+                          const VkAllocationCallbacks *allocator) {
   vkDeviceWaitIdle(
       device); // FIXME: We could wait on the Queue if we had the queue in wd->
-               // (otherwise VulkanH functions can't use globals)
+               // (otherwise Vulkan functions can't use globals)
   // vkQueueWaitIdle(bd->Queue);
 
-  for (uint32_t i = 0; i < wd->ImageCount; i++) {
-    VulkanH_DestroyFrame(device, &wd->Frames[i], allocator);
-    VulkanH_DestroyFrameSemaphores(device, &wd->FrameSemaphores[i], allocator);
+  for (unsigned int i = 0; i < wd->ImageCount; i++) {
+    Vulkan_DestroyFrame(device, &wd->Frames[i], allocator);
+    Vulkan_DestroyFrameSemaphores(device, &wd->FrameSemaphores[i], allocator);
   }
   FREE(wd->Frames);
   FREE(wd->FrameSemaphores);
@@ -1736,11 +1739,11 @@ void VulkanH_DestroyWindow(VkInstance instance, VkDevice device,
   vkDestroySwapchainKHR(device, wd->Swapchain, allocator);
   vkDestroySurfaceKHR(instance, wd->Surface, allocator);
 
-  *wd = VulkanH_Window();
+  *wd = Vulkan_Window();
 }
 
-void VulkanH_DestroyFrame(VkDevice device, VulkanH_Frame *fd,
-                          const VkAllocationCallbacks *allocator) {
+void Vulkan_DestroyFrame(VkDevice device, Vulkan_Frame *fd,
+                         const VkAllocationCallbacks *allocator) {
   vkDestroyFence(device, fd->Fence, allocator);
   vkFreeCommandBuffers(device, fd->CommandPool, 1, &fd->CommandBuffer);
   vkDestroyCommandPool(device, fd->CommandPool, allocator);
@@ -1752,17 +1755,16 @@ void VulkanH_DestroyFrame(VkDevice device, VulkanH_Frame *fd,
   vkDestroyFramebuffer(device, fd->Framebuffer, allocator);
 }
 
-void VulkanH_DestroyFrameSemaphores(VkDevice device,
-                                    VulkanH_FrameSemaphores *fsd,
-                                    const VkAllocationCallbacks *allocator) {
+void Vulkan_DestroyFrameSemaphores(VkDevice device, Vulkan_FrameSemaphores *fsd,
+                                   const VkAllocationCallbacks *allocator) {
   vkDestroySemaphore(device, fsd->ImageAcquiredSemaphore, allocator);
   vkDestroySemaphore(device, fsd->RenderCompleteSemaphore, allocator);
   fsd->ImageAcquiredSemaphore = fsd->RenderCompleteSemaphore = VK_NULL_HANDLE;
 }
 
-void VulkanH_DestroyFrameRenderBuffers(VkDevice device,
-                                       VulkanH_FrameRenderBuffers *buffers,
-                                       const VkAllocationCallbacks *allocator) {
+void Vulkan_DestroyFrameRenderBuffers(VkDevice device,
+                                      Vulkan_FrameRenderBuffers *buffers,
+                                      const VkAllocationCallbacks *allocator) {
   if (buffers->VertexBuffer) {
     vkDestroyBuffer(device, buffers->VertexBuffer, allocator);
     buffers->VertexBuffer = VK_NULL_HANDLE;
@@ -1783,25 +1785,25 @@ void VulkanH_DestroyFrameRenderBuffers(VkDevice device,
   buffers->IndexBufferSize = 0;
 }
 
-void VulkanH_DestroyWindowRenderBuffers(
-    VkDevice device, VulkanH_WindowRenderBuffers *buffers,
-    const VkAllocationCallbacks *allocator) {
-  for (uint32_t n = 0; n < buffers->Count; n++)
-    VulkanH_DestroyFrameRenderBuffers(device, &buffers->FrameRenderBuffers[n],
-                                      allocator);
+void Vulkan_DestroyWindowRenderBuffers(VkDevice device,
+                                       Vulkan_WindowRenderBuffers *buffers,
+                                       const VkAllocationCallbacks *allocator) {
+  for (unsigned int n = 0; n < buffers->Count; n++)
+    Vulkan_DestroyFrameRenderBuffers(device, &buffers->FrameRenderBuffers[n],
+                                     allocator);
   FREE(buffers->FrameRenderBuffers);
   buffers->FrameRenderBuffers = nullptr;
   buffers->Index = 0;
   buffers->Count = 0;
 }
 
-void VulkanH_DestroyAllViewportsRenderBuffers(
+void Vulkan_DestroyAllViewportsRenderBuffers(
     VkDevice device, const VkAllocationCallbacks *allocator) {
   PlatformIO &platform_io = Gui::GetPlatformIO();
   for (int n = 0; n < platform_io.Viewports.Size; n++)
     if (Vulkan_ViewportData *vd =
             (Vulkan_ViewportData *)platform_io.Viewports[n]->RendererUserData)
-      VulkanH_DestroyWindowRenderBuffers(device, &vd->RenderBuffers, allocator);
+      Vulkan_DestroyWindowRenderBuffers(device, &vd->RenderBuffers, allocator);
 }
 
 //--------------------------------------------------------------------------------------------------------
@@ -1816,7 +1818,7 @@ static void Vulkan_CreateWindow(Viewport *viewport) {
   Vulkan_Data *bd = Vulkan_GetBackendData();
   Vulkan_ViewportData *vd = NEW(Vulkan_ViewportData)();
   viewport->RendererUserData = vd;
-  VulkanH_Window *wd = &vd->Window;
+  Vulkan_Window *wd = &vd->Window;
   Vulkan_InitInfo *v = &bd->VulkanInitInfo;
 
   // Create surface
@@ -1849,7 +1851,7 @@ static void Vulkan_CreateWindow(Viewport *viewport) {
   };
   const VkColorSpaceKHR requestSurfaceColorSpace =
       VK_COLORSPACE_SRGB_NONLINEAR_KHR;
-  wd->SurfaceFormat = VulkanH_SelectSurfaceFormat(
+  wd->SurfaceFormat = Vulkan_SelectSurfaceFormat(
       v->PhysicalDevice, wd->Surface, requestSurfaceImageFormat,
       (size_t)ARRAYSIZE(requestSurfaceImageFormat), requestSurfaceColorSpace);
 
@@ -1861,8 +1863,8 @@ static void Vulkan_CreateWindow(Viewport *viewport) {
                                       VK_PRESENT_MODE_IMMEDIATE_KHR,
                                       VK_PRESENT_MODE_FIFO_KHR};
   wd->PresentMode =
-      VulkanH_SelectPresentMode(v->PhysicalDevice, wd->Surface,
-                                &present_modes[0], ARRAYSIZE(present_modes));
+      Vulkan_SelectPresentMode(v->PhysicalDevice, wd->Surface,
+                               &present_modes[0], ARRAYSIZE(present_modes));
   // printf("[vulkan] Secondary window selected PresentMode = %d\n",
   // wd->PresentMode);
 
@@ -1870,10 +1872,10 @@ static void Vulkan_CreateWindow(Viewport *viewport) {
   wd->ClearEnable =
       (viewport->Flags & ViewportFlags_NoRendererClear) ? false : true;
   wd->UseDynamicRendering = v->UseDynamicRendering;
-  VulkanH_CreateOrResizeWindow(v->Instance, v->PhysicalDevice, v->Device, wd,
-                               v->QueueFamily, v->Allocator,
-                               (int)viewport->Size.x, (int)viewport->Size.y,
-                               v->MinImageCount);
+  Vulkan_CreateOrResizeWindow(v->Instance, v->PhysicalDevice, v->Device, wd,
+                              v->QueueFamily, v->Allocator,
+                              (int)viewport->Size.x, (int)viewport->Size.y,
+                              v->MinImageCount);
   vd->WindowOwned = true;
 }
 
@@ -1885,9 +1887,9 @@ static void Vulkan_DestroyWindow(Viewport *viewport) {
           (Vulkan_ViewportData *)viewport->RendererUserData) {
     Vulkan_InitInfo *v = &bd->VulkanInitInfo;
     if (vd->WindowOwned)
-      VulkanH_DestroyWindow(v->Instance, v->Device, &vd->Window, v->Allocator);
-    VulkanH_DestroyWindowRenderBuffers(v->Device, &vd->RenderBuffers,
-                                       v->Allocator);
+      Vulkan_DestroyWindow(v->Instance, v->Device, &vd->Window, v->Allocator);
+    Vulkan_DestroyWindowRenderBuffers(v->Device, &vd->RenderBuffers,
+                                      v->Allocator);
     DELETE(vd);
   }
   viewport->RendererUserData = nullptr;
@@ -1902,20 +1904,20 @@ static void Vulkan_SetWindowSize(Viewport *viewport, Vec2 size) {
   Vulkan_InitInfo *v = &bd->VulkanInitInfo;
   vd->Window.ClearEnable =
       (viewport->Flags & ViewportFlags_NoRendererClear) ? false : true;
-  VulkanH_CreateOrResizeWindow(v->Instance, v->PhysicalDevice, v->Device,
-                               &vd->Window, v->QueueFamily, v->Allocator,
-                               (int)size.x, (int)size.y, v->MinImageCount);
+  Vulkan_CreateOrResizeWindow(v->Instance, v->PhysicalDevice, v->Device,
+                              &vd->Window, v->QueueFamily, v->Allocator,
+                              (int)size.x, (int)size.y, v->MinImageCount);
 }
 
 static void Vulkan_RenderWindow(Viewport *viewport, void *) {
   Vulkan_Data *bd = Vulkan_GetBackendData();
   Vulkan_ViewportData *vd = (Vulkan_ViewportData *)viewport->RendererUserData;
-  VulkanH_Window *wd = &vd->Window;
+  Vulkan_Window *wd = &vd->Window;
   Vulkan_InitInfo *v = &bd->VulkanInitInfo;
   VkResult err;
 
-  VulkanH_Frame *fd = &wd->Frames[wd->FrameIndex];
-  VulkanH_FrameSemaphores *fsd = &wd->FrameSemaphores[wd->SemaphoreIndex];
+  Vulkan_Frame *fd = &wd->Frames[wd->FrameIndex];
+  Vulkan_FrameSemaphores *fsd = &wd->FrameSemaphores[wd->SemaphoreIndex];
   {
     {
       err = vkAcquireNextImageKHR(v->Device, wd->Swapchain, UINT64_MAX,
@@ -2051,13 +2053,13 @@ static void Vulkan_RenderWindow(Viewport *viewport, void *) {
 static void Vulkan_SwapBuffers(Viewport *viewport, void *) {
   Vulkan_Data *bd = Vulkan_GetBackendData();
   Vulkan_ViewportData *vd = (Vulkan_ViewportData *)viewport->RendererUserData;
-  VulkanH_Window *wd = &vd->Window;
+  Vulkan_Window *wd = &vd->Window;
   Vulkan_InitInfo *v = &bd->VulkanInitInfo;
 
   VkResult err;
-  uint32_t present_index = wd->FrameIndex;
+  unsigned int present_index = wd->FrameIndex;
 
-  VulkanH_FrameSemaphores *fsd = &wd->FrameSemaphores[wd->SemaphoreIndex];
+  Vulkan_FrameSemaphores *fsd = &wd->FrameSemaphores[wd->SemaphoreIndex];
   VkPresentInfoKHR info = {};
   info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
   info.waitSemaphoreCount = 1;
@@ -2067,10 +2069,10 @@ static void Vulkan_SwapBuffers(Viewport *viewport, void *) {
   info.pImageIndices = &present_index;
   err = vkQueuePresentKHR(v->Queue, &info);
   if (err == VK_ERROR_OUT_OF_DATE_KHR || err == VK_SUBOPTIMAL_KHR)
-    VulkanH_CreateOrResizeWindow(v->Instance, v->PhysicalDevice, v->Device,
-                                 &vd->Window, v->QueueFamily, v->Allocator,
-                                 (int)viewport->Size.x, (int)viewport->Size.y,
-                                 v->MinImageCount);
+    Vulkan_CreateOrResizeWindow(v->Instance, v->PhysicalDevice, v->Device,
+                                &vd->Window, v->QueueFamily, v->Allocator,
+                                (int)viewport->Size.x, (int)viewport->Size.y,
+                                v->MinImageCount);
   else
     check_vk_result(err);
 

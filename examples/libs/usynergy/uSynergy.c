@@ -93,7 +93,7 @@ static void sAddUInt16(uSynergyContext *context, uint16_t value) {
 /**
 @brief Add uint32 to reply packet
 **/
-static void sAddUInt32(uSynergyContext *context, uint32_t value) {
+static void sAddUInt32(uSynergyContext *context, unsigned int value) {
   uint8_t *reply = context->m_replyCur;
   *reply++ = (uint8_t)(value >> 24);
   *reply++ = (uint8_t)(value >> 16);
@@ -108,9 +108,9 @@ static void sAddUInt32(uSynergyContext *context, uint32_t value) {
 static uSynergyBool sSendReply(uSynergyContext *context) {
   // Set header size
   uint8_t *reply_buf = context->m_replyBuffer;
-  uint32_t reply_len =
-      (uint32_t)(context->m_replyCur - reply_buf); /* Total size of reply */
-  uint32_t body_len = reply_len - 4;               /* Size of body */
+  unsigned int reply_len =
+      (unsigned int)(context->m_replyCur - reply_buf); /* Total size of reply */
+  unsigned int body_len = reply_len - 4;               /* Size of body */
   uSynergyBool ret;
   reply_buf[0] = (uint8_t)(body_len >> 24);
   reply_buf[1] = (uint8_t)(body_len >> 16);
@@ -187,7 +187,7 @@ static void sProcessMessage(uSynergyContext *context, const uint8_t *message) {
     sAddString(context, "Synergy");
     sAddUInt16(context, USYNERGY_PROTOCOL_MAJOR);
     sAddUInt16(context, USYNERGY_PROTOCOL_MINOR);
-    sAddUInt32(context, (uint32_t)strlen(context->m_clientName));
+    sAddUInt32(context, (unsigned int)strlen(context->m_clientName));
     sAddString(context, context->m_clientName);
     if (!sSendReply(context)) {
       // Send reply failed, let's try to reconnect
@@ -339,21 +339,22 @@ static void sProcessMessage(uSynergyContext *context, const uint8_t *message) {
     //		4 chars: 	The identifier ("DCLP")
     //		1 uint8: 	The clipboard index
     //		1 uint32:	The sequence number. It's zero, because this
-    //message is always coming from the server? 		1 uint32:	The total size
-    //of the remaining 'string' (as per the Synergy %s string format (which is 1
-    //uint32 for size followed by a char buffer (not necessarily null
-    //terminated)). 		1 uint32:	The number of formats present in the message
+    // message is always coming from the server? 		1 uint32:
+    // The total size of the remaining 'string' (as per the Synergy %s string
+    // format (which is 1 uint32 for size followed by a char buffer (not
+    // necessarily null terminated)). 		1 uint32:	The number of
+    // formats present in the message
     // And then 'number of formats' times the following:
     //		1 uint32:	The format of the clipboard data
     //		1 uint32:	The size n of the clipboard data
     //		n uint8:	The clipboard data
     const uint8_t *parse_msg = message + 17;
-    uint32_t num_formats = sNetToNative32(parse_msg);
+    unsigned int num_formats = sNetToNative32(parse_msg);
     parse_msg += 4;
     for (; num_formats; num_formats--) {
       // Parse clipboard format header
-      uint32_t format = sNetToNative32(parse_msg);
-      uint32_t size = sNetToNative32(parse_msg + 4);
+      unsigned int format = sNetToNative32(parse_msg);
+      unsigned int size = sNetToNative32(parse_msg + 4);
       parse_msg += 8;
 
       // Call callback
@@ -433,7 +434,7 @@ static void sUpdateContext(uSynergyContext *context) {
 
   /* Check for timeouts */
   if (context->m_hasReceivedHello) {
-    uint32_t cur_time = context->m_getTimeFunc();
+    unsigned int cur_time = context->m_getTimeFunc();
     if (num_received == 0) {
       /* Timeout after 2 secs of inactivity (we received no CALV) */
       if ((cur_time - context->m_lastMessageTime) > USYNERGY_IDLE_TIMEOUT)
@@ -524,19 +525,19 @@ void uSynergyUpdate(uSynergyContext *context) {
 **/
 void uSynergySendClipboard(uSynergyContext *context, const char *text) {
   // Calculate maximum size that will fit in a reply packet
-  uint32_t overhead_size = 4 + /* Message size */
-                           4 + /* Message int */
-                           1 + /* Clipboard index */
-                           4 + /* Sequence number */
-                           4 + /* Rest of message size (because it's a Synergy
-                                  string from here on) */
-                           4 + /* Number of clipboard formats */
-                           4 + /* Clipboard format */
-                           4;  /* Clipboard data length */
-  uint32_t max_length = USYNERGY_REPLY_BUFFER_SIZE - overhead_size;
+  unsigned int overhead_size = 4 + /* Message size */
+                               4 + /* Message int */
+                               1 + /* Clipboard index */
+                               4 + /* Sequence number */
+                               4 + /* Rest of message size (because it's a
+                                      Synergy string from here on) */
+                               4 + /* Number of clipboard formats */
+                               4 + /* Clipboard format */
+                               4;  /* Clipboard data length */
+  unsigned int max_length = USYNERGY_REPLY_BUFFER_SIZE - overhead_size;
 
   // Clip text to max length
-  uint32_t text_length = (uint32_t)strlen(text);
+  unsigned int text_length = (unsigned int)strlen(text);
   if (text_length > max_length) {
     char buffer[128];
     sprintf(buffer,
